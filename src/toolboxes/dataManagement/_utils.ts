@@ -27,9 +27,8 @@ export function optionalNumber(parameters: ToolboxParameters, id: string, label:
   return number
 }
 
-/** A table row: a feature without geometry. */
-export const tableRow = (properties: Record<string, unknown>): Feature =>
-  ({ type: 'Feature', properties, geometry: null }) as unknown as Feature
+/** A table row (see src/geojson.ts): a feature without geometry. Re-exported for this toolbox's callers. */
+export { tableRow } from '../../geojson'
 
 export const samePosition = (a: Position, b: Position) => a[0] === b[0] && a[1] === b[1]
 const validPosition = (position: Position | undefined) =>

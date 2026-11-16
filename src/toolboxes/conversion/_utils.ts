@@ -2,6 +2,7 @@ import Papa from 'papaparse'
 import readXlsxFile from 'read-excel-file/universal'
 import type { Feature, FeatureCollection, Geometry, Position } from 'geojson'
 import type { MapLayer } from '../../store'
+import { tableRow } from '../../geojson'
 import { EARTH_RADIUS } from '../spatial'
 
 /** Helpers shared by the Conversion toolbox. All geometry is WGS 84 unless noted. */
@@ -158,7 +159,7 @@ export function rowsToRecords(rows: unknown[][]): { fields: string[]; records: R
 export function recordsToTable(records: Record<string, TableCell>[]): FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: records.map((properties) => ({ type: 'Feature', properties, geometry: null as unknown as Geometry })),
+    features: records.map((properties) => tableRow(properties)),
   }
 }
 

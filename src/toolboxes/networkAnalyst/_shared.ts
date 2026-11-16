@@ -1,5 +1,6 @@
 import { featureCollection } from '@turf/helpers'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
+import { tableRow } from '../../geojson'
 import type { MapLayer } from '../../store'
 import {
   buildNetworkGraph,
@@ -88,11 +89,7 @@ export function geometryOutput(
 }
 
 export function tableOutput(name: string, rows: Record<string, unknown>[], sourceCrs: string): MapLayer {
-  const features: Feature<Geometry>[] = rows.map((properties) => ({
-    type: 'Feature',
-    geometry: null as unknown as Geometry,
-    properties: properties as Feature['properties'],
-  }))
+  const features: Feature<Geometry>[] = rows.map((properties) => tableRow(properties))
   const data: FeatureCollection = featureCollection(features)
   return outputLayer(name, data, sourceCrs)
 }

@@ -1,4 +1,5 @@
 import type { Feature, Geometry, Position } from 'geojson'
+import { withoutGeometry } from '../../geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
 import { geometryProblems } from './checkGeometry'
@@ -54,7 +55,7 @@ export const repairGeometryTool: ToolboxTool = {
       if (problems.length && geometry) repaired += 1
       if (!geometry) {
         if (deleteNull) { deleted += 1; continue }
-        features.push({ ...feature, geometry: null } as unknown as Feature)
+        features.push(withoutGeometry(feature))
         continue
       }
       features.push(inPlace ? { ...feature, geometry } : { type: 'Feature', properties: { ...(feature.properties ?? {}) }, geometry })

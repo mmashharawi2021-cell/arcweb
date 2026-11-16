@@ -8,7 +8,8 @@ import intersect from '@turf/intersect'
 import rewind from '@turf/rewind'
 import union from '@turf/union'
 import Papa from 'papaparse'
-import type { Feature, FeatureCollection, Geometry, MultiPolygon, Polygon, Position } from 'geojson'
+import type { Feature, Geometry, MultiPolygon, Polygon, Position } from 'geojson'
+import { tableRow } from '../../geojson'
 import type { MapLayer } from '../../store'
 import { fieldNames, outputLayer } from '../shared'
 import { splitLineByPolygons, type PolygonFeature } from '../spatial'
@@ -166,8 +167,8 @@ export function resolveField(layer: MapLayer, name: string): string {
 
 /** A table output: a layer of geometry-less rows (shown only in the attribute table). */
 export function tableLayer(name: string, rows: Row[]): MapLayer {
-  const features = rows.map((properties) => ({ type: 'Feature' as const, geometry: null, properties }))
-  return outputLayer(name, { type: 'FeatureCollection', features } as unknown as FeatureCollection)
+  const features = rows.map((properties) => tableRow(properties))
+  return outputLayer(name, { type: 'FeatureCollection', features })
 }
 
 export function csvDownload(name: string, rows: Row[], fields: string[]): ToolDownload {
