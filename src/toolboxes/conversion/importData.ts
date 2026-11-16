@@ -4,6 +4,7 @@ import type { ToolboxTool } from '../types'
 
 export const importDataTool: ToolboxTool = {
   id: 'import-data',
+  runsOnMainThread: true,
   name: 'Import Data',
   category: 'Conversion',
   subcategory: 'From/To Files',

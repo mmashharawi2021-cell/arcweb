@@ -58,5 +58,7 @@ export interface ToolboxTool {
   description: string
   keywords: string[]
   parameters: ToolParameter[]
+  /** Set for tools that need DOM APIs or file readers that cannot run inside the geoprocessing worker. */
+  runsOnMainThread?: true
   execute: (context: ToolboxContext, parameters: ToolboxParameters) => ToolExecutionResult | Promise<ToolExecutionResult>
 }

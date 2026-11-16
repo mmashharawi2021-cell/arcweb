@@ -3,6 +3,7 @@ export interface WorkerLike {
   terminate(): void
   onmessage: ((event: { data: unknown }) => void) | null
   onerror: ((event: { message?: string }) => void) | null
+  onmessageerror?: ((event: unknown) => void) | null
 }
 
 export type WorkerReply<R> =
@@ -30,6 +31,7 @@ export function runInWorker<Q, R>(createWorker: () => WorkerLike, request: Q, op
       signal?.removeEventListener('abort', onAbort)
       worker.onmessage = null
       worker.onerror = null
+      worker.onmessageerror = null
       worker.terminate()
       finish()
     }
@@ -38,11 +40,18 @@ export function runInWorker<Q, R>(createWorker: () => WorkerLike, request: Q, op
     }
     signal?.addEventListener('abort', onAbort)
     worker.onmessage = (event) => {
-      const reply = event.data as WorkerReply<R>
-      if (reply.kind === 'progress') onProgress?.({ current: reply.current, total: reply.total, message: reply.message })
-      else if (reply.kind === 'result') settle(() => resolve(reply.value))
-      else if (reply.kind === 'error') settle(() => reject(new Error(reply.message)))
+      if (settled) return
+      // Worker data is untyped: validate the discriminant, then narrow with casts below.
+      const reply: unknown = event.data
+      const kind = typeof reply === 'object' && reply !== null ? (reply as { kind?: unknown }).kind : undefined
+      if (kind === 'progress') {
+        const progress = reply as Extract<WorkerReply<R>, { kind: 'progress' }>
+        onProgress?.({ current: progress.current, total: progress.total, message: progress.message })
+      } else if (kind === 'result') settle(() => resolve((reply as Extract<WorkerReply<R>, { kind: 'result' }>).value))
+      else if (kind === 'error') settle(() => reject(new Error(String((reply as Extract<WorkerReply<R>, { kind: 'error' }>).message))))
+      else settle(() => reject(new Error('Malformed worker reply.')))
     }
+    worker.onmessageerror = () => settle(() => reject(new Error('The worker reply could not be read.')))
     worker.onerror = (event) => settle(() => reject(new Error(event.message || 'The worker failed unexpectedly.')))
     try {
       worker.postMessage(request)

@@ -8,9 +8,18 @@ const scope = self as unknown as {
   postMessage(message: WorkerReply<ImportResult>): void
 }
 
+/** Posting can throw (e.g. a value that cannot be structured-cloned); report that instead of hanging the caller. */
+const post = (message: WorkerReply<ImportResult>) => {
+  try {
+    scope.postMessage(message)
+  } catch (error) {
+    scope.postMessage({ kind: 'error', message: error instanceof Error ? error.message : 'The import result could not be sent.' })
+  }
+}
+
 scope.onmessage = (event) => {
   handleImportRequest(event.data).then(
-    (value) => scope.postMessage({ kind: 'result', value }),
-    (error: unknown) => scope.postMessage({ kind: 'error', message: error instanceof Error ? error.message : 'Unknown file error' }),
+    (value) => post({ kind: 'result', value }),
+    (error: unknown) => post({ kind: 'error', message: error instanceof Error ? error.message : 'Unknown file error' }),
   )
 }

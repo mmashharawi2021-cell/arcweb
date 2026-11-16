@@ -20,6 +20,7 @@ import { calculateField } from './fieldCalculator'
 import { createMapLayer, getCollectionBounds, readGeospatialFile } from './geo'
 import { rasterToFeatureCollection } from './rasterEngine'
 import { runInWorker, type WorkerLike } from './workers/runInWorker'
+import type { ToolRequest } from './workers/toolProtocol'
 import { needsMainThread } from './workers/importHandler'
 import type { ImportRequest, ImportResult } from './workers/importProtocol'
 import { exportLayer, exportMapCanvas } from './exportData'
@@ -62,7 +63,7 @@ import type { PanelFrame, WorkspacePanelId, WorkspacePreset } from './workspaceL
 import { getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses } from './symbology'
 import { SelectByAttributesDialog, SelectByLocationDialog } from './selection/SelectionDialogs'
 import ToolboxPanel from './toolboxes/ToolboxPanel'
-import type { ToolboxParameters, ToolboxTool } from './toolboxes/types'
+import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './toolboxes/types'
 import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from './toolboxes/selectionScope'
 import { describeToolRun } from './toolboxes/history'
 import './App.css'
@@ -1280,6 +1281,9 @@ function App() {
     }
   }, [notify])
 
+  const toolAbortRef = useRef<AbortController | null>(null)
+  const cancelTool = useCallback(() => toolAbortRef.current?.abort(), [])
+
   const executeTool = useCallback(async (toolDefinition: ToolboxTool, parameters: ToolboxParameters, options: { selectedOnly: boolean }) => {
     const executionId = ++toolExecutionIdRef.current
     const startedAt = new Date()
@@ -1292,18 +1296,25 @@ function App() {
         selectedOnly: options.selectedOnly, outputLayerNames,
       })
     }
+    const controller = new AbortController()
+    toolAbortRef.current = controller
     setToolExecutionProgress({ name: toolDefinition.name, current: 0, total: 1, message: 'Running' })
     try {
       const state = useArcWebStore.getState()
       // Tools see only the selected features of layers that have a selection, like ArcGIS Pro.
       const scope = options.selectedOnly ? scopeLayersToSelection(state.layers, state.selections) : { layers: state.layers, scoped: new Map() }
-      const result = await toolDefinition.execute({
-        layers: scope.layers,
-        selectedLayerId: state.selectedLayerId,
-        onProgress: (progress) => {
-          if (toolExecutionIdRef.current === executionId) setToolExecutionProgress({ name: toolDefinition.name, ...progress })
-        },
-      }, parameters)
+      const onProgress = (progress: { current: number; total: number; message: string }) => {
+        if (toolExecutionIdRef.current === executionId) setToolExecutionProgress({ name: toolDefinition.name, ...progress })
+      }
+      const result = toolDefinition.runsOnMainThread
+        ? await toolDefinition.execute({ layers: scope.layers, selectedLayerId: state.selectedLayerId, onProgress }, parameters)
+        : await runInWorker<ToolRequest, ToolExecutionResult>(
+          // Worker's handlers take a full MessageEvent; WorkerLike only needs the fields the helper reads.
+          () => new Worker(new URL('./workers/tool.worker.ts', import.meta.url), { type: 'module' }) as WorkerLike,
+          { toolId: toolDefinition.id, layers: scope.layers, selectedLayerId: state.selectedLayerId, parameters },
+          { signal: controller.signal, onProgress },
+        )
+      if (controller.signal.aborted) throw new DOMException('Cancelled by user.', 'AbortError')
       result.updates?.forEach(({ layerId, updates }) => {
         const subset = scope.scoped.get(layerId)
         const current = useArcWebStore.getState().layers.find((layer) => layer.id === layerId)
@@ -1323,10 +1334,16 @@ function App() {
       })
       notify(result.message, result.kind ?? 'success')
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Tool execution error.'
-      record('failed', message)
-      notify(`${toolDefinition.name} failed: ${message}`, 'error')
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        record('failed', 'Cancelled by user.')
+        notify(`${toolDefinition.name} cancelled.`, 'warning')
+      } else {
+        const message = error instanceof Error ? error.message : 'Tool execution error.'
+        record('failed', message)
+        notify(`${toolDefinition.name} failed: ${message}`, 'error')
+      }
     } finally {
+      if (toolAbortRef.current === controller) toolAbortRef.current = null
       if (toolExecutionIdRef.current === executionId) setToolExecutionProgress(null)
     }
   }, [notify])
@@ -2257,6 +2274,7 @@ function App() {
                 running={toolExecutionProgress?.name ?? null}
                 history={analysisHistory}
                 onExecute={(definition, parameters, options) => void executeTool(definition, parameters, options)}
+                onCancel={cancelTool}
                 onClose={() => {
                   const state = useArcWebStore.getState()
                   state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: false })

@@ -4,6 +4,7 @@ import { readTableFile, recordsToTable } from './_utils'
 
 export const excelToTableTool: ToolboxTool = {
   id: 'excel-to-table',
+  runsOnMainThread: true,
   name: 'Excel/CSV To Table',
   category: 'Conversion',
   subcategory: 'From/To Files',

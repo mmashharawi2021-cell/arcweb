@@ -41,6 +41,7 @@ async function readRows(context: ToolboxContext, parameters: ToolboxParameters) 
 
 export const xyTableToPointTool: ToolboxTool = {
   id: 'xy-table-to-point',
+  runsOnMainThread: true,
   name: 'XY Table To Point',
   category: 'Conversion',
   subcategory: 'From/To Files',

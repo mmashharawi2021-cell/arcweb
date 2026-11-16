@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, BriefcaseBusiness, CheckCircle2, ChevronDown, ChevronRight, ChevronsDownUp, Folder, FolderOpen, Hammer, History, Loader2, Move, Play, RotateCcw, Search, Wrench, X, XCircle } from 'lucide-react'
+import { ArrowLeft, BriefcaseBusiness, CheckCircle2, ChevronDown, ChevronRight, ChevronsDownUp, Folder, FolderOpen, Hammer, History, Move, Play, RotateCcw, Search, Wrench, X, XCircle } from 'lucide-react'
 import type { AnalysisRecord, MapLayer } from '../store'
 import { restoreToolValues } from './history'
 import { buildToolboxTree, searchTools, toolboxLabels, toolboxTools } from './registry'
@@ -17,6 +17,8 @@ interface ToolboxPanelProps {
   floating: boolean
   onToggleFloat: () => void
   onExecute: (tool: ToolboxTool, parameters: ToolboxParameters, options: { selectedOnly: boolean }) => void
+  /** Cancels the running tool. */
+  onCancel: () => void
   onClose: () => void
 }
 
@@ -36,7 +38,7 @@ function makeDefaultValues(tool: ToolboxTool, layers: MapLayer[], selectedLayerI
   return values
 }
 
-export default function ToolboxPanel({ layers, selectedLayerId, selectionCount, running, history, floating, onToggleFloat, onExecute, onClose }: ToolboxPanelProps) {
+export default function ToolboxPanel({ layers, selectedLayerId, selectionCount, running, history, floating, onToggleFloat, onExecute, onCancel, onClose }: ToolboxPanelProps) {
   const [view, setView] = useState<'tools' | 'history'>('tools')
   // ArcGIS processes only the selected features when a selection exists; the box lets students opt out.
   const [useSelection, setUseSelection] = useState(true)
@@ -246,13 +248,17 @@ export default function ToolboxPanel({ layers, selectedLayerId, selectionCount, 
               <span>Use selected features only <small>({selectionCount.toLocaleString()} selected; layers without a selection are used in full)</small></span>
             </label>
           )}
-          <button
-            className="phase-primary-button"
-            disabled={running !== null || (!layers.length && activeTool.parameters.some((parameter) => parameter.kind === 'layer' || parameter.kind === 'layers'))}
-            onClick={() => onExecute(activeTool, values, { selectedOnly: selectionCount > 0 && useSelection })}
-          >
-            {running ? <><Loader2 size={13} className="spin" /> Running {running}…</> : <><Play size={13} /> Run</>}
-          </button>
+          {running ? (
+            <button className="phase-secondary-button" onClick={onCancel}><X size={13} /> Cancel</button>
+          ) : (
+            <button
+              className="phase-primary-button"
+              disabled={!layers.length && activeTool.parameters.some((parameter) => parameter.kind === 'layer' || parameter.kind === 'layers')}
+              onClick={() => onExecute(activeTool, values, { selectedOnly: selectionCount > 0 && useSelection })}
+            >
+              <Play size={13} /> Run
+            </button>
+          )}
         </div>
       ) : (
         <div className="toolbox-tool-list" role="tree" aria-label="Toolboxes">
