@@ -1,6 +1,7 @@
 import { fromArrayBuffer } from 'geotiff'
 import proj4 from 'proj4'
 import { getCrs } from './crs'
+import { finiteNumber } from './numbers'
 
 export const MAX_RASTER_CELLS = 250_000
 
@@ -115,11 +116,11 @@ export function rasterFromFeatureCollection(collection: {
 }, valueField = 'value'): RasterGrid {
   const samples = collection.features.flatMap((feature) => {
     const properties = feature.properties
-    const value = Number(properties?.[valueField])
+    const value = finiteNumber(properties?.[valueField])
     const row = Number(properties?.row)
     const column = Number(properties?.column)
     const geometry = feature.geometry
-    if (!Number.isFinite(value) || !Number.isInteger(row) || !Number.isInteger(column) || !geometry) return []
+    if (value === null || !Number.isInteger(row) || !Number.isInteger(column) || !geometry) return []
     if (geometry.type !== 'Polygon' || !Array.isArray(geometry.coordinates)) return []
     const ring = geometry.coordinates[0] as [number, number][]
     if (!ring || ring.length < 4) return []

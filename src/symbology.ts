@@ -1,3 +1,4 @@
+import { finiteNumber } from './numbers'
 import type {
   CategoricalRampId,
   ClassificationMethod,
@@ -200,8 +201,8 @@ export function getGraduatedClasses(renderer: Extract<RendererConfig, { type: 'g
 export function getGraduatedClassCounts(layer: MapLayer, renderer: Extract<RendererConfig, { type: 'graduated' }>): number[] {
   const counts = new Array<number>(renderer.breaks.length + 1).fill(0)
   for (const record of properties(layer)) {
-    const value = Number(record[renderer.field])
-    if (!Number.isFinite(value)) continue
+    const value = finiteNumber(record[renderer.field])
+    if (value === null) continue
     const index = renderer.breaks.findIndex((threshold) => value < threshold)
     counts[index < 0 ? counts.length - 1 : index] += 1
   }
@@ -234,7 +235,7 @@ export function buildGraduatedRenderer(
   classCount: number,
   ramp: ContinuousRampId,
 ): Extract<RendererConfig, { type: 'graduated' }> {
-  const values = properties(layer).map((record) => Number(record[field])).filter(Number.isFinite)
+  const values = properties(layer).map((record) => finiteNumber(record[field])).filter((value): value is number => value !== null)
   const breaks = calculateClassBreaks(values, method, classCount)
   const colors = sampleContinuousRamp(ramp, breaks.length + 1)
   return { type: 'graduated', field, method, ramp, breaks, colors, classCount }
