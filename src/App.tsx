@@ -47,6 +47,7 @@ import {
   buildLayerMenu, buildMapCanvasMenu, formatLngLat, isRightClickGesture, runLayerMenuAction, runMapCanvasMenuAction,
   type MenuEntry,
 } from './contextMenu/menuModel'
+import { ViewRibbon } from './ribbon/ViewRibbon'
 import { EditSessionRibbon, FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/ContextualRibbons'
 import BookmarksPopover from './BookmarksPopover'
 import IdentifyPopup, { type IdentifyHit } from './IdentifyPopup'
@@ -1970,6 +1971,30 @@ function App() {
               <div className="group-caption">Export layout</div>
             </div>
           </>
+        ) : activeTab === 'View' ? (
+          <ViewRibbon
+            contentsOpen={!workspaceLayout.contentsMinimized}
+            sidePaneOpen={workspaceLayout.rightPaneOpen}
+            tableOpen={tableOpen}
+            tableAvailable={Boolean(selectedLayer)}
+            preset={workspaceLayout.preset}
+            mode={viewMode === 'layout' ? 'layout' : sceneView ? '3d' : '2d'}
+            fullCanvas={workspaceLayout.fullCanvas}
+            theme={theme}
+            onTogglePane={(pane) => {
+              const state = useArcWebStore.getState()
+              if (pane === 'table') state.setTableOpen(!tableOpen)
+              else if (pane === 'side') state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: !state.workspaceLayout.rightPaneOpen })
+              else state.setWorkspaceLayout({ ...state.workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
+            }}
+            onPreset={selectWorkspacePreset}
+            onMode={(mode) => {
+              setSceneView(mode === '3d')
+              useArcWebStore.getState().setViewMode(mode === 'layout' ? 'layout' : 'map')
+            }}
+            onToggleFullCanvas={toggleFullCanvas}
+            onToggleTheme={() => useArcWebStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark')}
+          />
         ) : activeTab === 'Edit' ? (
           <div className="phase-ribbon-actions">
             {([

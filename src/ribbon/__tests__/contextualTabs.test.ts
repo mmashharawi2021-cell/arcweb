@@ -4,7 +4,7 @@ import { createMapLayer } from '../../geo'
 import { createRasterGrid, rasterToFeatureCollection } from '../../rasterEngine'
 import { useArcWebStore, type ContextualTab, type MapLayer } from '../../store'
 import {
-  getVisibleContextualTabs, hasPendingEdits, isEditingTool, isRasterLayer, reconcileRibbonTabs,
+  CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isEditingTool, isRasterLayer, reconcileRibbonTabs,
 } from '../contextualTabs'
 
 const points: FeatureCollection = {
@@ -58,6 +58,16 @@ describe('contextual tab visibility', () => {
 
   it('keeps the Edit tab while edits are unsaved, even after leaving the editing tools', () => {
     expect(getVisibleContextualTabs({ selectedLayer: null, tool: 'pan', pendingEdits: true })).toEqual(['EditSession'])
+  })
+})
+
+describe('core tab order', () => {
+  it('orders core tabs with View between Edit and Layout', () => {
+    expect(CORE_TABS).toEqual(['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Layout', 'Share'])
+  })
+
+  it('treats View as neutral: a newly selected vector layer takes over the ribbon', () => {
+    expect(reconcileRibbonTabs({ activeTab: 'View', returnTab: 'Map' }, [], ['FeatureLayer'])).toEqual({ activeTab: 'FeatureLayer', returnTab: 'View' })
   })
 })
 

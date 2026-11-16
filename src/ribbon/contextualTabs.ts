@@ -2,7 +2,7 @@ import type { FeatureCollection } from 'geojson'
 import type { AppTab, ContextualTab, CoreTab, MapLayer, ToolMode } from '../store'
 
 /** The permanent ribbon tabs, in display order. */
-export const CORE_TABS: readonly CoreTab[] = ['Map', 'Insert', 'Analysis', 'Edit', 'Layout', 'Share']
+export const CORE_TABS: readonly CoreTab[] = ['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Layout', 'Share']
 
 /** Contextual tabs in display order; earlier entries win when several appear at once. */
 export const CONTEXTUAL_TABS: readonly ContextualTab[] = ['EditSession', 'FeatureLayer', 'RasterLayer']
@@ -19,7 +19,7 @@ export const CONTEXTUAL_TAB_META: Record<ContextualTab, { group: string; label: 
  * these is active takes over the ribbon; on Analysis, Edit, Layout or Share it only lights up, so
  * selecting a layer never tears down the Geoprocessing pane or a print layout mid-task.
  */
-const NEUTRAL_TABS: ReadonlySet<AppTab> = new Set<AppTab>(['Map', 'Insert'])
+const NEUTRAL_TABS: ReadonlySet<AppTab> = new Set<AppTab>(['Map', 'Insert', 'View'])
 
 const EDITING_TOOLS: ReadonlySet<ToolMode> = new Set<ToolMode>(['draw-point', 'draw-line', 'draw-polygon', 'move-vertex'])
 
