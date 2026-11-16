@@ -35,11 +35,11 @@ function useEscape(onClose: () => void) {
   }, [onClose])
 }
 
-function LayerSelect({ id, label, layers, value, onChange }: { id: string; label: string; layers: MapLayer[]; value: string; onChange: (id: string) => void }) {
+function LayerSelect({ id, label, layers, value, onChange, autoFocus }: { id: string; label: string; layers: MapLayer[]; value: string; onChange: (id: string) => void; autoFocus?: boolean }) {
   return (
     <label className="dialog-field" htmlFor={id}>
       <span>{label}</span>
-      <select id={id} value={value} onChange={(event) => onChange(event.target.value)}>
+      <select id={id} value={value} autoFocus={autoFocus} onChange={(event) => onChange(event.target.value)}>
         {!layers.length && <option value="">No layers in the map</option>}
         {layers.map((layer) => <option key={layer.id} value={layer.id}>{layer.name} ({layer.data.features.length.toLocaleString('en-US')})</option>)}
       </select>
@@ -115,7 +115,7 @@ export function SelectByAttributesDialog({ layers, initialLayerId, selections, o
         <div className="dialog-body">
           <div className="dialog-main">
             <div className="dialog-grid">
-              <LayerSelect id="sba-layer" label="Input layer" layers={layers} value={layerId} onChange={changeLayer} />
+              <LayerSelect id="sba-layer" autoFocus label="Input layer" layers={layers} value={layerId} onChange={changeLayer} />
               <MethodSelect value={method} onChange={setMethod} />
             </div>
             <div className="dialog-section-title">Where</div>
@@ -222,7 +222,7 @@ export function SelectByLocationDialog({ layers, initialLayerId, selections, onA
         </header>
         <div className="dialog-body">
           <div className="dialog-main">
-            <LayerSelect id="sbl-target" label="Select features from (target layer)" layers={layers} value={targetId} onChange={(id) => { setTargetId(id); setOutcome(null) }} />
+            <LayerSelect id="sbl-target" autoFocus label="Select features from (target layer)" layers={layers} value={targetId} onChange={(id) => { setTargetId(id); setOutcome(null) }} />
             <label className="dialog-field" htmlFor="sbl-relationship">
               <span>That</span>
               <select id="sbl-relationship" value={relationship} onChange={(event) => { setRelationship(event.target.value as SpatialRelationship); setOutcome(null) }}>
