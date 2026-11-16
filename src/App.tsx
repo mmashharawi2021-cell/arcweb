@@ -550,7 +550,7 @@ function App() {
           state.restoreEditSnapshots(snapshots)
           const resumed = Object.keys(useArcWebStore.getState().editSnapshots)
             .map((layerId) => useArcWebStore.getState().layers.find((layer) => layer.id === layerId)?.name)
-            .filter(Boolean)
+            .filter((name): name is string => Boolean(name)).map((name) => isolate(name))
           if (resumed.length) notify(`Resumed your edit session: unsaved edits in ${resumed.join(', ')}. Save or Discard them from the Edit Tools tab.`, 'warning')
         }
         adoptRibbonContext()
@@ -1093,7 +1093,7 @@ function App() {
     anchor.download = projectFileName(project.name)
     anchor.click()
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-    notify(`Saved ${anchor.download} — ${project.layers.length} layer${project.layers.length === 1 ? '' : 's'}, ${(blob.size / 1024).toLocaleString('en-US', { maximumFractionDigits: 0 })} KB.`)
+    notify(`Saved ${isolate(anchor.download)} — ${project.layers.length} layer${project.layers.length === 1 ? '' : 's'}, ${(blob.size / 1024).toLocaleString('en-US', { maximumFractionDigits: 0 })} KB.`)
   }, [notify])
 
   // Layout view shows the live map inside the map frame; map view puts it back in the workspace.
@@ -1139,10 +1139,10 @@ function App() {
           continue
         }
         const imported = loaded.layers
-        const warnings = imported.flatMap((item) => item.warnings.map((warning) => `${item.name}: ${warning}`))
+        const warnings = imported.flatMap((item) => item.warnings.map((warning) => `${isolate(item.name)}: ${warning}`))
         const added = imported.map(({ name, data, sourceCrs }) => createMapLayer(name, data, sourceCrs))
         added.forEach((layer) => useArcWebStore.getState().addLayer(layer))
-        const result = `Added ${added.length} layer${added.length === 1 ? '' : 's'} from ${file.name}`
+        const result = `Added ${added.length} layer${added.length === 1 ? '' : 's'} from ${isolate(file.name)}`
         notify(warnings.length ? `${result}. ${warnings.join(' ')}` : result, warnings.length ? 'warning' : 'success')
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
@@ -1233,7 +1233,7 @@ function App() {
       return
     }
     if (layer.data.features.some((feature) => Object.hasOwn(feature.properties ?? {}, field))) {
-      notify(`A field named "${field}" already exists.`, 'warning')
+      notify(`A field named "${isolate(field)}" already exists.`, 'warning')
       return
     }
     const data: FeatureCollection = {
@@ -1244,7 +1244,7 @@ function App() {
       })),
     }
     useArcWebStore.getState().updateLayer(layer.id, { data, customFields: [...(layer.customFields ?? []), field] })
-    notify(`Added field "${field}".`)
+    notify(`Added field "${isolate(field)}".`)
   }, [notify])
 
   const removeCustomField = useCallback((layer: MapLayer, field: string) => {
@@ -1264,7 +1264,7 @@ function App() {
       fieldAliases,
       labelField: layer.labelField === field ? '' : layer.labelField,
     })
-    notify(`Deleted field "${field}".`)
+    notify(`Deleted field "${isolate(field)}".`)
   }, [notify])
 
   const calculateLayerField = useCallback((layer: MapLayer, name: string, expression: string) => {
@@ -1276,7 +1276,7 @@ function App() {
         data,
         customFields: existing ? layer.customFields ?? [] : [...(layer.customFields ?? []), field],
       })
-      notify(`Calculated "${field}" for ${data.features.length.toLocaleString()} features.`)
+      notify(`Calculated "${isolate(field)}" for ${data.features.length.toLocaleString()} features.`)
     } catch (error) {
       notify(`Field calculation failed: ${error instanceof Error ? error.message : 'Invalid expression.'}`, 'error')
     }
