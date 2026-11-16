@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ListFilter, Plus, SquareDashedMousePointer, Trash2, X } from 'lucide-react'
 import type { FeatureId, MapLayer, SelectionMethod } from '../store'
+import { trapTabKey, useRestoreFocus } from '../a11y/modalFocus'
 import { fieldNames } from '../toolboxes/shared'
 import {
   evaluateQuery, isNumericField, newClause, operatorNeedsValue, queryOperators, queryToSql, uniqueValues, usableClauses,
@@ -67,6 +68,7 @@ function describe(matched: number, total: number, method: SelectionMethod, layer
 
 export function SelectByAttributesDialog({ layers, initialLayerId, selections, onApply, onClose }: DialogProps) {
   useEscape(onClose)
+  useRestoreFocus()
   const [layerId, setLayerId] = useState(initialLayerId && layers.some((layer) => layer.id === initialLayerId) ? initialLayerId : layers[0]?.id ?? '')
   const layer = layers.find((item) => item.id === layerId)
   const fields = useMemo(() => layer ? fieldNames(layer) : [], [layer])
@@ -105,7 +107,7 @@ export function SelectByAttributesDialog({ layers, initialLayerId, selections, o
 
   return (
     <div className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <section className="modal selection-dialog attribute-dialog" role="dialog" aria-modal="true" aria-label="Select By Attributes">
+      <section className="modal selection-dialog attribute-dialog" role="dialog" aria-modal="true" aria-label="Select By Attributes" onKeyDown={trapTabKey}>
         <header className="modal-header">
           <div><ListFilter size={15} /><strong>Select By Attributes</strong><span>Build a WHERE clause</span></div>
           <button className="subtle-icon" title="Close" onClick={onClose}><X size={15} /></button>
@@ -177,6 +179,7 @@ export function SelectByAttributesDialog({ layers, initialLayerId, selections, o
 
 export function SelectByLocationDialog({ layers, initialLayerId, selections, onApply, onClose }: DialogProps) {
   useEscape(onClose)
+  useRestoreFocus()
   const [targetId, setTargetId] = useState(initialLayerId && layers.some((layer) => layer.id === initialLayerId) ? initialLayerId : layers[0]?.id ?? '')
   const [sourceId, setSourceId] = useState(layers.find((layer) => layer.id !== targetId)?.id ?? layers[0]?.id ?? '')
   const [relationship, setRelationship] = useState<SpatialRelationship>('intersect')
@@ -212,7 +215,7 @@ export function SelectByLocationDialog({ layers, initialLayerId, selections, onA
 
   return (
     <div className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <section className="modal selection-dialog location-dialog" role="dialog" aria-modal="true" aria-label="Select By Location">
+      <section className="modal selection-dialog location-dialog" role="dialog" aria-modal="true" aria-label="Select By Location" onKeyDown={trapTabKey}>
         <header className="modal-header">
           <div><SquareDashedMousePointer size={15} /><strong>Select By Location</strong><span>Select by spatial relationship</span></div>
           <button className="subtle-icon" title="Close" onClick={onClose}><X size={15} /></button>

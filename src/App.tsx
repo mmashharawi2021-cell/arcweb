@@ -1,5 +1,5 @@
 import { Children, cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactElement, ReactNode } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactElement, ReactNode } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
@@ -61,6 +61,7 @@ import {
 import { applyWorkspacePreset, normalizeWorkspaceLayout } from './workspaceLayout'
 import type { PanelFrame, WorkspacePanelId, WorkspacePreset } from './workspaceLayout'
 import { getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses } from './symbology'
+import { trapTabKey } from './a11y/modalFocus'
 import { SelectByAttributesDialog, SelectByLocationDialog } from './selection/SelectionDialogs'
 import ToolboxPanel from './toolboxes/ToolboxPanel'
 import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './toolboxes/types'
@@ -110,22 +111,6 @@ function focusLayerInContents(layerId: string | null) {
       document.querySelector<HTMLElement>('.contents-dock [aria-label="Add data"]')
     target?.focus()
   })
-}
-
-/** Keeps Tab / Shift+Tab inside a modal dialog. */
-function trapTabKey(event: ReactKeyboardEvent<HTMLElement>) {
-  if (event.key !== 'Tab') return
-  const focusable = [...event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])')]
-  if (!focusable.length) return
-  const first = focusable[0]
-  const last = focusable[focusable.length - 1]
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault()
-    last.focus()
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault()
-    first.focus()
-  }
 }
 
 /** The open right-click menu, with the viewport point it was opened at. */

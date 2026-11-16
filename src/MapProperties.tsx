@@ -4,6 +4,7 @@ import {
   coordinateReadout, coordinateSystems, crsGroups, crsLabel, getCrs, isInsideAreaOfUse, projectPosition, requireCrs,
   scaleDenominator, utmCodeFor, WGS84,
 } from './crs'
+import { trapTabKey, useRestoreFocus } from './a11y/modalFocus'
 import { getCollectionBounds } from './geo'
 import type { MapLayer } from './store'
 
@@ -42,6 +43,7 @@ function projectedExtent(layer: MapLayer, code: string): string {
 export default function MapProperties({ name, layers, displayCrs, view, onChangeDisplayCrs, onClose }: MapPropertiesProps) {
   const [tab, setTab] = useState<Tab>('crs')
   const [query, setQuery] = useState('')
+  useRestoreFocus()
   const current = requireCrs(displayCrs)
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function MapProperties({ name, layers, displayCrs, view, onChange
 
   return (
     <div className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <section className="modal map-properties" role="dialog" aria-modal="true" aria-label="Map Properties">
+      <section className="modal map-properties" role="dialog" aria-modal="true" aria-label="Map Properties" onKeyDown={trapTabKey}>
         <header className="modal-header">
           <div><Settings2 size={15} /><strong>Map Properties</strong><span>{name}</span></div>
           <button className="subtle-icon" title="Close" onClick={onClose}><X size={15} /></button>
