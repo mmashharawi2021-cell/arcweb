@@ -1,0 +1,3126 @@
+{
+    "audit_date":  "2026-11-15",
+    "status":  "partial",
+    "scope":  "Current-session review only; does not inherit prior manual/browser claims",
+    "final_tests":  {
+                        "tests":  297,
+                        "files":  30,
+                        "exit_code":  0
+                    },
+    "category_counts":  [
+                            {
+                                "category":  "manual-full",
+                                "files":  72
+                            },
+                            {
+                                "category":  "validation-only",
+                                "files":  136
+                            },
+                            {
+                                "category":  "manual-focused",
+                                "files":  11
+                            },
+                            {
+                                "category":  "excluded",
+                                "files":  3
+                            }
+                        ],
+    "files":  [
+                  {
+                      "path":  ".oxlintrc.json",
+                      "sha256":  "b4d344818a1e1bf43997e4744a9153c8eef770c98b58229cd86363dabb85ded4",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "CLAUDE.md",
+                      "sha256":  "185b322576716367abbc24add29f0e7522d5b542915a03c0f9aabd0973ff3186",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "package.json",
+                      "sha256":  "2935a43228172c853719d5e74d2821e17cd673c565cd58b4887b8a2e482af837",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/auditIntegrity.test.ts",
+                      "sha256":  "f1da1ae7fdcd4b9d5d54fe41032ed12eaa798f45293b694e22f20093293dfe76",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/editSessionResume.test.ts",
+                      "sha256":  "ca94c50563e0036f5747dbef466236ac7cfa79b8431adf010ea996ccc8263a14",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/exportEncoding.test.ts",
+                      "sha256":  "1eaaafe35a22d29a4f1bb0bdd8c8b6ef6f925f6d099a91087b21e67fe6cb944c",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/geoImport.test.ts",
+                      "sha256":  "10700d6f93d7c31eafc31e252297dd398c95a4175c3d6920517ed12cd6c8f010",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/largeTableAudit.test.ts",
+                      "sha256":  "d53c6832c5a34f76c4319417798bdd1898ff8d3325bb947ded3b7880c4c158cf",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/projectPersistence.test.ts",
+                      "sha256":  "2d20c9754066a8bb8c662c3ee8a5ce6135857b8a579c1291468f89750a950044",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/symbology.test.ts",
+                      "sha256":  "87b4faf3d553023076d754e2ff5cd3d8f91b9d8ed261e59bf18f468d4f6de61b",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/uniqueValuesPanel.test.ts",
+                      "sha256":  "a46fafe1b2b3d8ca11d248fe30f70f65e4a16dd2ba025bb3c9e0d159e98aed64",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/__tests__/workspaceLayout.test.ts",
+                      "sha256":  "a60e0ddafc00c166e48b3680dc72665e4d72a5a67d5cf9fc8b09e4d63fae62c6",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/App.css",
+                      "sha256":  "1ded3ebe8b20634b8db4fb859fab60f6f27f251cf4b5b986e1e227a9a9a27000",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/App.tsx",
+                      "sha256":  "ca98e47bf2781b8868beb5bf5de4c048452eae8816f262c2b606f111ea138aad",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/assets/hero.png",
+                      "sha256":  "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+                      "manual_review":  "excluded",
+                      "automated_validation":  [
+
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/assets/react.svg",
+                      "sha256":  "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5",
+                      "manual_review":  "excluded",
+                      "automated_validation":  [
+
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/assets/vite.svg",
+                      "sha256":  "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f",
+                      "manual_review":  "excluded",
+                      "automated_validation":  [
+
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/AttributeTable.tsx",
+                      "sha256":  "2c3091e24bfeb776fcab1ed8ac0715574adfb444f83487d28896c476f7e31707",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/BookmarksPopover.tsx",
+                      "sha256":  "4171900e5886386d6fb3d02384d558d3be5bc16f1c56420d60bd1ebea7642f8b",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/contextMenu/__tests__/menuModel.test.ts",
+                      "sha256":  "6ade1d800cd475a0d577d32aaec086dfd811f92dd3f19086777b2dd58b9c1106",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/contextMenu/ContextMenu.tsx",
+                      "sha256":  "c79ff5f957e73468e10cc061a69aa0b536cd06113532d8a208b34e1e9d3613a8",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/contextMenu/menuModel.ts",
+                      "sha256":  "75a50902dde7c44d93cbb20d5130e59fc27fc2091a2366f98328a8a680e00158",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/crs.ts",
+                      "sha256":  "5ca10b2c4c49faf67ad2e1f747ff264a13620c0847c8d3f3db168a170e71d2e9",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "auditIntegrity: invalid and valid same-CRS coordinates"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/DockablePanel.tsx",
+                      "sha256":  "91d0394e48eb446e04bc625efbdf00f43e540a65ede9628e5a2abb88e012f2f3",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/exportData.ts",
+                      "sha256":  "85485dfdc88980bfdd81f2c0a59129e1f4e1a5ae20d7f345b00f72c2759288cb",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "exportEncoding: captured Blob bytes, Arabic, geometry collision, URL revocation; DOM mocked"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/fieldCalculator.ts",
+                      "sha256":  "c8bfaddb044440c37c58e6fed5b615b2d912779b013558af74fd08b0992b4edd",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "auditIntegrity: overflow rejection, atomicity, ordinary arithmetic"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/geo.ts",
+                      "sha256":  "7ae0f5323710f3738886dc28e549efdb0257430ae450e902e5c97a4060549835",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/IdentifyPopup.tsx",
+                      "sha256":  "f7374794a5155ddc68d4825fa996312da40ed121c16605e00cfa80d4c73475dd",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/index.css",
+                      "sha256":  "84cc6fb42b3dec6d69211aa56b218eaa4e539f7e86b3b1c73fb3172a1bfcc163",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/__tests__/layoutPrint.test.ts",
+                      "sha256":  "230d5a967160967c8f310e476c25d4f7a74de54b4ab69ab476e5a4e96480dcf8",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/catalog.ts",
+                      "sha256":  "b79b5810ae4b395ad020648bd610ec17fcc7687a236e91c6e43678f69032caf5",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/dynamicText.ts",
+                      "sha256":  "2e77e4b60c84e776ae8abb9ceaf57f90f2830646615893fe731895819aa01378",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/exportLayout.ts",
+                      "sha256":  "65b60f5bc8f187ce5ba41ed95718ff76ed6bf847601f7ef841e01b7344b4c9ba",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/LayoutElements.tsx",
+                      "sha256":  "5b5d88c95ce1e13fcc37d60831cc5b7d7fa432b05b8a2a711521198d4039e867",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/LayoutPanel.tsx",
+                      "sha256":  "7326edc0c31a46f4830c3173e8659a2eae0d71b26f0027402d1dc1a48a5a3e8e",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/layoutStore.ts",
+                      "sha256":  "6c7acb406affb73a4a6c5e77ccaa4791f44b5b3f84ca0c78edd2d81b7a5a71f4",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/LayoutView.tsx",
+                      "sha256":  "34aaa33382342464cba0e52c4f6da9a48761f2eb0425aafc47a5ed99c2b219c3",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/paper.ts",
+                      "sha256":  "d98646b478a0e9abd0908f6246b3629c83c6b3e25fe3744042b29be81145d487",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/scaleBar.ts",
+                      "sha256":  "72c7b685e7bded7598f15c4f2cb3c0e58e30d1a82f5dc43c0eb30977dba6c216",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/layout/templates.ts",
+                      "sha256":  "8f4393a98ae872d1adedbc9471ab319d3d1001dcd6f807435453e1f7cc73604c",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/main.tsx",
+                      "sha256":  "6e9e5807fcbd48b75a96db5cbef36c996262196be42e6d4760dc86babbe61ad2",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/MapProperties.tsx",
+                      "sha256":  "ca7061d3fe549873d2342d9cee370485982516149058919f85529a3d1d9fc7f2",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/mapRendering.ts",
+                      "sha256":  "928287c6a3849ddbc95b2c0dbc73b03f67fdcd0d6977cdd3aea877d92326ed46",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/networkEngine.ts",
+                      "sha256":  "6454c4a62733ac8aca63f6cd64075099803e6ed0b82695573aee508e76d19f18",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/PhasePanels.tsx",
+                      "sha256":  "d2bc756abbc801f182c19d7701083c5f221797b6723859215629e1fd93619c9e",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/project.test.ts",
+                      "sha256":  "2e4ca739aecfa82b4a687e54dc5d163d0b75a6902aa0a2ef10d8c8916c8fdff3",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/project.ts",
+                      "sha256":  "95c49b72ec915f22c3b52d846053c3bf5a50cfeead55037577c7e73f7b78b5ed",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "auditIntegrity + uniqueValuesPanel: unique-colour serialize/parse round trip"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/rasterEngine.ts",
+                      "sha256":  "8409fdabbc976dacd6c8f264e4e9c821ce49aaebdd91b30131a93f0a5bea93d1",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/ribbon/__tests__/contextualTabs.test.ts",
+                      "sha256":  "8aebbbac9b6057f6f636d8313c746ad89b06f51dece396f624b54edf1b26deff",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/ribbon/ContextualRibbons.tsx",
+                      "sha256":  "fda36cc6e98464dc87222d92b4edd87b771a7fabad951c898035e016017eebb5",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/ribbon/contextualTabs.ts",
+                      "sha256":  "47e1518977c56d66bbde3bff63e0ca74bf005af09043e15bcac9091b24fa8ae8",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/scene/__tests__/terrain.test.ts",
+                      "sha256":  "64e91ef2df2408019c0e1e596bf36a66b987083402cee9177b87d0d738cdbdbd",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/scene/SceneNavigator.tsx",
+                      "sha256":  "937241376332e5f83763b1309f0e7d41148ced970bdb8a312829b3946f36d877",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/scene/terrain.ts",
+                      "sha256":  "fcd0907a4de401f1910f7ca9143ed44b6bb6e5fbf7efbee592d9af7942f81f79",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/selection/attributeQuery.ts",
+                      "sha256":  "43d23c02e1b1f5679b355a76583f948dde048a7fe2fc71588c0391d6850d429f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/selection/locationQuery.ts",
+                      "sha256":  "631569b47e972fd3672929c4bd26a7995116c2fa1e84e3c1ddef9fea6eec7234",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/selection/SelectionDialogs.tsx",
+                      "sha256":  "054a0f4bdeda6f39b71d8d88ec6b33515551cef51a05f6743ed1d2360ed31754",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/shpjs.d.ts",
+                      "sha256":  "383de8f6e47b7a22214534e848cae1a7d6b0054dd916a8de4e2cc85aec96f9bd",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/store.ts",
+                      "sha256":  "e6e4c439ed709c3b537269530835eff57e0c832c0b612e1e9c6c13c15767b8cd",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/symbology.ts",
+                      "sha256":  "3efd4e353be81c9a41a4c0b3721944d04f8f21c5d83372a0acbd7f9e6ae17c40",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "auditIntegrity + uniqueValuesPanel: distinct generated category colours"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/SymbologyPanel.tsx",
+                      "sha256":  "84faa90770b65fce1b41d0c4885d236996e3486cc105a10e2c951e0b7b691046",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "uniqueValuesPanel: real mode handler; React hooks stubbed; original-bug mutation rejected"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/table/__tests__/tableQuery.test.ts",
+                      "sha256":  "cad1d8b385087aee25951d3b173bcecf253a9ace55351cdc9f58f3396643d58c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/table/tableQuery.ts",
+                      "sha256":  "ee61aed11eda3349031e3cb93feace77163164177417aae098eb5a4939224021",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/__tests__/nullGeometry.test.ts",
+                      "sha256":  "00488dd1c8d1aae01d5cebe2fb87f97f63563fb01e2df532b3248f46c3bc345d",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/__tests__/registry.test.ts",
+                      "sha256":  "7c8ea54735806661f909ef0e4a7cc457cb6a22ea48bae1e78eb71ea1461a794a",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/__tests__/selectionScope.test.ts",
+                      "sha256":  "9666f5851ebf4b92cf5860135cf95cc8cd46e6c8b0accbdee851d8b28ca03ff7",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/__tests__/analysis.test.ts",
+                      "sha256":  "1eae3e132ac7d971f79c4eb9713eb4a05c33603aead0fabb7d05be87e49dfaff",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/__tests__/summarizeWithin.test.ts",
+                      "sha256":  "aed661b5b9f77ff88b23fa7bceccee4dbf37726d00febacaa2e9ef4122b56c82",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/_utils.ts",
+                      "sha256":  "de0f11c06ebab1a8b9c22ae32226237b35e6e1bd4bde4c5d0ca821a06586b905",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/_where.ts",
+                      "sha256":  "5871ea0f8e28816079d2aaa7bfc1515220c40d607aa4b30627f00e1d413516df",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/buffer.ts",
+                      "sha256":  "1b89565a60e335da29e108df47b0d94d565648070f84f82dc03feb752316f55e",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/clip.ts",
+                      "sha256":  "e9fdc6148fd3320500469363b23e686a029f553bf63b934db619d70e237fb741",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/createThiessenPolygons.ts",
+                      "sha256":  "7035649beb51b473461a38b7ffb9726ebafc6ee4d0820700ac09f5fac36ad85b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/erase.ts",
+                      "sha256":  "1d8aeee91f8c3caf23abd2a7f2d1fd1356e8772d2d0dbf2cae679f4cdd16f6c7",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/frequency.ts",
+                      "sha256":  "a80d45d2ee659b295e2ceed638493b241484923e89202ab0e825304e2a6818d9",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/identity.ts",
+                      "sha256":  "1436e73d582f14fbadb6a1c4ca9ebbfb1c1293717069ae1d5a3741a7487a5036",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/index.ts",
+                      "sha256":  "04ff298712b75975e08a44f5167db6f0169168819f80464c8f7ca3236303e418",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/intersect.ts",
+                      "sha256":  "eef9b16d99e2603f64808cbb9aba70c454bcffce43131a132dccb3f44b9cc599",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/multipleRingBuffer.ts",
+                      "sha256":  "bcb92046fdc0781a88600858ed08c987c41dad622cb7a1df6503e72e054f2369",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/near.ts",
+                      "sha256":  "2387b751344439f01365f95954bd6fd79a0bac96eaebc4f7f70310455cb61385",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/pointDistance.ts",
+                      "sha256":  "069ab053c656591c184665fdf80201c79e35df211e83f31fff8cf290ca898f2c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/select.ts",
+                      "sha256":  "ad3ba5d45b0e9f7585acfa91583a4098512d004b3390fc40ddb47b63cbb43ca4",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/spatialJoin.ts",
+                      "sha256":  "ed4abd682c58ef14a9ea2294c3ad7bb715ba27297d8b83a02171fb87ec95b12c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/split.ts",
+                      "sha256":  "58f822bab07a9cf612a93a73fed0ae32ef97dc78142aafb52de29672b9e8e06a",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/summarizeWithin.ts",
+                      "sha256":  "4b34dc7c72af35491eed3cb6566431f0fd73d6f21c7810b67ca98aa1d2a66f8c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/summaryStatistics.ts",
+                      "sha256":  "127eca1de69b6849a59288399bf2e77e72aeab49380a46daaa7e6e7ca166e2c5",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "largeTableAudit: full execution, MIN/MAX/RANGE and frequency, 150000 rows"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/symmetricalDifference.ts",
+                      "sha256":  "2d189e816680f32021f6ac346f2a774be2948101bc656a2a4d493e1d5c9d6a4d",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/tableSelect.ts",
+                      "sha256":  "b2cc362dad94fd5588aa9dfc9e7cc5f809ce0b986a082e2ecbf690fed92bf655",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/tabulateIntersection.ts",
+                      "sha256":  "c12258de27bd9d9836da6fd68a5e6bba0346fc6aacf9879c4afdf7ff36167015",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/union.ts",
+                      "sha256":  "59e07cec04a092eb04dd923a5c68f753bd40cf9f444c658bee313bb06e47858a",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/analysis/update.ts",
+                      "sha256":  "96486c481ecfb637ed195b3b35fd7c313ad706426dcbbd38136a0d839351cfcc",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/cartography.ts",
+                      "sha256":  "704888cb35e8f589b81fc400ccadb5e37fc29dc94f035f6f80803fab7014081f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/cartography/__tests__/cartographyGeocoding.test.ts",
+                      "sha256":  "e4be0f5b042f36fbccadbedfd715f9dd9114618d198f89482409913e00e19e5e",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/cartography/aggregatePolygons.ts",
+                      "sha256":  "089f3bbcb080bced00178c65a7d1971d76e349cf9043612223ee78b9b66901d0",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/cartography/detectGraphicConflict.ts",
+                      "sha256":  "4647520e8585597050a2393e3a28021f5471b1eb6cf8ec5d008d8b07e6c2535d",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/cartography/gridIndexFeatures.ts",
+                      "sha256":  "498bdba327b2b446699d992ae86e02b8ba372648ceae071a48b29753b266cd2c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/cartography/index.ts",
+                      "sha256":  "e720b963b395e2e5e46543b91178b66ebe7df58cc4d440dce6c829739b2f984c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/__tests__/conversion.test.ts",
+                      "sha256":  "d52b7d2cfb5c81f165f263f44055ee4ef5a9895719414597c6d68e56c0287cbb",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/__tests__/extendedCore.test.ts",
+                      "sha256":  "270d167a9dceec6e69bc363c721a2aef45b7b994b0c5543797868f4c55c9933d",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/_shapefile.ts",
+                      "sha256":  "be4a395b224ff03f6349f5886eefd2598beff2c4aae232f88672ac8f48517fe1",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "largeTableAudit: DBF numeric/text field sizing and record header, 150000 rows"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/_utils.ts",
+                      "sha256":  "d6d4d1581a1992298c2b3495f17ed9d9e58ae984084830d0d55b70e410cf9d61",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "largeTableAudit: spreadsheet headers and last record, 150000 rows"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/createThiessenPolygons.ts",
+                      "sha256":  "23b40650ed7f0afa280e7dc917aa6bdb8ff01bc360e629b8ae612c5984cab851",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/densify.ts",
+                      "sha256":  "6da0775a69325860cfdb003a6c2f151d2ab7c11d98a7ed1b2b63be4ae0ed6f05",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/dxfToFeatures.ts",
+                      "sha256":  "45d0d42473ffd436be9777f4788ad2c5a518d662afd74d7e2f486e6fc9769858",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/excelToTable.ts",
+                      "sha256":  "25c7eec22f23ee6eda6617456c88542ca9156897dddbb3783badc84541df316b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/exportData.ts",
+                      "sha256":  "496dff7d7627c8ca69fef2b92fad9e9d00bf46db4c8cab38461114fefefafeea",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/featuresToCsv.ts",
+                      "sha256":  "2b713f6f0f9b0d47337319fb2fdfc8a4ff181a329a3f5709be8cf0eacc53592a",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/featuresToDxf.ts",
+                      "sha256":  "5f12dca6212292622e582f1a6946caee5242a619ccecc8f3e62f53730eedbd00",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/featuresToGeoJson.ts",
+                      "sha256":  "673ff1c10f70aea53484c05ae8dd7c826df1718100c6be3a0c08d75fb597f80b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/featuresToKml.ts",
+                      "sha256":  "35e0de596c44a741a0dd62f908f9dfb22b50790967b9344a2e9fed917219c0d6",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/featuresToShapefile.ts",
+                      "sha256":  "c0ab92d5bfc1a6a90b1981264e1b1a1964b16dbcf20c8b94d145c15784c02b42",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/generalize.ts",
+                      "sha256":  "021c634f12c95791a2edd4f94c4bb3a94e3eddb7d690333cd560b30b242246a0",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/importData.ts",
+                      "sha256":  "bdc5a21b97655e68b39836a46fa8f6fe49aab6f591343302772b55e42f23e109",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/index.ts",
+                      "sha256":  "00f6f12650974794b37aa265124e61e7016e61e456cac1ab0c7b695d08f9e95a",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/polygonNeighbors.ts",
+                      "sha256":  "3bea12ee16742e3164fe9387b5f353528b22c8266bf1c46ce7b9d613b98d13c3",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/tableToExcel.ts",
+                      "sha256":  "9c0b5b58c6d15664c99180cef07ae6f5b55959803c77bfb52ea9cec3142427d8",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/conversion/xyTableToPoint.ts",
+                      "sha256":  "06d7dfb99178131f022454d95543082e2be7197b3c138096fd1629ac5f3c5963",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/__tests__/dataManagement.test.ts",
+                      "sha256":  "dca21fc4a11622bb079ebc6c08ac47160741e58ad6271a729c13390de67f25b3",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/__tests__/extendedCore.test.ts",
+                      "sha256":  "2f2559624b20f884ca4c939962c4c9f551c12843d152ba4fe17030c8d2e14fb5",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/_generalize.ts",
+                      "sha256":  "b61257c0d64248bb945fb220844617f1557e9b04a54dbe130c48ebe6ef981e38",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/_identical.ts",
+                      "sha256":  "7e16cdff42ea09e2faab1cafec5cc1b3a4df546f359546818000888c3ffe516b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/_utils.ts",
+                      "sha256":  "5413445d385c25d397700b537dc10470d18658e2114067856903eff3f0834670",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/addField.ts",
+                      "sha256":  "7375c1ff7769bc3e351a40b7c67e982bb9c5da51948baa0b81ee04b83dc473bd",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/addJoin.ts",
+                      "sha256":  "1fb50df36f0832beeaee5237f8d20445c981fc7d229217d3cd32758f8f3968de",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/addXYCoordinates.ts",
+                      "sha256":  "00a49afeb181021f992f40dfed0c85b2c8d7736d422aa8049cbe2469858ab100",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/alterField.ts",
+                      "sha256":  "681c2f386ea2c8a2c615261ea7589b8e0dd1d7d05696c9555e58754cf2114a31",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/append.ts",
+                      "sha256":  "5a9060678bbd3b02f1acbcf48a4b11d481c208b2a5f308b3e96bf319e37826a7",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/calculateField.ts",
+                      "sha256":  "36344a9edcf1361a334b6d84a7c6ac060737e66a7dc40abc7c2a001e346327c5",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/calculateGeometry.ts",
+                      "sha256":  "a6143b9d7bc408d7f212451865ec3708b48048cfd4f39541476de399142e1571",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/checkGeometry.ts",
+                      "sha256":  "d559511dd3b09f8f371d9b1d4c459908a1c43eb2cf94362b81f3ba63d4c365ac",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/copyFeatures.ts",
+                      "sha256":  "a7b1e6b96d66dce4d5a0f7eb089851606ea203f3d424007616799f3ddec7ff6c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/createFeatureClass.ts",
+                      "sha256":  "1cec1027d9ac48a67e44f7d755f4cb54b0228b55c4e2f512ee892f076eead249",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/createFishnet.ts",
+                      "sha256":  "fe01ca75445fe8269d2b081f0c632654fd8f024ce3e34d7fff0ba3b96cbfa190",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/createRandomPoints.ts",
+                      "sha256":  "44f4509fffa483288942142cbe03fd9cc59b63a7aac948cdcf195941c8e2803c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/defineProjection.ts",
+                      "sha256":  "573923b40ff7cce51235c215646705cba6c46d0c6de8dcf9e5a6a0f6b0504990",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/deleteField.ts",
+                      "sha256":  "e76f1aa2eb854bbcb4c8697d0e35e57fefe3d051936c4dcb8ebdedc00a6faf7a",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/deleteIdentical.ts",
+                      "sha256":  "daa7367fb4d12448b22b95996bce98b2c2cf7222109df49ca79ed667ee0866c6",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/dissolve.ts",
+                      "sha256":  "c86c75a3891f13c1a5737cfddfba07f1f837b8c2c14a9f76ee1598be228e29df",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "largeTableAudit: computeStatistic RANGE, 150000 values; not full dissolve geometry"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/eliminatePolygonPart.ts",
+                      "sha256":  "e3cbd539b3994de2f5a0e5ae444cf1d4835c3452ca94fd19222199ca4325260a",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/featureClassToFeatureClass.ts",
+                      "sha256":  "3d534abe2f4d35457efde85fce8e29a9a0ae499931be455b862cf788b00f3965",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/featureToLine.ts",
+                      "sha256":  "4cb2fb97b3aa2e5b670baa89109764267bd12be6157c310a87bb944649046c2c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/featureToPoint.ts",
+                      "sha256":  "221548ac9aeb6f046c12506cf838fb07d683716d9f03552ff663de3066813234",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/featureToPolygon.ts",
+                      "sha256":  "e666f7404b235143cafd776f936cfd7084cc93d99264c97adbb31d595e6947a9",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/featureVerticesToPoints.ts",
+                      "sha256":  "b1f3ee0811975d0a70d7a64c969a1a922ff07be5db6bd9d3b80689943bcb8961",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/findIdentical.ts",
+                      "sha256":  "5031e72669e24bbae674594740850c2202c282cef2cce23c4a00a12b7d2fc85e",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/generatePointsAlongLines.ts",
+                      "sha256":  "e2874323141d2ab3b8f59645d099369ab194be18dc6cdb22f9660d50c60acc26",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/index.ts",
+                      "sha256":  "1a69d9f8f111fa0a403e93ec03f0d8b23780c5b88bf236ba72caa48c28e0ec4f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/merge.ts",
+                      "sha256":  "a4d8b8cc018d47e7a81b6e43e67f31cd80a8889e2440ef096a5a2a049465ad54",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/minimumBoundingGeometry.ts",
+                      "sha256":  "9ede83ff095c3b3910a893a63a2d9d746967a23583ad2286d080b9d83db2a8c2",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/multipartToSinglepart.ts",
+                      "sha256":  "30013b59d3cee1479f8a7d0608e34946a43437c174d985a1570317a51f57f202",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/project.ts",
+                      "sha256":  "faf1bf1a836fa0aaaac2282da52ba6dc9ba15343ba78d59aecc96cf54afcb56e",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/repairGeometry.ts",
+                      "sha256":  "e67e760ec53f4d0a2be775f9d115a1d7958264ec6db8fe0942924567dc737b17",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/simplifyLine.ts",
+                      "sha256":  "24c13d1ca26c01bbd4d8f04cbd6befb8921d8be7e12f6c1e41f15638104a94f1",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/simplifyPolygon.ts",
+                      "sha256":  "b349e70d20df0f83b32b1fed8ea6878b42df8f5714896bab8402e248c96838e9",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/smoothLine.ts",
+                      "sha256":  "524d53ca1086988c0d073b7a61b1bdb6c69fd4bf45f8c16a5c12b6dbfc2b1f99",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/smoothPolygon.ts",
+                      "sha256":  "7997af6d22ae82d02ca809e4ade9cef11961645d8dd786389534836895dc13d0",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/dataManagement/sort.ts",
+                      "sha256":  "c9cb058ff30c8e68e96e246d7eccddaa959e36f45c5076c75ad8fd4523b66863",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/geocoding/geocodeAddresses.ts",
+                      "sha256":  "b705c02ba86a2e10e7d626517ba20d4f5dcf3c448e7fbd1ee3598fb7366fef26",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/geocoding/index.ts",
+                      "sha256":  "a23766b2ea592162ee51e5575f9cd5390a922fa3d0ca7e64643d4de35d594da0",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/geocoding/nominatim.ts",
+                      "sha256":  "d0621dd03967b4d84b0f650e7bd3fc4f8ae5088ff367db146e66e5baf74c6277",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/geocoding/reverseGeocode.ts",
+                      "sha256":  "a49ed603be222229ffad27943153f85f74a5c73e21deb7437cc6be2e7ed6f257",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/history.ts",
+                      "sha256":  "ac3f6e6d94b25944883541e9ed3ce35e58143c5b726e323832f7431135940bca",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/__tests__/imageAnalyst.test.ts",
+                      "sha256":  "ec62f0fe90ac8c1f834d05d8ac489a8e9df8f94151c0ee52ccb5ead9d1f8ace1",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/_shared.ts",
+                      "sha256":  "3c7d7a783e49a411f87882f63fc2aef006c53f5d0f9be2a0c444bdcfcbef7a4f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/index.ts",
+                      "sha256":  "fb414034b3867afb175f29d9313aa290adeed7b4c9b37bb5eeb400a8ee2a6f49",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/isoCluster.ts",
+                      "sha256":  "c0d7df33a73087527de23d1bd983709a30df0e25a7ad61c2e4312b17a1c375bf",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/majorityFilter.ts",
+                      "sha256":  "5e25b97c507b89a545fc6b9e3265c52b8d8e2c59aea2da4b94f8ca27b7ff6cc7",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/polygonToRaster.ts",
+                      "sha256":  "74e1c26aa0fefe49fd07ba3e45a55dba5369d1a560bb021d987dc05b70f59e4e",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/rasterToPolygon.ts",
+                      "sha256":  "59f1cac9fae86a176f656e4eae12a71f25dc7ee7ff33311c321769d0bbe8724f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/imageAnalyst/spectralIndices.ts",
+                      "sha256":  "36792e05fd4d67122a5b9138518175b05b7d821dcb3c30d6821e93a362324d79",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/index.ts",
+                      "sha256":  "8db8a7258e520e485de94fed4a59db620f2ce39e85212a736137e9007513bb9c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/__tests__/networkAnalyst.test.ts",
+                      "sha256":  "3b4f475e160989cfe0dce722c100791e94f09c318da060ff2dab2dfd80b09cb1",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/_shared.ts",
+                      "sha256":  "7775d577923d0046ff7e6bf3f6e355917bbd035a35486ca121e8425d2235526f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/closestFacility.ts",
+                      "sha256":  "97604612e9609f2b214f5b593ef717261d970fdc348297f193366f9df254815e",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/index.ts",
+                      "sha256":  "e709b0515f3fce04131ce70bbfd2647949644e4115dcfda5559a8a5c3553fdc9",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/odCostMatrix.ts",
+                      "sha256":  "d61525ed9097f9c1b6cb104ea419438777ec46ceba9cded41aa5a853792ded37",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/route.ts",
+                      "sha256":  "dbcd8a0a456cdcf1e2b17028ad08b11b0be60cfef1dfbdef2dabe1f4ee74916b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/networkAnalyst/serviceArea.ts",
+                      "sha256":  "d37cebe307e04d38d08d6e51be597434b4c777bac713688ced8dfd2a9315a2ab",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/registry.ts",
+                      "sha256":  "d2db2dc5b23deca63003e13cc5cfaf7e3c97ecebbe89d1c2be3c6044987d6345",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/selectionScope.ts",
+                      "sha256":  "f305a373abbdcb59e1b777dd4fc629c2746fce0a6e17aa28beb298ca52963c4d",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/shared.ts",
+                      "sha256":  "55676f8e98991238af030da3dd41925bf5e267b3e64102df0a1ee04f6f5161cc",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatial.ts",
+                      "sha256":  "02672bb94239d743f26e412711f6b0cdb76a72d0d6753326fbfa3d7f955dc87e",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/__tests__/spatialAnalyst.test.ts",
+                      "sha256":  "699cca21b4eb0e8243a4cf2710b3f970df6f97a5ab67b825b4b4c654accae0b4",
+                      "manual_review":  "manual-focused",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/_shared.ts",
+                      "sha256":  "fa94617fcd2c8a94481b10de6311159bfb5fb334cf8fafc5dbd2c63902258ae9",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "auditIntegrity: IDW skips missing/boolean samples, retains zero, rejects all-missing samples"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/hydrology.ts",
+                      "sha256":  "d643d0572bc630d991e8000b6da4265f2d02956d68e9f8bd053b731ed2bc1732",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/index.ts",
+                      "sha256":  "7f3f0cd5a37c63fdfc9587d1c34c0dab4d6de3da3857ce7275c4b64c35d0dd74",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/interpolation.ts",
+                      "sha256":  "be1d75e451c8e7cfa69ecc106afa91883f4f1622f3f3b809d2bc1b5a7f9d3cd8",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+                                                       "auditIntegrity: actual IDW execution and output sample count"
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/rasterOperations.ts",
+                      "sha256":  "ea63f1c6f57f74dca791f791573e8025f31a5cb26aa933403e60216f855f4e9d",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/terrain.ts",
+                      "sha256":  "d5ba7c4e71e99516d6edba93e60b84d23faf5c8a46bcf9f1b8a6f7bea6f909cc",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialAnalyst/tinInterpolation.ts",
+                      "sha256":  "61a27ceef6f64ddc2c605d0d721f4d3f78d4412a87575730e09d1defbaad2575",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/__tests__/spatialStats.test.ts",
+                      "sha256":  "ee5ac44047f4cd315c353b92e9ddc8ca6ef61cdd38dffdd388bb54fd3f6623e3",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/_stats.ts",
+                      "sha256":  "d66ec7e5b17a1cc17eb610b47b4f000b8e034ed05c0f715291286f87a32c6ace",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/_weights.ts",
+                      "sha256":  "5f93a2350a309a7ff03fb89d372d3c9a6979dfa8924f2a200eaec23a386383af",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/averageNearestNeighbor.ts",
+                      "sha256":  "9d05c0c9a309b36bd5eb467e3348baf20aa0b51da102dafe167d10e759f9d228",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/centralFeature.ts",
+                      "sha256":  "59b0d9ddf7cb247fc4df528cd5e3a6981196abbfde1da0b21ba9bc786833117f",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/clusterOutlierAnalysis.ts",
+                      "sha256":  "74449b96e67872964fcf1790cce44ea06bf9c43c07ebca92100570e40df40a37",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/directionalDistribution.ts",
+                      "sha256":  "32763bd98a2a07e1b3b48325d90b0a5fe1a48bd236a7b7df2d0820b718e4517b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/hotSpotAnalysis.ts",
+                      "sha256":  "11ccfcf27d3d367729180ebcb79c759d17657a4c83dfe3ce70abf56d7bce9fc8",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/index.ts",
+                      "sha256":  "c45b26310d28560aa1b76d8f6df1667352a2fed2fac59da7fa2d868f6d302566",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/meanCenter.ts",
+                      "sha256":  "ff0d4a0663259fde8e33a622fd6b3ece796ac64503b168b9e70c93d6bd035bed",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/medianCenter.ts",
+                      "sha256":  "0accddefa8e6934604cb89e1a430d595c00a9dff1c7e433450f209dbd72c926b",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/spatialAutocorrelation.ts",
+                      "sha256":  "967f8dabccbb91c4cd9188c6059cb52a404010eaf2ad37cb11841825c3ffc1c1",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/spatialStatistics/standardDistance.ts",
+                      "sha256":  "9b01e69497815dbb521de7f2d8f0d32f059ec7017397c2c248e96e93988d9fd0",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/testUtils.ts",
+                      "sha256":  "25f0a04caeef30dbaf2a888845863985977542e0195beabd779773c34898ec94",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/__tests__/threeDAnalyst.test.ts",
+                      "sha256":  "ea5e7f78097c398e5535663e9775858e8a0bd1e04c46071f97f81528649d0668",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  true,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/_shared.ts",
+                      "sha256":  "7c09a027b970e8c7fd9c4520e1b018adfe1f96942f69b0dd7537dc2bc19cc252",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/_visibility.ts",
+                      "sha256":  "e61620f46d26bdf22ccfda5ef7ce1b6e2bbb5e34f84101063d0c97aa30a4832b",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/createTin.ts",
+                      "sha256":  "56c138e22087a68e23fd1a2ca0ae7731d48736302545b2fb1045f389a07ae1b3",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/featureTo3DByAttribute.ts",
+                      "sha256":  "4f32e5edc068bc3c90c2350ebb28778ece7d14d69e578a66bf4db0c9457ce803",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/index.ts",
+                      "sha256":  "ead6b6f5133ba03001dd67690b96fef3d8e68169acd40d55626eaefaaed7ea1a",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/interpolateShape.ts",
+                      "sha256":  "9d191d7995786486d9ca7d0fa10fbb617498bec131f0dd340ed0968e73fea359",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/lineOfSight.ts",
+                      "sha256":  "2515c67fa4354bfaeabef39e8f8662983c0a077145141824d2dc673d2823a86c",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/threeDAnalyst/viewshed.ts",
+                      "sha256":  "74da7e7440198466b2bcf663705694624b800bb07bbf82b04ddaf9c84a17c146",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/ToolboxPanel.tsx",
+                      "sha256":  "e055960cfdde4e1063337576f0a302d8a162b49c2cb5bd08a9c611413f5bd765",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/toolboxes/types.ts",
+                      "sha256":  "583400a0f6817b58e11c618b6b5fec786469dcb3de495f0098900e454a3aa042",
+                      "manual_review":  "validation-only",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "src/workspaceLayout.ts",
+                      "sha256":  "7227d319f4a837d6c16812131e5aa0544a0d4b1551d49eb91adf22ca476802b0",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "tsconfig.app.json",
+                      "sha256":  "3a1d76e4b834534ed1d5158b5c20b24cbbe791e5c67bdf86bf3334df69abbc1e",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "tsconfig.json",
+                      "sha256":  "5531770701c29131aba5c07dfeee109f6fc0c1561af3e28d43fe184a49711f72",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "tsconfig.node.json",
+                      "sha256":  "14e7a0e8ba0e453d8b117866063be1c301e43380ff18ae4883ea711514308ed0",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "tsconfig.test.json",
+                      "sha256":  "332e4073715f4022200746d21db5cec6628ece1b1e219bed1ab5606b27cfba7a",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "configuration inspected; no runtime guarantee"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "vite.config.ts",
+                      "sha256":  "094bed4d9cc1c54e1f32bba9e5915b53fc52067932c81f7ca6702fa43cf44e91",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  },
+                  {
+                      "path":  "vitest.config.ts",
+                      "sha256":  "5884d2ffe23a29c0e93a7a43bd1470e7c40d0ba70079d520c082158cab6222a7",
+                      "manual_review":  "manual-full",
+                      "automated_validation":  [
+                                                   "TypeScript project check",
+                                                   "oxlint"
+                                               ],
+                      "focused_runtime_evidence":  [
+
+                                                   ],
+                      "test_file_executed":  false,
+                      "browser_verified_this_pass":  false
+                  }
+              ]
+}

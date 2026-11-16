@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+:root {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --bg: #111419;
+  --panel: #171b21;
+  --panel-raised: #1d222a;
+  --panel-hover: #232932;
+  --line: #292f38;
+  --line-soft: #222830;
+  --text: #e6e9ed;
+  --text-secondary: #9ba4b0;
+  /* Lightened from #6e7885, which was 3.6:1 on raised panels; this meets WCAG AA (4.5:1) on every dark surface. */
+  --muted: #8490a0;
+  --accent: #52d1b3;
+  --accent-ink: #10211d;
+  --brand-ink: #0e201c;
+  --accent-rgb: 82, 209, 179;
+  --accent-dim: rgba(82, 209, 179, 0.12);
+  --highlight: #f4a261;
+  --highlight-dim: rgba(244, 162, 97, 0.16);
+  --highlight-ink: #11221e;
+  --warning-ink: #261b08;
+  --danger: #f07873;
+  --danger-hover: #f18682;
+  --danger-hover-rgb: 241, 134, 130;
+  --danger-strong: #e58b87;
+  --danger-strong-rgb: 229, 139, 135;
+  --danger-ink: #291211;
+  --danger-rgb: 241, 134, 130;
+  --warning: #e9b65c;
+  --warning-rgb: 233, 182, 92;
+  --shadow-rgb: 0, 0, 0;
+  --geometry-point: #f2b856;
+  --geometry-line: #63b7e9;
+  --geometry-polygon: #d78ee0;
+  --geometry-other: #9cabb8;
+  --toolbox-box: #e0605a;
+  --toolbox-set: #d9b44a;
+  --toolbar-icon: #b6c0c9;
+  --avatar-bg: #273139;
+  --avatar-border: #36434a;
+  --avatar-ink: #a7e9d8;
+  --footer-divider: #4a535d;
+  --label-preview-shadow: #111111;
+  --map-surface: #d9e1df;
+  --map-overlay-bg: rgba(19, 25, 30, .88);
+  --map-overlay-text: #dfe8e8;
+  --map-overlay-border: rgba(255, 255, 255, .13);
+  --map-overlay-shadow: rgba(0, 0, 0, .2);
+  --map-overlay-muted: #c4ccd0;
+  --map-coordinate-bg: rgba(24, 30, 35, .76);
+  --map-scale-text: #e0e5e6;
+  --map-scale-shadow: #1a2024;
+  --status-bg: rgba(20, 25, 30, .94);
+  --status-text: #b6c0c8;
+  --status-border: rgba(255, 255, 255, .12);
+  --status-divider: rgba(255, 255, 255, .2);
+  --status-muted: #9aa5ae;
+  --status-strong: #7ee0c6;
+  --footer-center: #7f8993;
+  --map-control-bg: rgba(25, 31, 36, .94);
+  --map-control-hover: #303941;
+  --layout-workspace: #3b424a;
+  --layout-paper: #ffffff;
+  --layout-ink: #1b2127;
+  --layout-field: #5a646e;
+  --layout-subtle: #7b858e;
+  --layout-map-frame: #e8ecec;
+  --layout-selection: #1580ff;
+  --layout-selection-soft: rgba(21, 128, 255, .55);
+  --layout-selection-ink: #ffffff;
+  --layout-controls-bg: rgba(19, 25, 30, .92);
+  --layout-controls-text: #dfe8e8;
+  --layout-controls-muted: #c4ccd0;
+  --layout-controls-border: rgba(255, 255, 255, .13);
+  --layout-controls-divider: rgba(255, 255, 255, .16);
+  --layout-controls-hover: rgba(255, 255, 255, .08);
+  --modal-scrim: rgba(8, 11, 14, .58);
+  --drop-scrim: rgba(11, 19, 22, .77);
+  --drop-card-bg: rgba(23, 30, 34, .94);
+  --drop-card-border: rgba(82, 209, 179, .32);
+  --selection-row: rgba(64, 196, 255, .13);
+  --selection-row-mark: #40c4ff;
+  /* Contextual ribbon tabs: Warm Sunset Peach for layer context, Blue Powder for editing. */
+  --ctx-layer: #f4a261;
+  --ctx-layer-text: #f6b483;
+  --ctx-layer-dim: rgba(244, 162, 97, .13);
+  --ctx-edit: #8fb8cc;
+  --ctx-edit-text: #a9cadb;
+  --ctx-edit-dim: rgba(143, 184, 204, .14);
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f4f4f9;
+  --panel: #f8f8fc;
+  --panel-raised: #ffffff;
+  --panel-hover: #eeeff6;
+  --line: #d8dce8;
+  --line-soft: #e8e9f0;
+  --text: #252a35;
+  --text-secondary: #596372;
+  --muted: #626d7a;
+  --accent: #527582;
+  --accent-ink: #ffffff;
+  --brand-ink: #ffffff;
+  --accent-rgb: 126, 162, 172;
+  --accent-dim: rgba(126, 162, 172, 0.18);
+  --highlight: #f4a261;
+  --highlight-dim: rgba(244, 162, 97, 0.2);
+  --highlight-ink: #50351f;
+  --warning-ink: #50351f;
+  /* Darkened from #c65f59 (4.05:1 on white) to meet WCAG AA as text and behind white text. */
+  --danger: #ae544e;
+  --danger-hover: #b54f49;
+  --danger-hover-rgb: 181, 79, 73;
+  --danger-strong: #ad514b;
+  --danger-strong-rgb: 173, 81, 75;
+  --danger-ink: #ffffff;
+  --danger-rgb: 174, 84, 78;
+  --warning: #98601f;
+  --warning-rgb: 152, 96, 31;
+  --shadow-rgb: 37, 42, 53;
+  --geometry-point: #98601f;
+  --geometry-line: #3f728b;
+  --geometry-polygon: #82518b;
+  --geometry-other: #657180;
+  --toolbox-box: #ad514b;
+  --toolbox-set: #98601f;
+  --toolbar-icon: #667684;
+  --avatar-bg: #e8edf2;
+  --avatar-border: #cbd4df;
+  --avatar-ink: #456b79;
+  --footer-divider: #b8c0cb;
+  --label-preview-shadow: #252a35;
+  --map-surface: #e5e8ef;
+  --map-overlay-bg: rgba(248, 248, 252, .94);
+  --map-overlay-text: #465361;
+  --map-overlay-border: rgba(85, 123, 137, .28);
+  --map-overlay-shadow: rgba(37, 42, 53, .12);
+  --map-overlay-muted: #596372;
+  --map-coordinate-bg: rgba(248, 248, 252, .94);
+  --map-scale-text: #394755;
+  --map-scale-shadow: rgba(255, 255, 255, .9);
+  --status-bg: rgba(248, 248, 252, .96);
+  --status-text: #596372;
+  --status-border: #d8dce8;
+  --status-divider: rgba(85, 99, 114, .28);
+  --status-muted: #657180;
+  --status-strong: #527582;
+  --footer-center: #626d7a;
+  --map-control-bg: #ffffff;
+  --map-control-hover: #eeeff6;
+  --layout-workspace: #e8e8f0;
+  --layout-paper: #ffffff;
+  --layout-ink: #252a35;
+  --layout-field: #596372;
+  --layout-subtle: #626d7a;
+  --layout-map-frame: #eeeff6;
+  --layout-selection: #527582;
+  --layout-selection-soft: rgba(82, 117, 130, .55);
+  --layout-selection-ink: #ffffff;
+  --layout-controls-bg: rgba(248, 248, 252, .96);
+  --layout-controls-text: #252a35;
+  --layout-controls-muted: #596372;
+  --layout-controls-border: rgba(85, 123, 137, .3);
+  --layout-controls-divider: #d8dce8;
+  --layout-controls-hover: #eeeff6;
+  --modal-scrim: rgba(37, 42, 53, .34);
+  --drop-scrim: rgba(238, 239, 246, .82);
+  --drop-card-bg: rgba(248, 248, 252, .98);
+  --drop-card-border: rgba(126, 162, 172, .48);
+  --selection-row: rgba(126, 162, 172, .2);
+  --selection-row-mark: #527582;
+  --ctx-layer: #f4a261;
+  --ctx-layer-text: #9a4f1b;
+  --ctx-layer-dim: rgba(244, 162, 97, .17);
+  --ctx-edit: #7ea2ac;
+  --ctx-edit-text: #3f6370;
+  --ctx-edit-dim: rgba(126, 162, 172, .2);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+/* Below the app's minimum size (small windows, or browser zoom of ~150% and up) the page scrolls
+   instead of cutting off the right-hand pane and header actions. At normal sizes nothing overflows. */
+html { overflow: auto; }
+body { min-width: 980px; min-height: 600px; }
+button, input, select { font: inherit; }
+/* Free text (layer names, attribute values, layout text) is often Arabic mixed with English and numbers:
+   resolve each field's direction from its first strong character, like dir="auto". */
+input:not([type]), input[type="text"], input[type="search"], textarea { unicode-bidi: plaintext; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::selection { background: rgba(var(--accent-rgb), 0.28); }
