@@ -69,6 +69,7 @@ import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from '.
 import { describeToolRun } from './toolboxes/history'
 import './App.css'
 import { isolate } from './bidi'
+import { changedLayerIds } from './toolboxes/staleUpdates'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
 
@@ -1287,6 +1288,7 @@ function App() {
     setToolExecutionProgress({ name: toolDefinition.name, current: 0, total: 1, message: 'Running' })
     try {
       const state = useArcWebStore.getState()
+      const startData = new Map<string, unknown>(state.layers.map((layer) => [layer.id, layer.data]))
       // Tools see only the selected features of layers that have a selection, like ArcGIS Pro.
       const scope = options.selectedOnly ? scopeLayersToSelection(state.layers, state.selections) : { layers: state.layers, scoped: new Map() }
       const onProgress = (progress: { current: number; total: number; message: string }) => {
@@ -1301,6 +1303,15 @@ function App() {
           { signal: controller.signal, onProgress },
         )
       if (controller.signal.aborted) throw new DOMException('Cancelled by user.', 'AbortError')
+      // The tool ran on a snapshot; if the user edited an input layer meanwhile, discard the whole run.
+      const staleIds = changedLayerIds(startData, useArcWebStore.getState().layers, (result.updates ?? []).map((update) => update.layerId))
+      if (staleIds.length > 0) {
+        const staleName = startState.layers.find((layer) => layer.id === staleIds[0])?.name ?? 'A layer'
+        const staleMessage = `${isolate(staleName)} changed while the tool ran; run it again.`
+        record('failed', staleMessage)
+        notify(staleMessage, 'warning')
+        return
+      }
       result.updates?.forEach(({ layerId, updates }) => {
         const subset = scope.scoped.get(layerId)
         const current = useArcWebStore.getState().layers.find((layer) => layer.id === layerId)
