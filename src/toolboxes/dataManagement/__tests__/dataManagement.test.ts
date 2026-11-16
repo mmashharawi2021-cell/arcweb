@@ -9,6 +9,7 @@ import { haversine } from '../../spatial'
 import { runTool, testLayer } from '../../testUtils'
 import type { ToolboxTool, ToolExecutionResult } from '../../types'
 import { addFieldTool } from '../addField'
+import { alterFieldTool } from '../alterField'
 import { addXYCoordinatesTool } from '../addXYCoordinates'
 import { appendTool } from '../append'
 import { calculateFieldTool } from '../calculateField'
@@ -658,5 +659,29 @@ describe('Generate Points Along Lines', () => {
     await expect(run(generatePointsAlongLinesTool, [layer], { target: layer.id, placement: 'PERCENTAGE', value: 150 })).rejects.toThrow(/between 0 and 100/)
     const points = testLayer('p', [point(35, 31)])
     await expect(run(generatePointsAlongLinesTool, [points], { target: points.id, value: 10 })).rejects.toThrow(/line or polygon/)
+  })
+})
+
+describe('Alter Field keeps references consistent', () => {
+  const pointFeature = { type: 'Feature' as const, properties: { name: 'A', pop: 5, note: 'x' }, geometry: { type: 'Point' as const, coordinates: [0, 0] } }
+  const build = () => {
+    const base = testLayer('Cities', [pointFeature])
+    return { ...base, labelStyle: { ...base.labelStyle, expression: '{name} ({pop})' }, extrusion: { field: 'pop', multiplier: 2 } }
+  }
+
+  it('rewrites label expression tokens and the extrusion field on rename', async () => {
+    const layer = build()
+    const result = await run(alterFieldTool, [layer], { target: layer.id, field: 'pop', newName: 'population' })
+    const updates = result.updates?.[0].updates
+    expect(updates?.labelStyle?.expression).toBe('{name} ({population})')
+    expect(updates?.extrusion).toEqual({ field: 'population', multiplier: 2 })
+  })
+
+  it('leaves them untouched when an unrelated field is renamed', async () => {
+    const layer = build()
+    const result = await run(alterFieldTool, [layer], { target: layer.id, field: 'note', newName: 'remark' })
+    const updates = result.updates?.[0].updates
+    expect(updates?.labelStyle?.expression).toBe('{name} ({pop})')
+    expect(updates?.extrusion).toEqual({ field: 'pop', multiplier: 2 })
   })
 })

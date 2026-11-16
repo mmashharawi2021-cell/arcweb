@@ -54,6 +54,9 @@ export const alterFieldTool: ToolboxTool = {
     const renderer = layer.renderer.type === 'unique' || layer.renderer.type === 'graduated'
       ? { ...layer.renderer, field: layer.renderer.field === field ? newName : layer.renderer.field }
       : layer.renderer
+    const renameToken = (text: string) => text.replace(/\{([^{}]+)\}/g, (token, name: string) => name.trim() === field ? `{${newName}}` : token)
+    const labelStyle = { ...layer.labelStyle, expression: renameToken(layer.labelStyle.expression) }
+    const extrusion = layer.extrusion && layer.extrusion.field === field ? { ...layer.extrusion, field: newName } : layer.extrusion
     const fieldAliases = { ...(layer.fieldAliases ?? {}) }
     const previousAlias = fieldAliases[field]
     if (field !== newName) {
@@ -72,6 +75,7 @@ export const alterFieldTool: ToolboxTool = {
         data, customFields,
         labelField: layer.labelField === field ? newName : layer.labelField,
         renderer,
+        labelStyle, extrusion,
         fieldAliases,
       } }],
     }
