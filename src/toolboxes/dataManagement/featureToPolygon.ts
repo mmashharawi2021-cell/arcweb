@@ -9,6 +9,7 @@ import { getLayers, getOptionalText, outputLayer } from '../shared'
 import { assertHasFeatures, isPoint, isPolygon, makeSpatialIndex, usableFeatures } from '../spatial'
 import type { ToolboxTool } from '../types'
 import { cleanPath, outputNameParameter, repairPolygonGeometry } from './_utils'
+import { isolate } from '../../bidi'
 
 interface Segment { a: Position; b: Position; splits: Position[] }
 
@@ -141,6 +142,6 @@ export const featureToPolygonTool: ToolboxTool = {
       if (source) polygon.properties = { ...(source.properties ?? {}) }
     }
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${inputs[0].name} Polygons`, featureCollection(polygons), inputs[0].sourceCrs)
-    return { message: `${output.name}: created ${polygons.length.toLocaleString()} polygons from ${noded.length.toLocaleString()} noded segments.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${polygons.length.toLocaleString()} polygons from ${noded.length.toLocaleString()} noded segments.`, layers: [output] }
   },
 }

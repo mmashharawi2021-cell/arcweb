@@ -4,6 +4,7 @@ import { getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
 import { assertHasFeatures, EARTH_RADIUS, geometryBBox, makeSpatialIndex, nearestBetween, pairBudget, usableFeatures } from '../spatial'
 import type { ToolboxTool } from '../types'
 import { outputNameParameter, tableRow } from '../dataManagement/_utils'
+import { isolate } from '../../bidi'
 
 const MAX_FEATURES = 10_000
 const METERS_PER_DEGREE = (Math.PI / 180) * EARTH_RADIUS
@@ -67,7 +68,7 @@ export const detectGraphicConflictTool: ToolboxTool = {
     const name = getOptionalText(parameters, 'outputName') || `${layer.name} Graphic Conflicts`
     const output = outputLayer(name, featureCollection(conflicts), layer.sourceCrs)
     return {
-      message: `${name}: found ${conflicts.length.toLocaleString()} conflicting feature pairs from ${features.length.toLocaleString()} features.`,
+      message: `${isolate(name)}: found ${conflicts.length.toLocaleString()} conflicting feature pairs from ${features.length.toLocaleString()} features.`,
       layers: [output],
     }
   },

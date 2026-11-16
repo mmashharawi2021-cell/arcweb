@@ -2,6 +2,7 @@ import type { FeatureCollection } from 'geojson'
 import { fieldNames, getLayer, getOptionalText, getText } from '../shared'
 import type { ToolboxTool } from '../types'
 import { parseFieldList } from './_utils'
+import { isolate } from '../../bidi'
 
 /** Delete Field: removes one or more attribute fields from every feature of the input layer. */
 export const deleteFieldTool: ToolboxTool = {
@@ -32,7 +33,7 @@ export const deleteFieldTool: ToolboxTool = {
       }),
     }
     return {
-      message: `Deleted ${fields.map((field) => `"${field}"`).join(', ')} from ${layer.name}.`,
+      message: `Deleted ${fields.map((field) => `"${isolate(field)}"`).join(', ')} from ${isolate(layer.name)}.`,
       updates: [{
         layerId: layer.id,
         updates: {

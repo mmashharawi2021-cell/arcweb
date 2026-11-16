@@ -1,6 +1,7 @@
 import { readGeospatialFile } from '../../geo'
 import { getFile, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
+import { isolate } from '../../bidi'
 
 export const importDataTool: ToolboxTool = {
   id: 'import-data',
@@ -15,10 +16,10 @@ export const importDataTool: ToolboxTool = {
     const file = getFile(parameters, 'file', 'data')
     const imports = await readGeospatialFile(file)
     const layers = imports.map(({ name, data, sourceCrs }) => outputLayer(name, data, sourceCrs))
-    const warnings = imports.flatMap(({ name, warnings: layerWarnings }) => layerWarnings.map((warning) => `${name}: ${warning}`))
+    const warnings = imports.flatMap(({ name, warnings: layerWarnings }) => layerWarnings.map((warning) => `${isolate(name)}: ${warning}`))
     if (!layers.length) throw new Error('The selected file did not contain any layers.')
     return {
-      message: `Imported ${layers.length} layer${layers.length === 1 ? '' : 's'} from ${file.name}.${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
+      message: `Imported ${layers.length} layer${layers.length === 1 ? '' : 's'} from ${isolate(file.name)}.${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
       kind: warnings.length ? 'warning' : 'success',
       layers,
     }

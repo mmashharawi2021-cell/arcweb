@@ -3,6 +3,7 @@ import { crsLabel, crsSelectOptions, projectPosition, requireCrs, WGS84 } from '
 import { getFile, getLayer, getOptionalText, outputLayer } from '../shared'
 import type { ToolboxContext, ToolboxParameters, ToolboxTool } from '../types'
 import { layerFields, readTableFile } from './_utils'
+import { isolate } from '../../bidi'
 
 const X_NAMES = ['x', 'point_x', 'lon', 'long', 'lng', 'longitude', 'easting', 'east', 'e', 'xcoord', 'x_coord']
 const Y_NAMES = ['y', 'point_y', 'lat', 'latitude', 'northing', 'north', 'n', 'ycoord', 'y_coord']
@@ -86,7 +87,7 @@ export const xyTableToPointTool: ToolboxTool = {
     }
     const layer = outputLayer(getOptionalText(parameters, 'outputName') || `${name} Points`, { type: 'FeatureCollection', features }, crs)
     return {
-      message: `${layer.name}: created ${features.length.toLocaleString()} points from ${xField}/${yField} (${crsLabel(crs)}).${skipped ? ` ${skipped} row(s) with missing or invalid coordinates were skipped.` : ''}`,
+      message: `${isolate(layer.name)}: created ${features.length.toLocaleString()} points from ${isolate(xField)}/${isolate(yField)} (${crsLabel(crs)}).${skipped ? ` ${skipped} row(s) with missing or invalid coordinates were skipped.` : ''}`,
       kind: skipped ? 'warning' : 'success',
       layers: [layer],
     }

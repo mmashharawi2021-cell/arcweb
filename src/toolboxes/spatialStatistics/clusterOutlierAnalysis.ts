@@ -9,6 +9,7 @@ import {
   buildWeights, conceptualizationParameter, distanceMethodParameter, neighborsParameter, optionalNumber, readWeightsOptions,
   standardizationParameter, thresholdParameter,
 } from './_weights'
+import { isolate } from '../../bidi'
 
 /** Largest number of neighbour draws (features × neighbours × permutations) for the permutation test. */
 const MAX_PERMUTATION_WORK = 50_000_000
@@ -189,7 +190,7 @@ export const clusterOutlierAnalysisTool: ToolboxTool = {
     if (matrix.isolated) notes.push(`${matrix.isolated} feature(s) have no neighbors`)
     if (sites.length < 30) notes.push('fewer than 30 features may give unreliable results')
     return {
-      message: `${output.name}: HH ${count('HH')}, LL ${count('LL')}, HL ${count('HL')}, LH ${count('LH')} at 95% confidence${fdr ? ' (FDR corrected)' : ''}${permutations ? `, pseudo p-values from ${permutations} permutations (seed ${seed})` : ''}; ${count('')} not significant. [${matrix.description}]${notes.length ? ` Note: ${notes.join('; ')}.` : ''}`,
+      message: `${isolate(output.name)}: HH ${count('HH')}, LL ${count('LL')}, HL ${count('HL')}, LH ${count('LH')} at 95% confidence${fdr ? ' (FDR corrected)' : ''}${permutations ? `, pseudo p-values from ${permutations} permutations (seed ${seed})` : ''}; ${count('')} not significant. [${matrix.description}]${notes.length ? ` Note: ${notes.join('; ')}.` : ''}`,
       kind: notes.length ? 'warning' : 'success',
       layers: [output],
     }

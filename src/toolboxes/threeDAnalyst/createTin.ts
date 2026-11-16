@@ -3,6 +3,7 @@ import type { Feature } from 'geojson'
 import { outputLayer } from '../shared'
 import { createTinTriangles, fieldParameter, getElevationSamples, getLayerField, outputNameParameter, THREE_D_CATEGORY } from './_shared'
 import type { ToolboxTool } from '../types'
+import { isolate } from '../../bidi'
 
 export const createTinTool: ToolboxTool = {
   id: 'createTin',
@@ -41,6 +42,6 @@ export const createTinTool: ToolboxTool = {
     output.fillColor = '#47b5a1'
     output.strokeColor = '#123b43'
     output.opacity = 0.8
-    return { message: `${name}: created ${features.length} TIN triangles from ${samples.length} unique points.`, layers: [output] }
+    return { message: `${isolate(name)}: created ${features.length} TIN triangles from ${samples.length} unique points.`, layers: [output] }
   },
 }

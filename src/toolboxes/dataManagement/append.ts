@@ -2,6 +2,7 @@ import type { Feature } from 'geojson'
 import { fieldNames, getLayer, getLayers, getOptionalText } from '../shared'
 import type { ToolboxTool } from '../types'
 import { geometryFamily, idAllocator } from './_utils'
+import { isolate } from '../../bidi'
 
 /**
  * Append: adds the features of one or more input layers to an existing target layer.
@@ -58,7 +59,7 @@ export const appendTool: ToolboxTool = {
     }))
     if (!appended.length) throw new Error('The input layers contain no features.')
     return {
-      message: `Appended ${appended.length.toLocaleString()} features from ${inputs.length} layer${inputs.length === 1 ? '' : 's'} into ${target.name}.`,
+      message: `Appended ${appended.length.toLocaleString()} features from ${inputs.length} layer${inputs.length === 1 ? '' : 's'} into ${isolate(target.name)}.`,
       updates: [{ layerId: target.id, updates: { data: { ...target.data, features: [...target.data.features, ...appended] } } }],
     }
   },

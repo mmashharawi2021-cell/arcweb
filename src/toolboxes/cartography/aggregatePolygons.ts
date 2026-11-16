@@ -9,6 +9,7 @@ import { assertHasFeatures, isPolygon, makeSpatialIndex, pairBudget, usableFeatu
 import type { ToolboxTool } from '../types'
 import { optionalNumber, outputNameParameter } from '../dataManagement/_utils'
 import { validGeometry } from '../dataManagement/_generalize'
+import { isolate } from '../../bidi'
 
 const MAX_POLYGONS = 10_000
 
@@ -99,6 +100,6 @@ export const aggregatePolygonsTool: ToolboxTool = {
     assertHasFeatures(outputs, 'No valid polygon aggregates remain after applying the minimum-area filter.')
     const name = getOptionalText(parameters, 'outputName') || `${layer.name} Aggregated`
     const result = outputLayer(name, featureCollection(outputs), layer.sourceCrs)
-    return { message: `${name}: created ${outputs.length.toLocaleString()} polygon aggregates from ${polygons.length.toLocaleString()} input polygons.`, layers: [result] }
+    return { message: `${isolate(name)}: created ${outputs.length.toLocaleString()} polygon aggregates from ${polygons.length.toLocaleString()} input polygons.`, layers: [result] }
   },
 }

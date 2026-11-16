@@ -3,6 +3,7 @@ import type { Feature } from 'geojson'
 import { getLayers, getOptionalText, outputLayer } from '../shared'
 import { assertHasFeatures, collectFields, fillSchema, renameCollidingFields } from '../spatial'
 import type { ToolboxTool } from '../types'
+import { isolate } from '../../bidi'
 
 /** Merge: appends the features of several layers of the same geometry type into one layer. */
 export const mergeTool: ToolboxTool = {
@@ -48,7 +49,7 @@ export const mergeTool: ToolboxTool = {
       featureCollection(fillSchema(features as Feature<NonNullable<Feature['geometry']>>[], fields)),
     )
     return {
-      message: `${output.name}: merged ${features.length.toLocaleString()} features from ${inputs.length} layers.`,
+      message: `${isolate(output.name)}: merged ${features.length.toLocaleString()} features from ${inputs.length} layers.`,
       layers: [output],
     }
   },
