@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 import { createMapLayer } from '../../geo'
 import { createRasterGrid, rasterToFeatureCollection } from '../../rasterEngine'
-import { buildDemSampler, decodeTerrarium, encodeTerrarium, renderDemTile, tilePixelToLngLat } from '../terrain'
+import { applySceneTerrain, buildDemSampler, demSamplerCount, decodeTerrarium, encodeTerrarium, renderDemTile, tilePixelToLngLat } from '../terrain'
 
 /** A 2×2 DEM covering lon 10–12, lat 40–42 (EPSG:4326, north-up). */
 function dem(values = [100, 200, 300, 400]) {
@@ -62,5 +63,30 @@ describe('terrain tile generation', () => {
       elevations.add(Math.round(decodeTerrarium(pixels[index], pixels[index + 1], pixels[index + 2])))
     }
     expect([...elevations].sort((a, b) => a - b)).toEqual([100, 200, 300, 400])
+  })
+})
+
+describe('DEM sampler lifecycle', () => {
+  it('releases the sampler of a layer that is no longer in the map', () => {
+    const sources = new Set<string>()
+    const map = {
+      isStyleLoaded: () => true,
+      getSource: (id: string) => (sources.has(id) ? {} : undefined),
+      addSource: (id: string) => void sources.add(id),
+      removeSource: (id: string) => void sources.delete(id),
+      getLayer: () => undefined,
+      removeLayer: () => undefined,
+      addLayer: () => undefined,
+      getStyle: () => ({ layers: [] }),
+      getTerrain: () => null,
+      setTerrain: () => undefined,
+    } as unknown as MapLibreMap
+    const layer = dem()
+    const settings = { terrain: 'layer' as const, terrainLayerId: layer.id, exaggeration: 1.5, hillshade: false }
+    const before = demSamplerCount()
+    applySceneTerrain(map, settings, [layer], true)
+    expect(demSamplerCount()).toBe(before + 1)
+    applySceneTerrain(map, settings, [], true)
+    expect(demSamplerCount()).toBe(before)
   })
 })

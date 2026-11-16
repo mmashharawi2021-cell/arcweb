@@ -147,6 +147,11 @@ function registerProtocol() {
   })
 }
 
+/** Number of DEM samplers currently held for the terrain protocol (for tests). */
+export function demSamplerCount(): number {
+  return samplers.size
+}
+
 export interface TerrainState {
   /** Why terrain could not be shown, if it could not. */
   warning: string | null
@@ -165,6 +170,9 @@ const appliedKeys = new WeakMap<MapLibreMap, string>()
 /** Adds, swaps or removes terrain and hillshade to match the scene settings. Safe to call often. */
 export function applySceneTerrain(map: MapLibreMap, settings: SceneSettings, layers: MapLayer[], sceneView: boolean): TerrainState {
   if (!map.isStyleLoaded()) return { warning: null, range: null }
+  // Release samplers (full DEM rasters) of layers that were removed from the map.
+  const liveIds = new Set(layers.map((layer) => layer.id))
+  for (const id of [...samplers.keys()]) if (!liveIds.has(id)) samplers.delete(id)
   let tiles: string | null = null
   let warning: string | null = null
   let range: [number, number] | null = null
