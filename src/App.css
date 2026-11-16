@@ -618,6 +618,8 @@ input[type="range"] { accent-color: var(--accent); cursor: pointer; }
 .import-progress-copy { min-width: 0; display: flex; flex: 1; flex-direction: column; gap: 3px; }
 .import-progress-copy strong { overflow: hidden; color: var(--text); font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .import-progress-copy small { color: var(--muted); font-size: 8px; }
+.import-cancel { flex: none; height: 20px; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--text); font-size: 9px; cursor: pointer; }
+.import-cancel:hover { border-color: var(--accent); }
 .import-progress-track { position: absolute; right: 12px; bottom: 5px; left: 12px; height: 2px; overflow: hidden; border-radius: 2px; background: var(--line); }
 .import-progress-track > span { width: 35%; height: 100%; display: block; border-radius: inherit; background: var(--accent); animation: arcweb-progress 1.25s ease-in-out infinite; }
 .tool-progress-track { position: absolute; right: 12px; bottom: 5px; left: 12px; height: 2px; overflow: hidden; border-radius: 2px; background: var(--line); }

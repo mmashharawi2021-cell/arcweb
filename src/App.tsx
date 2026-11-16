@@ -18,7 +18,10 @@ import DockablePanel from './DockablePanel'
 import { SymbologyPanel } from './SymbologyPanel'
 import { calculateField } from './fieldCalculator'
 import { createMapLayer, getCollectionBounds, readGeospatialFile } from './geo'
-import { rasterToFeatureCollection, readGeoTiff } from './rasterEngine'
+import { rasterToFeatureCollection } from './rasterEngine'
+import { runInWorker, type WorkerLike } from './workers/runInWorker'
+import { needsMainThread } from './workers/importHandler'
+import type { ImportRequest, ImportResult } from './workers/importProtocol'
 import { exportLayer, exportMapCanvas } from './exportData'
 import { EditPanel, SharePanel } from './PhasePanels'
 import MapProperties, { type MapViewInfo } from './MapProperties'
@@ -1100,9 +1103,14 @@ function App() {
     mapRef.current?.resize()
   }, [viewMode, mapFrameHost, mapLoaded])
 
+  const importAbortRef = useRef<AbortController | null>(null)
+  const cancelImport = useCallback(() => importAbortRef.current?.abort(), [])
+
   const addFiles = useCallback(async (files: FileList | File[]) => {
     const selectedFiles = Array.from(files)
     for (const [index, file] of selectedFiles.entries()) {
+      const controller = new AbortController()
+      importAbortRef.current = controller
       setImportingFile({ name: file.name, index: index + 1, total: selectedFiles.length })
       try {
         await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()))
@@ -1110,25 +1118,38 @@ function App() {
           await loadProjectFile(file)
           continue
         }
-        if (/\.(?:tif|tiff)$/i.test(file.name)) {
-          const raster = await readGeoTiff(file)
+        const loaded: ImportResult = needsMainThread(file.name)
+          ? { kind: 'vector', layers: await readGeospatialFile(file) }
+          : await runInWorker<ImportRequest, ImportResult>(
+            // Worker's handlers take a full MessageEvent; WorkerLike only needs the fields the helper reads.
+            () => new Worker(new URL('./workers/import.worker.ts', import.meta.url), { type: 'module' }) as WorkerLike,
+            { file },
+            { signal: controller.signal },
+          )
+        if (controller.signal.aborted) throw new DOMException('Cancelled by user.', 'AbortError')
+        if (loaded.kind === 'raster') {
+          const raster = loaded.grid
           const data = rasterToFeatureCollection(raster)
           if (!data.features.length) throw new Error('The raster has no valid cells to display.')
-          const name = file.name.replace(/\.(?:tif|tiff)$/i, '')
-          const layer = styleRasterCells(createMapLayer(name, data, raster.crs))
+          const layer = styleRasterCells(createMapLayer(loaded.name, data, raster.crs))
           useArcWebStore.getState().addLayer(layer)
-          notify(`Added raster ${name} (${raster.width.toLocaleString()} × ${raster.height.toLocaleString()} cells).`)
+          notify(`Added raster ${loaded.name} (${raster.width.toLocaleString()} × ${raster.height.toLocaleString()} cells).`)
           continue
         }
-        const imported = await readGeospatialFile(file)
+        const imported = loaded.layers
         const warnings = imported.flatMap((item) => item.warnings.map((warning) => `${item.name}: ${warning}`))
         const added = imported.map(({ name, data, sourceCrs }) => createMapLayer(name, data, sourceCrs))
         added.forEach((layer) => useArcWebStore.getState().addLayer(layer))
         const result = `Added ${added.length} layer${added.length === 1 ? '' : 's'} from ${file.name}`
         notify(warnings.length ? `${result}. ${warnings.join(' ')}` : result, warnings.length ? 'warning' : 'success')
       } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          notify(`Import of ${file.name} cancelled.`, 'warning')
+          break
+        }
         notify(`Could not import ${file.name}: ${error instanceof Error ? error.message : 'Unknown file error'}`, 'error')
       } finally {
+        if (importAbortRef.current === controller) importAbortRef.current = null
         setImportingFile(null)
       }
     }
@@ -2114,6 +2135,7 @@ function App() {
             <div className="import-progress" role="status" aria-live="polite">
               <span className="import-spinner" aria-hidden="true" />
               <span className="import-progress-copy"><strong>Loading {importingFile.name}</strong><small>Reading local data · file {importingFile.index} of {importingFile.total}</small></span>
+              <button type="button" className="import-cancel" onClick={cancelImport}>Cancel</button>
               <span className="import-progress-track"><span /></span>
             </div>
           )}
