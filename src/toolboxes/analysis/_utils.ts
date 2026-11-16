@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import area from '@turf/area'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import buffer from '@turf/buffer'
@@ -161,7 +162,7 @@ export function resolveField(layer: MapLayer, name: string): string {
   const fields = fieldNames(layer)
   if (fields.includes(name)) return name
   const match = fields.find((field) => field.toLocaleLowerCase() === name.toLocaleLowerCase())
-  if (!match) throw new Error(`Field "${name}" was not found in ${layer.name}.`)
+  if (!match) throw new Error(`Field "${isolate(name)}" was not found in ${isolate(layer.name)}.`)
   return match
 }
 

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getOptionalText, getText } from '../shared'
 import type { ToolboxTool } from '../types'
 import {
@@ -49,6 +50,6 @@ export const frequencyTool: ToolboxTool = {
       return 0
     })
     const { layer, downloads } = tableResult(parameters, outputName(parameters, `${target.name} Frequency`), rows, ['FREQUENCY', ...fields, ...sums])
-    return { message: `${layer.name}: ${rows.length.toLocaleString()} unique combinations.`, layers: [layer], downloads }
+    return { message: `${isolate(layer.name)}: ${rows.length.toLocaleString()} unique combinations.`, layers: [layer], downloads }
   },
 }

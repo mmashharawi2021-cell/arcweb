@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature } from 'geojson'
 import { rasterInput, getRaster } from '../spatialAnalyst/_shared'
@@ -51,7 +52,7 @@ export const lineOfSightTool: ToolboxTool = {
     output.strokeColor = result.visible ? '#44d7a8' : '#f06b68'
     output.strokeWidth = 3
     return {
-      message: `${name}: line of sight is ${result.visible ? 'clear' : 'blocked'} across ${result.distance.toFixed(1)} m of terrain.${result.noDataSamples ? ` ${result.noDataSamples} intermediate NoData samples were ignored.` : ''}`,
+      message: `${isolate(name)}: line of sight is ${result.visible ? 'clear' : 'blocked'} across ${result.distance.toFixed(1)} m of terrain.${result.noDataSamples ? ` ${result.noDataSamples} intermediate NoData samples were ignored.` : ''}`,
       ...(result.noDataSamples ? { kind: 'warning' as const } : {}),
       layers: [output],
     }

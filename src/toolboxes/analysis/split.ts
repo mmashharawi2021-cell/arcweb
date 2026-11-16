@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry } from 'geojson'
 import { getLayer, getText, outputLayer } from '../shared'
 import { assertHasFeatures, detach, isPolygon, makeSpatialIndex, pairBudget, usableFeatures, type PolygonFeature } from '../spatial'
@@ -54,7 +55,7 @@ export const splitTool: ToolboxTool = {
       .map((key) => outputLayer(`${target.name} ${key}`, { type: 'FeatureCollection', features: outputs.get(key) ?? [] }, target.sourceCrs))
     assertHasFeatures(layers, 'The input features do not overlap any split polygon.')
     return {
-      message: `Split ${target.name} into ${layers.length.toLocaleString()} layers by ${field}: ${layers.map((layer) => `${layer.name} (${layer.data.features.length})`).join(', ')}.`,
+      message: `Split ${isolate(target.name)} into ${layers.length.toLocaleString()} layers by ${isolate(field)}: ${layers.map((layer) => `${isolate(layer.name)} (${layer.data.features.length})`).join(', ')}.`,
       layers,
     }
   },

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { crsLabel, crsSelectOptions, getCrs, WGS84 } from '../../crs'
 import type { MapLayer } from '../../store'
 import { getLayer, getOptionalText } from '../shared'
@@ -50,7 +51,7 @@ export const featuresToShapefileTool: ToolboxTool = {
     const layer = getLayer(context, parameters, 'target')
     const { download, warnings, crs } = await buildShapefile(layer, getOptionalText(parameters, 'crs'), getOptionalText(parameters, 'fileName'))
     return {
-      message: `Prepared ${download.fileName} in ${crsLabel(crs)}.${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
+      message: `Prepared ${isolate(download.fileName)} in ${crsLabel(crs)}.${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
       kind: warnings.length ? 'warning' : 'success',
       downloads: [download],
     }

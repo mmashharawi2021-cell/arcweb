@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry, Polygon, Position } from 'geojson'
 import { fieldNames, getLayer, getOptionalText, outputLayer } from '../shared'
@@ -172,7 +173,7 @@ export const minimumBoundingGeometryTool: ToolboxTool = {
     assertHasFeatures(output, 'Every input is degenerate (a single point or a straight line), so no bounding area could be built.')
     const result = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} MBG`, featureCollection(output), layer.sourceCrs)
     return {
-      message: `${result.name}: created ${output.length.toLocaleString()} bounding polygons.${degenerate ? ` ${degenerate} degenerate inputs (single point or collinear) were skipped.` : ''}`,
+      message: `${isolate(result.name)}: created ${output.length.toLocaleString()} bounding polygons.${degenerate ? ` ${degenerate} degenerate inputs (single point or collinear) were skipped.` : ''}`,
       kind: degenerate ? 'warning' : 'success',
       layers: [result],
     }

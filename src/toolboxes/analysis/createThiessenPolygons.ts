@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection, point } from '@turf/helpers'
 import voronoi from '@turf/voronoi'
 import type { Feature, Point } from 'geojson'
@@ -59,7 +60,7 @@ export const createThiessenPolygonsTool: ToolboxTool = {
     assertHasFeatures(polygons, 'No Thiessen polygons could be created.')
     const output = outputLayer(outputName(parameters, `${target.name} Thiessen`), featureCollection(polygons), target.sourceCrs)
     return {
-      message: `${output.name}: ${polygons.length.toLocaleString()} Thiessen polygons${duplicates ? `; ${duplicates} coincident points were merged` : ''}.`,
+      message: `${isolate(output.name)}: ${polygons.length.toLocaleString()} Thiessen polygons${duplicates ? `; ${duplicates} coincident points were merged` : ''}.`,
       kind: duplicates ? 'warning' : 'success',
       layers: [output],
     }

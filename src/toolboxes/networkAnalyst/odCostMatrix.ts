@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry } from 'geojson'
 import { geometryPosition, shortestPathsFrom, snapLocations } from '../../networkEngine'
 import type { ToolboxTool } from '../types'
@@ -83,7 +84,7 @@ export const odCostMatrixTool: ToolboxTool = {
     const output = tableOutput(outputName(parameters, `${originsLayer.name} - ${destinationsLayer.name} OD Matrix`), rows, networkLayer.sourceCrs)
     const reachable = rows.filter((row) => row.STATUS === 'OK').length
     return {
-      message: `${output.name}: ${reachable} of ${rows.length} origin-destination pairs are reachable${maximumCost ? ` within the ${maximumCost.toLocaleString()} cutoff` : ''}.`,
+      message: `${isolate(output.name)}: ${reachable} of ${rows.length} origin-destination pairs are reachable${maximumCost ? ` within the ${maximumCost.toLocaleString()} cutoff` : ''}.`,
       kind: reachable ? 'success' : 'warning',
       layers: [output],
     }

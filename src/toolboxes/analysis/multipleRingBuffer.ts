@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature } from 'geojson'
 import { featureCollection } from '@turf/helpers'
 import { getLayer, getOptionalText, getText, outputLayer } from '../shared'
@@ -72,6 +73,6 @@ export const multipleRingBufferTool: ToolboxTool = {
     }
     assertHasFeatures(rings, 'No buffer rings could be created.')
     const output = outputLayer(outputName(parameters, `${target.name} MultiRingBuffer`), featureCollection(rings), target.sourceCrs)
-    return { message: `${output.name}: created ${rings.length.toLocaleString()} rings at ${distances.join(', ')} ${units.toLowerCase()}.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${rings.length.toLocaleString()} rings at ${distances.join(', ')} ${units.toLowerCase()}.`, layers: [output] }
   },
 }

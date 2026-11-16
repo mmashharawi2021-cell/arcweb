@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature } from 'geojson'
 import { rasterInput, getRaster } from '../spatialAnalyst/_shared'
@@ -38,7 +39,7 @@ export const interpolateShapeTool: ToolboxTool = {
     const name = typeof parameters.outputName === 'string' && parameters.outputName.trim() ? parameters.outputName.trim() : `${featureLayer.name} Interpolated`
     const output = outputLayer(name, featureCollection(features), featureLayer.sourceCrs)
     return {
-      message: `${name}: draped ${draped} vertices${missing ? `; ${missing} vertices outside valid raster cells retained without a new elevation` : ''}.`,
+      message: `${isolate(name)}: draped ${draped} vertices${missing ? `; ${missing} vertices outside valid raster cells retained without a new elevation` : ''}.`,
       ...(missing ? { kind: 'warning' as const } : {}),
       layers: [output],
     }

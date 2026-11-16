@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { isNoData } from '../../rasterEngine'
 import { getRaster, gridOutput, outputName, rasterInput, IMAGE_ANALYST_CATEGORY } from './_shared'
 import type { ToolboxTool } from '../types'
@@ -41,6 +42,6 @@ export const majorityFilterTool: ToolboxTool = {
       }
     }
     const output = gridOutput(outputName(parameters, `${layer.name} Majority Filter`), { ...grid, values, noData: Number.NaN })
-    return { message: `${output.name}: majority-filtered ${grid.values.length.toLocaleString()} cells with a 3 × 3 neighborhood.`, layers: [output] }
+    return { message: `${isolate(output.name)}: majority-filtered ${grid.values.length.toLocaleString()} cells with a 3 × 3 neighborhood.`, layers: [output] }
   },
 }

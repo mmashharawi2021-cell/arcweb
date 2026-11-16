@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer } from '../shared'
 import type { ToolboxTool } from '../types'
 import { identicalGroups, identicalParameters } from './_identical'
@@ -15,10 +16,10 @@ export const deleteIdenticalTool: ToolboxTool = {
     const layer = getLayer(context, parameters, 'target')
     const { groups, compared } = identicalGroups(layer, parameters)
     const doomed = new Set(groups.flatMap((group) => group.slice(1)))
-    if (!doomed.size) return { message: `${layer.name}: no identical records found comparing ${compared.join(', ')}.` }
+    if (!doomed.size) return { message: `${isolate(layer.name)}: no identical records found comparing ${compared.map((field) => field === 'Shape' ? field : isolate(field)).join(', ')}.` }
     const features = layer.data.features.filter((_, index) => !doomed.has(index))
     return {
-      message: `${layer.name}: deleted ${doomed.size.toLocaleString()} identical records (${compared.join(', ')}); ${features.length.toLocaleString()} remain.`,
+      message: `${isolate(layer.name)}: deleted ${doomed.size.toLocaleString()} identical records (${compared.map((field) => field === 'Shape' ? field : isolate(field)).join(', ')}); ${features.length.toLocaleString()} remain.`,
       updates: [{ layerId: layer.id, updates: { data: { ...layer.data, features } } }],
     }
   },

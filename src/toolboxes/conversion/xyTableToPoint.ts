@@ -11,14 +11,14 @@ const Y_NAMES = ['y', 'point_y', 'lat', 'latitude', 'northing', 'north', 'n', 'y
 function pickField(fields: string[], requested: string, candidates: string[], label: string): string {
   if (requested) {
     const match = fields.find((field) => field === requested) ?? fields.find((field) => field.toLowerCase() === requested.toLowerCase())
-    if (!match) throw new Error(`The ${label} field "${requested}" was not found. Available fields: ${fields.join(', ')}.`)
+    if (!match) throw new Error(`The ${label} field "${isolate(requested)}" was not found. Available fields: ${fields.map(isolate).join(', ')}.`)
     return match
   }
   for (const candidate of candidates) {
     const match = fields.find((field) => field.trim().toLowerCase() === candidate)
     if (match) return match
   }
-  throw new Error(`Choose the ${label} field; none could be detected. Available fields: ${fields.join(', ')}.`)
+  throw new Error(`Choose the ${label} field; none could be detected. Available fields: ${fields.map(isolate).join(', ')}.`)
 }
 
 function toNumber(value: unknown): number {
@@ -83,7 +83,7 @@ export const xyTableToPointTool: ToolboxTool = {
     }
     if (!features.length) {
       const hint = crs === WGS84 ? ' If the values are metres (easting/northing), choose the matching projected coordinate system.' : ''
-      throw new Error(`No rows had valid ${xField}/${yField} coordinates in ${crsLabel(crs)}.${hint}`)
+      throw new Error(`No rows had valid ${isolate(xField)}/${isolate(yField)} coordinates in ${crsLabel(crs)}.${hint}`)
     }
     const layer = outputLayer(getOptionalText(parameters, 'outputName') || `${name} Points`, { type: 'FeatureCollection', features }, crs)
     return {

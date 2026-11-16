@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import difference from '@turf/difference'
 import { featureCollection } from '@turf/helpers'
 import intersect from '@turf/intersect'
@@ -94,6 +95,6 @@ export const unionTool: ToolboxTool = {
       getOptionalText(parameters, 'outputName') || `${inputLayer.name} Union`,
       featureCollection(fillSchema(pieces, fields)),
     )
-    return { message: `${output.name}: created ${pieces.length.toLocaleString()} polygon pieces from both layers.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${pieces.length.toLocaleString()} polygon pieces from both layers.`, layers: [output] }
   },
 }

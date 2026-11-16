@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import { union } from '@turf/turf'
 import type { Feature, Geometry, Position } from 'geojson'
@@ -19,7 +20,7 @@ export function parseStatistics(text: string, available: string[]): StatisticFie
   return text.split(/[,;]/).map((item) => item.trim()).filter(Boolean).map((item) => {
     const [name, kind] = item.split(/[\s:]+/)
     const statistic = (kind ?? '').toUpperCase() as Statistic
-    if (!STATISTICS.includes(statistic)) throw new Error(`Unknown statistic "${kind ?? ''}" for ${name}. Use one of ${STATISTICS.join(', ')}.`)
+    if (!STATISTICS.includes(statistic)) throw new Error(`Unknown statistic "${kind ?? ''}" for ${isolate(name)}. Use one of ${STATISTICS.join(', ')}.`)
     const [field] = parseFieldList(name, available)
     return { field, statistic, output: `${statistic}_${field}` }
   })
@@ -130,7 +131,7 @@ export const dissolveTool: ToolboxTool = {
     assertHasFeatures(output, 'Dissolve could not produce any valid geometry.')
     const result = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Dissolve`, featureCollection(output), layer.sourceCrs)
     return {
-      message: `${result.name}: dissolved ${layer.data.features.length.toLocaleString()} features into ${output.length.toLocaleString()}${fields.length ? ` by ${fields.join(', ')}` : ''}.${failed ? ` ${failed} groups could not be merged.` : ''}`,
+      message: `${isolate(result.name)}: dissolved ${layer.data.features.length.toLocaleString()} features into ${output.length.toLocaleString()}${fields.length ? ` by ${fields.map(isolate).join(', ')}` : ''}.${failed ? ` ${failed} groups could not be merged.` : ''}`,
       kind: failed ? 'warning' : 'success',
       layers: [result],
     }

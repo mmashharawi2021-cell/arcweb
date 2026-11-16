@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature } from 'geojson'
 import { getLayer, outputLayer } from '../shared'
@@ -50,6 +51,6 @@ export const updateTool: ToolboxTool = {
       featureCollection(fillSchema(results, collectFields(inputs))),
       inputLayer.sourceCrs,
     )
-    return { message: `${output.name}: ${results.length.toLocaleString()} polygons (${updates.length.toLocaleString()} from the update layer).`, layers: [output] }
+    return { message: `${isolate(output.name)}: ${results.length.toLocaleString()} polygons (${updates.length.toLocaleString()} from the update layer).`, layers: [output] }
   },
 }

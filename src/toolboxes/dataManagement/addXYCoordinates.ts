@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { crsSelectOptions, getCrs, projectPosition, WGS84 } from '../../crs'
 import { fieldNames, getLayer, getOptionalText } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -48,7 +49,7 @@ export const addXYCoordinatesTool: ToolboxTool = {
     const written = ['POINT_X', 'POINT_Y', ...(hasZ ? ['POINT_Z'] : [])]
     const existing = fieldNames(layer)
     return {
-      message: `Added ${written.join(', ')} (${getCrs(code)?.name ?? code}) to ${layer.name}.${skipped ? ` ${skipped} non-point or unprojectable features were left empty.` : ''}`,
+      message: `Added ${written.join(', ')} (${getCrs(code)?.name ?? code}) to ${isolate(layer.name)}.${skipped ? ` ${skipped} non-point or unprojectable features were left empty.` : ''}`,
       kind: skipped ? 'warning' : 'success',
       updates: [{
         layerId: layer.id,

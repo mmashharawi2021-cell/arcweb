@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, Position } from 'geojson'
 import { convexHull, geometryPosition, reachableCosts, snapLocations } from '../../networkEngine'
 import type { ToolboxTool } from '../types'
@@ -67,7 +68,7 @@ export const serviceAreaTool: ToolboxTool = {
     })
     const output = geometryOutput(outputName(parameters, `${facilitiesLayer.name} Service Area`), features, networkLayer.sourceCrs)
     return {
-      message: `${output.name}: generated ${features.length} service area${features.length === 1 ? '' : 's'} using a ${maximumCost.toLocaleString()} ${mode === 'time' ? 'minute' : 'meter'} cutoff.`,
+      message: `${isolate(output.name)}: generated ${features.length} service area${features.length === 1 ? '' : 's'} using a ${maximumCost.toLocaleString()} ${mode === 'time' ? 'minute' : 'meter'} cutoff.`,
       layers: [output],
     }
   },

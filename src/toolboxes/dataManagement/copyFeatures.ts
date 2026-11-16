@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import type { MapLayer } from '../../store'
 import type { ToolboxTool } from '../types'
@@ -26,6 +27,6 @@ export const copyFeaturesTool: ToolboxTool = {
     }
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${source.name} Copy`, data as MapLayer['data'], source.sourceCrs)
     output.customFields = [...(source.customFields ?? [])]
-    return { message: `${output.name}: copied ${data.features.length.toLocaleString()} features.`, layers: [output] }
+    return { message: `${isolate(output.name)}: copied ${data.features.length.toLocaleString()} features.`, layers: [output] }
   },
 }

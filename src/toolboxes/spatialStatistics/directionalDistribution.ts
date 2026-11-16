@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Polygon } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -126,7 +127,7 @@ export const directionalDistributionTool: ToolboxTool = {
     output.opacity = 0.35
     const first = ellipses[0].properties!
     return {
-      message: `${output.name}: ${ellipses.length === 1
+      message: `${isolate(output.name)}: ${ellipses.length === 1
         ? `ellipse (${size} std. dev.) with XStdDist ${first.XStdDist} m, YStdDist ${first.YStdDist} m, rotation ${first.Rotation}° clockwise from north`
         : `${ellipses.length} ellipses (one per case, ${size} std. dev.)`}.${distributionNotes(excluded, skippedCases, 3)}`,
       layers: [output],

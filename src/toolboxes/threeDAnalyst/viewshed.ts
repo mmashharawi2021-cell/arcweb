@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { createRasterGrid } from '../../rasterEngine'
 import { gridOutput, getRaster, rasterInput } from '../spatialAnalyst/_shared'
 import { getLayer, getNumber } from '../shared'
@@ -79,7 +80,7 @@ export const viewshedTool: ToolboxTool = {
     }))
     output.fillColor = '#55d6a4'
     return {
-      message: `${name}: ${visibleCount.toLocaleString()} of ${grid.width * grid.height} raster cells are visible. NoData target cells were excluded${noDataSamplesIgnored ? `; ${noDataSamplesIgnored.toLocaleString()} intermediate NoData samples were ignored` : ''}.`,
+      message: `${isolate(name)}: ${visibleCount.toLocaleString()} of ${grid.width * grid.height} raster cells are visible. NoData target cells were excluded${noDataSamplesIgnored ? `; ${noDataSamplesIgnored.toLocaleString()} intermediate NoData samples were ignored` : ''}.`,
       ...(noDataSamplesIgnored ? { kind: 'warning' as const } : {}),
       layers: [output],
     }

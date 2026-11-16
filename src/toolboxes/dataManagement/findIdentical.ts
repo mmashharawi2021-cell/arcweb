@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -29,12 +30,12 @@ export const findIdenticalTool: ToolboxTool = {
       for (const index of group) rows.push({ inFid: index + 1, sequence })
     }
     const duplicateSets = groups.filter((group) => group.length > 1).length
-    if (!rows.length) return { message: `${layer.name}: no identical records found comparing ${compared.join(', ')}.` }
+    if (!rows.length) return { message: `${isolate(layer.name)}: no identical records found comparing ${compared.map((field) => field === 'Shape' ? field : isolate(field)).join(', ')}.` }
     rows.sort((a, b) => a.inFid - b.inFid)
     const features: Feature[] = rows.map((row) => tableRow({ IN_FID: row.inFid, FEAT_SEQ: row.sequence }))
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Identical`, { type: 'FeatureCollection', features })
     return {
-      message: `${output.name}: ${duplicateSets.toLocaleString()} sets of identical records (${compared.join(', ')}).`,
+      message: `${isolate(output.name)}: ${duplicateSets.toLocaleString()} sets of identical records (${compared.map((field) => field === 'Shape' ? field : isolate(field)).join(', ')}).`,
       layers: [output],
     }
   },

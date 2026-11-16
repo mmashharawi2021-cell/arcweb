@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { RendererConfig } from '../../store'
 import { getLayer, getOptionalText, getText, outputLayer } from '../shared'
@@ -98,7 +99,7 @@ export const hotSpotAnalysisTool: ToolboxTool = {
     if (matrix.isolated) notes.push(`${matrix.isolated} feature(s) have no neighbors`)
     if (sites.length < 30) notes.push('fewer than 30 features may give unreliable results')
     return {
-      message: `${output.name}: ${hot} hot spot and ${cold} cold spot feature(s) significant at ≥90% confidence${fdr ? ' (FDR corrected)' : ''} out of ${sites.length}. [${matrix.description}]${notes.length ? ` Note: ${notes.join('; ')}.` : ''}`,
+      message: `${isolate(output.name)}: ${hot} hot spot and ${cold} cold spot feature(s) significant at ≥90% confidence${fdr ? ' (FDR corrected)' : ''} out of ${sites.length}. [${matrix.description}]${notes.length ? ` Note: ${notes.join('; ')}.` : ''}`,
       kind: notes.length ? 'warning' : 'success',
       layers: [output],
     }

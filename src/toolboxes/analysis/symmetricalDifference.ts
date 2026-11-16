@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature } from 'geojson'
 import { getLayer, outputLayer } from '../shared'
@@ -51,6 +52,6 @@ export const symmetricalDifferenceTool: ToolboxTool = {
     assertHasFeatures(results, 'The two layers cover exactly the same area; nothing is left.')
     const fields = [FID_INPUT, ...inputFields, FID_UPDATE, ...mapping.values()]
     const output = outputLayer(outputName(parameters, `${inputLayer.name} SymDiff`), featureCollection(fillSchema(results, fields)), inputLayer.sourceCrs)
-    return { message: `${output.name}: ${results.length.toLocaleString()} non-overlapping polygon pieces.`, layers: [output] }
+    return { message: `${isolate(output.name)}: ${results.length.toLocaleString()} non-overlapping polygon pieces.`, layers: [output] }
   },
 }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Geometry, Position } from 'geojson'
 import type { MapLayer } from '../../store'
 import { getLayer, getOptionalText } from '../shared'
@@ -99,6 +100,6 @@ export const featuresToKmlTool: ToolboxTool = {
   execute: (context, parameters) => {
     const layer = getLayer(context, parameters, 'target')
     const download = buildKml(layer, getOptionalText(parameters, 'nameField') || undefined, getOptionalText(parameters, 'fileName'))
-    return { message: `Prepared ${download.fileName}.`, downloads: [download] }
+    return { message: `Prepared ${isolate(download.fileName)}.`, downloads: [download] }
   },
 }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import bbox from '@turf/bbox'
 import booleanValid from '@turf/boolean-valid'
 import kinks from '@turf/kinks'
@@ -102,7 +103,7 @@ export const generalizeTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Generalized`, { type: 'FeatureCollection', features }, layer.sourceCrs)
     const percent = before ? Math.round((1 - after / before) * 100) : 0
     return {
-      message: `${output.name}: ${before.toLocaleString()} → ${after.toLocaleString()} vertices (${percent}% fewer).` +
+      message: `${isolate(output.name)}: ${before.toLocaleString()} → ${after.toLocaleString()} vertices (${percent}% fewer).` +
         (relaxed ? ` ${relaxed} feature(s) used a smaller tolerance or were kept unchanged to stay valid.` : ''),
       kind: relaxed ? 'warning' : 'success',
       layers: [output],

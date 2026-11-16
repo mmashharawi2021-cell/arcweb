@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import centroid from '@turf/centroid'
 import { featureCollection } from '@turf/helpers'
 import pointOnFeature from '@turf/point-on-feature'
@@ -35,6 +36,6 @@ export const featureToPointTool: ToolboxTool = {
     }))
     assertHasFeatures(points, 'The input layer has no features with geometry.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Points`, featureCollection(points))
-    return { message: `${output.name}: created ${points.length.toLocaleString()} points.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${points.length.toLocaleString()} points.`, layers: [output] }
   },
 }

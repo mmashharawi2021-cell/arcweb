@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getOptionalText } from '../shared'
 import type { ToolboxTool } from '../types'
 import { fmt, interpretPattern, layerSites, projectSites, statisticsTable, tidy, twoTailedP } from './_stats'
@@ -106,7 +107,7 @@ export const averageNearestNeighborTool: ToolboxTool = {
       DistMethod: method,
     })
     return {
-      message: `Average Nearest Neighbor (${layer.name}): observed mean distance ${fmt(observed)} m, expected ${fmt(expected)} m, nearest neighbor ratio ${fmt(ratio)}, z-score ${fmt(z, 4)}, p-value ${fmt(p, 4)} → ${pattern}. ${sentence} (n = ${n}, area ${fmt(area)} m²${areaInput ? '' : ' from the minimum enclosing rectangle'}).`,
+      message: `Average Nearest Neighbor (${isolate(layer.name)}): observed mean distance ${fmt(observed)} m, expected ${fmt(expected)} m, nearest neighbor ratio ${fmt(ratio)}, z-score ${fmt(z, 4)}, p-value ${fmt(p, 4)} → ${pattern}. ${sentence} (n = ${n}, area ${fmt(area)} m²${areaInput ? '' : ' from the minimum enclosing rectangle'}).`,
       kind: 'success',
       layers: [table],
     }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, Point, Position } from 'geojson'
 import type { MapLayer } from '../../store'
 import { getLayer, getNumber } from '../shared'
@@ -80,6 +81,6 @@ export const pointDistanceTool: ToolboxTool = {
     }
     assertHasFeatures(rows, 'No point pairs fall within the search radius.')
     const { layer, downloads } = tableResult(parameters, outputName(parameters, `${inputLayer.name} PointDistance`), rows, ['INPUT_FID', 'NEAR_FID', 'DISTANCE'])
-    return { message: `${layer.name}: ${rows.length.toLocaleString()} point pairs (DISTANCE in meters).`, layers: [layer], downloads }
+    return { message: `${isolate(layer.name)}: ${rows.length.toLocaleString()} point pairs (DISTANCE in meters).`, layers: [layer], downloads }
   },
 }

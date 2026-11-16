@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Polygon } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -67,7 +68,7 @@ export const standardDistanceTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Standard Distance`, featureCollection(circles))
     output.opacity = 0.35
     return {
-      message: `${output.name}: ${circles.length === 1 ? `standard distance ${circles[0].properties!.StdDist} m (${size} std. dev.)` : `${circles.length} circles (one per case, ${size} std. dev.)`}.${distributionNotes(excluded, skippedCases, 2)}`,
+      message: `${isolate(output.name)}: ${circles.length === 1 ? `standard distance ${circles[0].properties!.StdDist} m (${size} std. dev.)` : `${circles.length} circles (one per case, ${size} std. dev.)`}.${distributionNotes(excluded, skippedCases, 2)}`,
       layers: [output],
     }
   },

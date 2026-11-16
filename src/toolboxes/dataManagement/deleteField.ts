@@ -21,7 +21,7 @@ export const deleteFieldTool: ToolboxTool = {
     const layer = getLayer(context, parameters, 'target')
     const available = fieldNames(layer)
     const first = getText(parameters, 'field', 'a field')
-    if (!available.includes(first)) throw new Error(`Field "${first}" does not exist.`)
+    if (!available.includes(first)) throw new Error(`Field "${isolate(first)}" does not exist.`)
     const fields = [...new Set([first, ...parseFieldList(getOptionalText(parameters, 'moreFields'), available)])]
     const doomed = new Set(fields)
     const data: FeatureCollection = {

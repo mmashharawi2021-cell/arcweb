@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getPositiveNumber, getFile, gridOutput, outputName, pointGrid, getPointSamples, rasterLayerBounds, SPATIAL_ANALYST_CATEGORY } from './_shared'
 import { rasterToFeatureCollection, readGeoTiff } from '../../rasterEngine'
 import { outputLayer } from '../shared'
@@ -33,7 +34,7 @@ export const idwTool: ToolboxTool = {
       return weighted / totalWeight
     })
     const output = gridOutput(outputName(parameters, `${layer.name} IDW`), grid)
-    return { message: `${output.name}: interpolated ${samples.length} points to a ${grid.width} × ${grid.height} grid.`, layers: [output] }
+    return { message: `${isolate(output.name)}: interpolated ${samples.length} points to a ${grid.width} × ${grid.height} grid.`, layers: [output] }
   },
 }
 
@@ -72,7 +73,7 @@ export const kernelDensityTool: ToolboxTool = {
       return density
     })
     const output = gridOutput(outputName(parameters, `${layer.name} Kernel Density`), grid)
-    return { message: `${output.name}: calculated kernel density for ${samples.length} points.`, layers: [output] }
+    return { message: `${isolate(output.name)}: calculated kernel density for ${samples.length} points.`, layers: [output] }
   },
 }
 
@@ -93,8 +94,8 @@ export const importGeoTiffTool: ToolboxTool = {
     output.strokeColor = '#172554'
     output.strokeWidth = 0.25
     const message = grid.crs === 'EPSG:4326'
-      ? `${name}: imported ${grid.width} × ${grid.height} cells.`
-      : `${name}: imported ${grid.width} × ${grid.height} cells; coordinates are transformed to WGS84 for display.`
+      ? `${isolate(name)}: imported ${grid.width} × ${grid.height} cells.`
+      : `${isolate(name)}: imported ${grid.width} × ${grid.height} cells; coordinates are transformed to WGS84 for display.`
     return { message, layers: [output] }
   },
 }

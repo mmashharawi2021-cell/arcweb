@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { fieldNames, getLayer, getOptionalText, getText, outputLayer } from '../shared'
 import type { Feature } from 'geojson'
 import type { ToolboxTool } from '../types'
@@ -5,7 +6,7 @@ import type { ToolboxTool } from '../types'
 function resolve(layer: ReturnType<typeof getLayer>, requested: string): string {
   const match = fieldNames(layer).find((name) => name === requested) ??
     fieldNames(layer).find((name) => name.toLowerCase() === requested.toLowerCase())
-  if (!match) throw new Error(`Field "${requested}" was not found in ${layer.name}.`)
+  if (!match) throw new Error(`Field "${isolate(requested)}" was not found in ${isolate(layer.name)}.`)
   return match
 }
 
@@ -64,6 +65,6 @@ export const addJoinTool: ToolboxTool = {
     }
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${input.name} Joined`, { ...input.data, features }, input.sourceCrs)
     output.customFields = [...new Set([...(input.customFields ?? []), ...outputFields.map(([, field]) => field)])]
-    return { message: `${output.name}: joined ${features.length.toLocaleString()} features using ${inputField} = ${joinField}.`, layers: [output] }
+    return { message: `${isolate(output.name)}: joined ${features.length.toLocaleString()} features using ${isolate(inputField)} = ${isolate(joinField)}.`, layers: [output] }
   },
 }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Geometry, Position } from 'geojson'
 import { getLayer, getOptionalText } from '../shared'
 import type { ToolboxTool, ToolDownload } from '../types'
@@ -69,6 +70,6 @@ export const featuresToDxfTool: ToolboxTool = {
   execute: (context, parameters) => {
     const layer = getLayer(context, parameters, 'target')
     const result = buildDxf(getOptionalText(parameters, 'fileName') || layer.name, exportableFeatures(layer))
-    return { message: `Prepared ${result.fileName} in WGS 84 coordinates.`, downloads: [result] }
+    return { message: `Prepared ${isolate(result.fileName)} in WGS 84 coordinates.`, downloads: [result] }
   },
 }

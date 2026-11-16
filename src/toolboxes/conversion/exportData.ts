@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getText } from '../shared'
 import type { ToolboxTool, ToolDownload } from '../types'
 import type { MapLayer } from '../../store'
@@ -42,7 +43,7 @@ export const exportDataTool: ToolboxTool = {
     const format = getText(parameters, 'format', 'an output format')
     const { download, warnings } = await exportLayer(layer, format)
     return {
-      message: `Prepared ${download.fileName} for download.${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
+      message: `Prepared ${isolate(download.fileName)} for download.${warnings.length ? ` ${warnings.join(' ')}` : ''}`,
       kind: warnings.length ? 'warning' : 'success',
       downloads: [download],
     }

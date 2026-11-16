@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import booleanIntersects from '@turf/boolean-intersects'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { point } from '@turf/helpers'
@@ -73,6 +74,6 @@ export const summarizeWithinTool: ToolboxTool = {
     })
     const result = outputLayer(outputName(parameters, `${zones.name} Summarized`), { ...zones.data, features })
     result.customFields = [...new Set([...(zones.customFields ?? []), 'FEATURE_COUNT', ...requests.map((request) => request.output)])]
-    return { message: `${result.name}: summarized ${summaries.length.toLocaleString()} features in ${features.length.toLocaleString()} zones.`, layers: [result] }
+    return { message: `${isolate(result.name)}: summarized ${summaries.length.toLocaleString()} features in ${features.length.toLocaleString()} zones.`, layers: [result] }
   },
 }

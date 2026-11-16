@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { kinks } from '@turf/turf'
 import { polygon as turfPolygon } from '@turf/helpers'
 import type { Feature, Geometry, Position } from 'geojson'
@@ -86,12 +87,12 @@ export const checkGeometryTool: ToolboxTool = {
       }
     })
     if (!rows.length) {
-      return { message: `${layer.name}: no geometry problems found in ${layer.data.features.length.toLocaleString()} features.` }
+      return { message: `${isolate(layer.name)}: no geometry problems found in ${layer.data.features.length.toLocaleString()} features.` }
     }
     const features = new Set(rows.map((row) => row.properties?.ORIG_FID)).size
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Check Geometry`, { type: 'FeatureCollection', features: rows })
     return {
-      message: `${layer.name}: found ${rows.length.toLocaleString()} problems in ${features.toLocaleString()} features. Run Repair Geometry to fix them.`,
+      message: `${isolate(layer.name)}: found ${rows.length.toLocaleString()} problems in ${features.toLocaleString()} features. Run Repair Geometry to fix them.`,
       kind: 'warning',
       layers: [output],
     }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Geometry, Position } from 'geojson'
 import { createRasterGrid, rasterCoordinateToWgs84, rasterFromFeatureCollection, rasterToFeatureCollection, type RasterGrid } from '../../rasterEngine'
 import type { MapLayer } from '../../store'
@@ -51,7 +52,7 @@ export function getPointSamples(context: ToolboxContext, parameters: ToolboxPara
     const [x, y] = feature.geometry.coordinates
     return Number.isFinite(value) && Number.isFinite(x) && Number.isFinite(y) ? [{ x, y, value }] : []
   })
-  if (!samples.length) throw new Error(`The input layer has no point features with numeric values in "${valueField}".`)
+  if (!samples.length) throw new Error(`The input layer has no point features with numeric values in "${isolate(valueField)}".`)
   return { layer, samples }
 }
 

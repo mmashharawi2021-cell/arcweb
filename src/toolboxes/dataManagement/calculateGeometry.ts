@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import area from '@turf/area'
 import centroid from '@turf/centroid'
 import length from '@turf/length'
@@ -182,7 +183,7 @@ export const calculateGeometryTool: ToolboxTool = {
     ]
     const existing = fieldNames(layer)
     return {
-      message: `Calculated ${written.join(', ')} for ${features.length.toLocaleString()} features in ${layer.name} (${crs ? `planar, ${crs.name}` : 'geodesic'}).${failed ? ` ${failed} features could not be measured and were left empty.` : ''}`,
+      message: `Calculated ${written.join(', ')} for ${features.length.toLocaleString()} features in ${isolate(layer.name)} (${crs ? `planar, ${crs.name}` : 'geodesic'}).${failed ? ` ${failed} features could not be measured and were left empty.` : ''}`,
       kind: failed ? 'warning' : 'success',
       updates: [{
         layerId: layer.id,

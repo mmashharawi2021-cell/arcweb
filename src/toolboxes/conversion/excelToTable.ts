@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getFile, getOptionalText, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
 import { readTableFile, recordsToTable } from './_utils'
@@ -23,7 +24,7 @@ export const excelToTableTool: ToolboxTool = {
     const layer = outputLayer(name, recordsToTable(records))
     layer.customFields = fields
     return {
-      message: `${layer.name}: imported ${records.length.toLocaleString()} rows and ${fields.length} fields as a table without geometry.`,
+      message: `${isolate(layer.name)}: imported ${records.length.toLocaleString()} rows and ${fields.length} fields as a table without geometry.`,
       layers: [layer],
     }
   },

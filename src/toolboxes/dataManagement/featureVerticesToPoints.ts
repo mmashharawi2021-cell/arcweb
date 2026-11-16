@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import type { Feature, Geometry, Position } from 'geojson'
 import type { ToolboxTool } from '../types'
@@ -77,6 +78,6 @@ export const featureVerticesToPointsTool: ToolboxTool = {
     if (!features.length) throw new Error('The input layer has no usable geometry vertices.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Vertices`, { type: 'FeatureCollection', features }, layer.sourceCrs)
     output.customFields = [...new Set([...(layer.customFields ?? []), 'ORIG_FID', 'PART_ID', 'VERTEX_ID'])]
-    return { message: `${output.name}: created ${features.length.toLocaleString()} points.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${features.length.toLocaleString()} points.`, layers: [output] }
   },
 }

@@ -29,7 +29,7 @@ export const mergeTool: ToolboxTool = {
     if (inputs.length < 2) throw new Error('Choose at least two layers to merge.')
     const kinds = new Set(inputs.filter((layer) => layer.data.features.length).map((layer) => layer.geometry))
     if (kinds.size > 1 || kinds.has('Mixed')) {
-      const summary = inputs.map((layer) => `${layer.name} (${layer.geometry})`).join(', ')
+      const summary = inputs.map((layer) => `${isolate(layer.name)} (${layer.geometry})`).join(', ')
       throw new Error(`Merge needs layers of the same geometry type. Selected: ${summary}.`)
     }
 

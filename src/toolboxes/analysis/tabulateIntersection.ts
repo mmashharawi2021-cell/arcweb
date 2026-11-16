@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import area from '@turf/area'
 import length from '@turf/length'
 import type { Feature, Geometry } from 'geojson'
@@ -91,7 +92,7 @@ export const tabulateIntersectionTool: ToolboxTool = {
     const fields = [zoneField, ...(classField && classField !== zoneField ? [classField] : []), measureField, 'PERCENTAGE']
     const { layer, downloads } = tableResult(parameters, outputName(parameters, `${zoneLayer.name} TabulateIntersection`), rows, fields)
     return {
-      message: `${layer.name}: ${rows.length.toLocaleString()} zone/class rows (${measureField}${kind === 'polygon' ? ' in square meters' : kind === 'line' ? ' in meters' : ''}).`,
+      message: `${isolate(layer.name)}: ${rows.length.toLocaleString()} zone/class rows (${measureField}${kind === 'polygon' ? ' in square meters' : kind === 'line' ? ' in meters' : ''}).`,
       layers: [layer],
       downloads,
     }

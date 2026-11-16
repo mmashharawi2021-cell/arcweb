@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature } from 'geojson'
 import { outputLayer } from '../shared'
@@ -25,11 +26,11 @@ export const featureTo3DByAttributeTool: ToolboxTool = {
       converted += 1
       return { ...feature, geometry: addZToGeometry(feature.geometry, () => value) } as Feature
     })
-    if (!converted) throw new Error(`No features have numeric values in "${field}".`)
+    if (!converted) throw new Error(`No features have numeric values in "${isolate(field)}".`)
     const name = typeof parameters.outputName === 'string' && parameters.outputName.trim() ? parameters.outputName.trim() : `${layer.name} 3D`
     const output = outputLayer(name, featureCollection(features), layer.sourceCrs)
     return {
-      message: `${name}: added Z values to ${converted} features${converted < layer.data.features.length ? '; nonnumeric or empty features were retained unchanged' : ''}.`,
+      message: `${isolate(name)}: added Z values to ${converted} features${converted < layer.data.features.length ? '; nonnumeric or empty features were retained unchanged' : ''}.`,
       ...(converted < layer.data.features.length ? { kind: 'warning' as const } : {}),
       layers: [output],
     }

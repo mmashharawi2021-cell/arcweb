@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -28,6 +29,6 @@ export const featureClassToFeatureClassTool: ToolboxTool = {
     const name = getOptionalText(parameters, 'outputName') || `${source.name} copy`
     const copies = features.map((feature) => ({ type: 'Feature' as const, properties: { ...(feature.properties ?? {}) }, geometry: feature.geometry }))
     const output = outputLayer(name, featureCollection(copies), source.sourceCrs)
-    return { message: `${name}: copied ${features.length.toLocaleString()} features.`, layers: [output] }
+    return { message: `${isolate(name)}: copied ${features.length.toLocaleString()} features.`, layers: [output] }
   },
 }

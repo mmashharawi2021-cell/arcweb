@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import flatten from '@turf/flatten'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
@@ -34,7 +35,7 @@ export const multipartToSinglepartTool: ToolboxTool = {
     assertHasFeatures(parts, 'The input layer has no features with geometry.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Singlepart`, featureCollection(parts), layer.sourceCrs)
     return {
-      message: `${output.name}: ${parts.length.toLocaleString()} single-part features (${multipart.toLocaleString()} multipart features exploded).`,
+      message: `${isolate(output.name)}: ${parts.length.toLocaleString()} single-part features (${multipart.toLocaleString()} multipart features exploded).`,
       layers: [output],
     }
   },

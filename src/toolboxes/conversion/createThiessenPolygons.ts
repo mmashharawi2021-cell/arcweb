@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import bbox from '@turf/bbox'
 import cleanCoords from '@turf/clean-coords'
 import { featureCollection, point } from '@turf/helpers'
@@ -87,7 +88,7 @@ export const createThiessenPolygonsTool: ToolboxTool = {
       skipped ? `${skipped} non-point feature(s) were ignored.` : '',
     ].filter(Boolean)
     return {
-      message: `${output.name}: created ${cells.length.toLocaleString()} Thiessen polygons.${notes.length ? ` ${notes.join(' ')}` : ''}`,
+      message: `${isolate(output.name)}: created ${cells.length.toLocaleString()} Thiessen polygons.${notes.length ? ` ${notes.join(' ')}` : ''}`,
       kind: notes.length ? 'warning' : 'success',
       layers: [output],
     }

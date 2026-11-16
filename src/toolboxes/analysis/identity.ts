@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
 import { getLayer, outputLayer } from '../shared'
@@ -64,6 +65,6 @@ export const identityTool: ToolboxTool = {
     assertHasFeatures(results, 'Identity could not produce any features.')
     const fields = [FID_INPUT, ...inputFields, FID_IDENTITY, ...mapping.values()]
     const output = outputLayer(outputName(parameters, `${inputLayer.name} Identity`), featureCollection(fillSchema(results, fields)), inputLayer.sourceCrs)
-    return { message: `${output.name}: ${results.length.toLocaleString()} features.`, layers: [output] }
+    return { message: `${isolate(output.name)}: ${results.length.toLocaleString()} features.`, layers: [output] }
   },
 }

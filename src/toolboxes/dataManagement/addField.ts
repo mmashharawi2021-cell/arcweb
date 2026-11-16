@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { FeatureCollection } from 'geojson'
 import { fieldNames, getLayer, getOptionalText, getText } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -29,10 +30,10 @@ export const addFieldTool: ToolboxTool = {
     const layer = getLayer(context, parameters, 'target')
     const fieldName = getText(parameters, 'fieldName', 'a field name')
     if (!FIELD_NAME.test(fieldName)) {
-      throw new Error(`"${fieldName}" is not a valid field name. Use letters, digits and underscores, starting with a letter or underscore.`)
+      throw new Error(`"${isolate(fieldName)}" is not a valid field name. Use letters, digits and underscores, starting with a letter or underscore.`)
     }
     if (fieldNames(layer).some((name) => name.toLowerCase() === fieldName.toLowerCase())) {
-      throw new Error(`A field named "${fieldName}" already exists.`)
+      throw new Error(`A field named "${isolate(fieldName)}" already exists.`)
     }
     const type = getOptionalText(parameters, 'fieldType') || 'TEXT'
     const raw = getOptionalText(parameters, 'defaultValue')
@@ -54,7 +55,7 @@ export const addFieldTool: ToolboxTool = {
       })),
     }
     return {
-      message: `Added "${fieldName}" (${type}) to ${layer.name}.`,
+      message: `Added "${isolate(fieldName)}" (${type}) to ${isolate(layer.name)}.`,
       updates: [{ layerId: layer.id, updates: { data, customFields: [...layer.customFields, fieldName] } }],
     }
   },

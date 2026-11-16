@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry, Position } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -36,7 +37,7 @@ export const smoothPolygonTool: ToolboxTool = {
     assertHasFeatures(smoothed, 'No polygons could be smoothed.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Smoothed`, featureCollection(smoothed), layer.sourceCrs)
     return {
-      message: `${output.name}: smoothed ${smoothed.length.toLocaleString()} polygons (${iterations} passes).${collapsed ? ` ${collapsed} collapsed and were removed.` : ''}`,
+      message: `${isolate(output.name)}: smoothed ${smoothed.length.toLocaleString()} polygons (${iterations} passes).${collapsed ? ` ${collapsed} collapsed and were removed.` : ''}`,
       kind: collapsed ? 'warning' : 'success',
       layers: [output],
     }

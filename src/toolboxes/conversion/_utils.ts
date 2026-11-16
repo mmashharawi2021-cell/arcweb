@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import Papa from 'papaparse'
 import readXlsxFile from 'read-excel-file/universal'
 import type { Feature, FeatureCollection, Geometry, Position } from 'geojson'
@@ -179,7 +180,7 @@ export async function readTableFile(file: File, sheet?: string): Promise<{ field
     const sheets = await readXlsxFile(await file.arrayBuffer())
     if (!sheets.length) throw new Error('The workbook contains no sheets.')
     const chosen = sheet ? sheets.find((item) => item.sheet.toLowerCase() === sheet.toLowerCase()) : sheets[0]
-    if (!chosen) throw new Error(`Sheet "${sheet}" was not found. Available sheets: ${sheets.map((item) => item.sheet).join(', ')}.`)
+    if (!chosen) throw new Error(`Sheet "${isolate(String(sheet))}" was not found. Available sheets: ${sheets.map((item) => isolate(item.sheet)).join(', ')}.`)
     return { ...rowsToRecords(chosen.data as unknown[][]), sheetName: chosen.sheet }
   }
   if (extension === 'xls') throw new Error('Legacy .xls workbooks are not supported. Save the sheet as .xlsx or .csv first.')

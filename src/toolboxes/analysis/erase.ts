@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import difference from '@turf/difference'
 import { featureCollection, point } from '@turf/helpers'
@@ -69,7 +70,7 @@ export const eraseTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${target.name} Erase`, featureCollection(results))
     const removed = usableFeatures(target).length - results.length
     return {
-      message: `${output.name}: kept ${results.length.toLocaleString()} features${removed > 0 ? `, ${removed.toLocaleString()} fully erased` : ''}.`,
+      message: `${isolate(output.name)}: kept ${results.length.toLocaleString()} features${removed > 0 ? `, ${removed.toLocaleString()} fully erased` : ''}.`,
       layers: [output],
     }
   },

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import proj4 from 'proj4'
 import type { Geometry, Position } from 'geojson'
 import { Delaunay } from 'd3-delaunay'
@@ -32,7 +33,7 @@ export function getElevationSamples(layer: MapLayer, field: string): ElevationSa
     if (!Number.isFinite(x) || !Number.isFinite(y) || z === null) continue
     samples.set(`${x},${y}`, { x, y, z })
   }
-  if (samples.size < 3) throw new Error(`At least three unique point features with numeric values in "${field}" are required.`)
+  if (samples.size < 3) throw new Error(`At least three unique point features with numeric values in "${isolate(field)}" are required.`)
   if (samples.size > 20_000) throw new Error('TIN creation is limited to 20,000 unique input points. Reduce or sample the input layer.')
   return [...samples.values()]
 }
@@ -46,7 +47,7 @@ export function getLayerField(
   const layer = getLayer(context, parameters, layerId)
   const field = parameters[fieldId]
   if (typeof field !== 'string' || !field.trim() || !fieldNames(layer).includes(field)) {
-    throw new Error(`Choose a valid field from "${layer.name}".`)
+    throw new Error(`Choose a valid field from "${isolate(layer.name)}".`)
   }
   return { layer, field }
 }

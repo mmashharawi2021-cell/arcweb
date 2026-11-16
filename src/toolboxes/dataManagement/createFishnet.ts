@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, LineString, Point, Polygon, Position } from 'geojson'
 import { getOptionalText, outputLayer } from '../shared'
@@ -92,7 +93,7 @@ export const createFishnetTool: ToolboxTool = {
       layers.push(outputLayer(`${name} Labels`, featureCollection(points)))
     }
     return {
-      message: `${name}: ${rows.toLocaleString()} rows × ${columns.toLocaleString()} columns (${(rows * columns).toLocaleString()} cells, about ${Math.round(dx * metresPerLonDegree).toLocaleString()} × ${Math.round(dy * METERS_PER_DEGREE).toLocaleString()} m).`,
+      message: `${isolate(name)}: ${rows.toLocaleString()} rows × ${columns.toLocaleString()} columns (${(rows * columns).toLocaleString()} cells, about ${Math.round(dx * metresPerLonDegree).toLocaleString()} × ${Math.round(dy * METERS_PER_DEGREE).toLocaleString()} m).`,
       layers,
     }
   },

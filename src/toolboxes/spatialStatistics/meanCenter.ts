@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Point } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -55,7 +56,7 @@ export const meanCenterTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Mean Center`, featureCollection(centers))
     output.pointRadius = 8
     return {
-      message: `${output.name}: ${centers.length === 1 ? `mean center at ${centers[0].properties!.YCoord}, ${centers[0].properties!.XCoord}` : `${centers.length} mean centers (one per case)`}.${distributionNotes(excluded, skippedCases, 1)}`,
+      message: `${isolate(output.name)}: ${centers.length === 1 ? `mean center at ${centers[0].properties!.YCoord}, ${centers[0].properties!.XCoord}` : `${centers.length} mean centers (one per case)`}.${distributionNotes(excluded, skippedCases, 1)}`,
       layers: [output],
     }
   },

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import truncate from '@turf/truncate'
 import type { Feature, FeatureCollection } from 'geojson'
 import type { MapLayer } from '../../store'
@@ -45,6 +46,6 @@ export const featuresToGeoJsonTool: ToolboxTool = {
       pretty: getOptionalText(parameters, 'format') !== 'compact',
       fileName: getOptionalText(parameters, 'fileName'),
     })
-    return { message: `Prepared ${download.fileName} (${layer.data.features.length.toLocaleString()} features).`, downloads: [download] }
+    return { message: `Prepared ${isolate(download.fileName)} (${layer.data.features.length.toLocaleString()} features).`, downloads: [download] }
   },
 }

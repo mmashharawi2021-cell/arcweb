@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import centroid from '@turf/centroid'
 import proj4 from 'proj4'
 import type { Feature, FeatureCollection, Geometry, Polygon, Position } from 'geojson'
@@ -104,7 +105,7 @@ export const fmt = (value: number, digits = 6) => {
 // ---------------------------------------------------------------------------
 
 export function requireField(layer: MapLayer, field: string, label: string) {
-  if (field && !fieldNames(layer).includes(field)) throw new Error(`The ${label} "${field}" does not exist in ${layer.name}.`)
+  if (field && !fieldNames(layer).includes(field)) throw new Error(`The ${label} "${isolate(field)}" does not exist in ${isolate(layer.name)}.`)
 }
 
 /** `null` for empty values, NaN for values that are not numbers. */
@@ -120,7 +121,7 @@ export function readNumbers(sites: Site[], field: string, label: string): (numbe
   return sites.map((site) => {
     const value = numericValue(site.feature.properties?.[field])
     if (value !== null && !Number.isFinite(value)) {
-      throw new Error(`The ${label} "${field}" must be numeric (found "${String(site.feature.properties?.[field])}").`)
+      throw new Error(`The ${label} "${isolate(field)}" must be numeric (found "${String(site.feature.properties?.[field])}").`)
     }
     return value
   })
@@ -137,10 +138,10 @@ export function valueSites(layer: MapLayer, field: string, minimum: number, tool
   const values = readNumbers(sites, field, 'input field')
   const kept = sites.flatMap((site, index) => values[index] === null ? [] : [{ ...site, value: values[index] as number }])
   if (kept.length < minimum) {
-    throw new Error(`${toolName} requires at least ${minimum} features with a location and a value in "${field}" (found ${kept.length}).`)
+    throw new Error(`${toolName} requires at least ${minimum} features with a location and a value in "${isolate(field)}" (found ${kept.length}).`)
   }
   const first = kept[0].value
-  if (kept.every((site) => site.value === first)) throw new Error(`Every value in "${field}" is the same, so there is no variation to analyze.`)
+  if (kept.every((site) => site.value === first)) throw new Error(`Every value in "${isolate(field)}" is the same, so there is no variation to analyze.`)
   return { sites: projectSites(kept), excluded: layer.data.features.length - kept.length }
 }
 
@@ -194,7 +195,7 @@ export function distributionGroups(layer: MapLayer, options: {
   sites.forEach((site, index) => {
     const weight = weights[index]
     if (weight === null) return
-    if (weight < 0) throw new Error(`Weights cannot be negative (field "${options.weightField}").`)
+    if (weight < 0) throw new Error(`Weights cannot be negative (field "${isolate(options.weightField)}").`)
     if (options.extraField && extras[index] === null) return
     usable.push({ ...site, weight, extra: extras[index] })
   })

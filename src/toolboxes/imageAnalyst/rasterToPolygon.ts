@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, MultiPolygon, Polygon, Position } from 'geojson'
 import { isNoData, rasterCoordinateToWgs84 } from '../../rasterEngine'
 import { getRaster, outputName, IMAGE_ANALYST_CATEGORY } from './_shared'
@@ -171,7 +172,7 @@ export const rasterToPolygonTool: ToolboxTool = {
     if (!features.length) throw new Error('The input raster contains no valid cells to polygonize.')
     const name = outputName(parameters, `${layer.name} Polygons`)
     const output = outputLayer(name, { type: 'FeatureCollection', features }, grid.crs)
-    return { message: `${name}: converted ${grid.values.length.toLocaleString()} raster cells into ${features.length.toLocaleString()} four-connected value regions.`, layers: [output] }
+    return { message: `${isolate(name)}: converted ${grid.values.length.toLocaleString()} raster cells into ${features.length.toLocaleString()} four-connected value regions.`, layers: [output] }
   },
 }
 

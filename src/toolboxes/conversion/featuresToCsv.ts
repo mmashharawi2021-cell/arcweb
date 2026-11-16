@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import Papa from 'papaparse'
 import centroid from '@turf/centroid'
 import pointOnFeature from '@turf/point-on-feature'
@@ -74,6 +75,6 @@ export const featuresToCsvTool: ToolboxTool = {
     const mode = (getOptionalText(parameters, 'geometry') || 'wkt') as CsvGeometryMode
     if (!['wkt', 'xy', 'geojson', 'none'].includes(mode)) throw new Error(`Unknown geometry output: ${mode}.`)
     const download = buildCsv(layer, mode, getOptionalText(parameters, 'fileName'))
-    return { message: `Prepared ${download.fileName} (${layer.data.features.length.toLocaleString()} rows).`, downloads: [download] }
+    return { message: `Prepared ${isolate(download.fileName)} (${layer.data.features.length.toLocaleString()} rows).`, downloads: [download] }
   },
 }

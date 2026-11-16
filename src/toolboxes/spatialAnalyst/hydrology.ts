@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { isNoData, rasterIndex, rasterValue, type RasterGrid } from '../../rasterEngine'
 import { gridOutput, getRaster, outputName, rasterInput, SPATIAL_ANALYST_CATEGORY } from './_shared'
 import type { ToolboxTool } from '../types'
@@ -94,7 +95,7 @@ const fillSinksTool: ToolboxTool = {
   execute: (context, parameters) => {
     const { layer, grid } = getRaster(context, parameters)
     const output = gridOutput(outputName(parameters, `${layer.name} Filled`), fillSinks(grid))
-    return { message: `${output.name}: filled enclosed elevation sinks.`, layers: [output] }
+    return { message: `${isolate(output.name)}: filled enclosed elevation sinks.`, layers: [output] }
   },
 }
 
@@ -133,7 +134,7 @@ export const flowDirectionTool: ToolboxTool = {
     const { layer, grid } = getRaster(context, parameters)
     const values = flowDirections(grid)
     const output = gridOutput(outputName(parameters, `${layer.name} Flow Direction`), { ...grid, values, noData: Number.NaN })
-    return { message: `${output.name}: calculated D8 directions for ${grid.values.length} cells.`, layers: [output] }
+    return { message: `${isolate(output.name)}: calculated D8 directions for ${grid.values.length} cells.`, layers: [output] }
   },
 }
 
@@ -183,7 +184,7 @@ export const flowAccumulationTool: ToolboxTool = {
   execute: (context, parameters) => {
     const { layer, grid } = getRaster(context, parameters)
     const output = gridOutput(outputName(parameters, `${layer.name} Flow Accumulation`), accumulateFlow(grid))
-    return { message: `${output.name}: accumulated upstream cell counts.`, layers: [output] }
+    return { message: `${isolate(output.name)}: accumulated upstream cell counts.`, layers: [output] }
   },
 }
 

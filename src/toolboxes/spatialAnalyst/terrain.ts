@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature } from 'geojson'
 import { isNoData, rasterValue, type RasterGrid } from '../../rasterEngine'
@@ -76,7 +77,7 @@ function terrainTool(kind: 'slope' | 'aspect' | 'hillshade'): ToolboxTool {
         }
       }
       const output = gridOutput(outputName(parameters, `${layer.name} ${toolName}`), { ...grid, values })
-      return { message: `${output.name}: calculated ${toolName.toLowerCase()} for ${grid.width * grid.height} cells.`, layers: [output] }
+      return { message: `${isolate(output.name)}: calculated ${toolName.toLowerCase()} for ${grid.width * grid.height} cells.`, layers: [output] }
     },
   }
 }
@@ -150,6 +151,6 @@ export const contourTool: ToolboxTool = {
     if (!features.length) throw new Error('No contour lines were produced. Check the elevation range and interval.')
     const name = outputName(parameters, `${layer.name} Contours`)
     const lineLayer = outputLayer(name, featureCollection(features), grid.crs)
-    return { message: `${name}: created ${features.length} contour segments.`, layers: [lineLayer] }
+    return { message: `${isolate(name)}: created ${features.length} contour segments.`, layers: [lineLayer] }
   },
 }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { isNoData } from '../../rasterEngine'
 import { assertAlignedGrids, getBandGrids, gridOutput, outputName, getPositiveNumber, IMAGE_ANALYST_CATEGORY } from './_shared'
 import type { ToolboxTool } from '../types'
@@ -55,7 +56,7 @@ export const spectralIndicesTool: ToolboxTool = {
     const grid = { ...first, values, noData: Number.NaN }
     const output = gridOutput(outputName(parameters, `${presetName} ${name}`), grid)
     return {
-      message: `${output.name}: calculated ${presetName} for ${values.length} aligned cells. ${presetName === 'NDBI' ? 'NDBI uses the standard SWIR + NIR denominator.' : ''}`,
+      message: `${isolate(output.name)}: calculated ${presetName} for ${values.length} aligned cells. ${presetName === 'NDBI' ? 'NDBI uses the standard SWIR + NIR denominator.' : ''}`,
       layers: [output],
     }
   },

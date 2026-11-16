@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature } from 'geojson'
 import { getLayer, getOptionalText, getText } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -16,7 +17,7 @@ function parseStatistics(text: string, resolve: (field: string) => string): Stat
     const match = /^(.+?)[\s:]+([A-Za-z]+)$/.exec(item.trim())
     const type = match?.[2].toUpperCase() as StatisticType | undefined
     if (!match || !type || !STATISTIC_TYPES.includes(type)) {
-      throw new Error(`Could not read "${item}". Write FIELD STATISTIC pairs, e.g. "POP SUM, AREA MEAN" (statistics: ${STATISTIC_TYPES.join(', ')}).`)
+      throw new Error(`Could not read "${isolate(item)}". Write FIELD STATISTIC pairs, e.g. "POP SUM, AREA MEAN" (statistics: ${STATISTIC_TYPES.join(', ')}).`)
     }
     const field = resolve(match[1].trim())
     return { field, type, output: `${type}_${field}` }
@@ -94,6 +95,6 @@ export const summaryStatisticsTool: ToolboxTool = {
       return row
     })
     const { layer, downloads } = tableResult(parameters, outputName(parameters, `${target.name} Statistics`), rows, [...caseFields, 'FREQUENCY', ...outputs])
-    return { message: `${layer.name}: ${rows.length.toLocaleString()} summary rows.`, layers: [layer], downloads }
+    return { message: `${isolate(layer.name)}: ${rows.length.toLocaleString()} summary rows.`, layers: [layer], downloads }
   },
 }

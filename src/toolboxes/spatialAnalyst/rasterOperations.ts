@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { point } from '@turf/helpers'
 import type { Feature, Polygon, MultiPolygon } from 'geojson'
@@ -99,7 +100,7 @@ export const rasterCalculatorTool: ToolboxTool = {
       if (Number.isFinite(result)) values[index] = result
     }
     const output = gridOutput(outputName(parameters, `${aLayer.name} Calculator`), { ...a, values, noData })
-    return { message: `${output.name}: evaluated raster expression for ${values.length} aligned cells.`, layers: [output] }
+    return { message: `${isolate(output.name)}: evaluated raster expression for ${values.length} aligned cells.`, layers: [output] }
   },
 }
 
@@ -144,7 +145,7 @@ export const reclassifyTool: ToolboxTool = {
       values[index] = parsed.ranges.find((range) => input >= range.min && input <= range.max)?.value ?? parsed.defaultValue ?? Number.NaN
     }
     const output = gridOutput(outputName(parameters, `${layer.name} Reclassified`), { ...grid, values, noData: Number.NaN })
-    return { message: `${output.name}: reclassified ${values.length} cells.`, layers: [output] }
+    return { message: `${isolate(output.name)}: reclassified ${values.length} cells.`, layers: [output] }
   },
 }
 
@@ -180,7 +181,7 @@ export const extractByMaskTool: ToolboxTool = {
     }
     if (values.every(Number.isNaN)) throw new Error('The mask did not contain any valid raster cell centers.')
     const output = gridOutput(outputName(parameters, `${layer.name} Mask`), { ...grid, values, noData: Number.NaN })
-    return { message: `${output.name}: extracted raster cells inside the polygon mask.`, layers: [output] }
+    return { message: `${isolate(output.name)}: extracted raster cells inside the polygon mask.`, layers: [output] }
   },
 }
 
@@ -222,6 +223,6 @@ export const zonalStatisticsTool: ToolboxTool = {
     })
     const name = outputName(parameters, 'Zonal statistics')
     const output = outputLayer(name, { type: 'FeatureCollection', features }, zones.sourceCrs)
-    return { message: `${name}: summarized ${features.length} polygon zones.`, layers: [output] }
+    return { message: `${isolate(name)}: summarized ${features.length} polygon zones.`, layers: [output] }
   },
 }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { crsLabel, crsSelectOptions, getCrs, requireCrs } from '../../crs'
 import { getLayer, getText } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -22,12 +23,12 @@ export const defineProjectionTool: ToolboxTool = {
     const crs = requireCrs(getText(parameters, 'crs', 'a coordinate system'))
     const previous = layer.sourceCrs
     const unchanged = getCrs(previous)?.code === crs.code
-    if (unchanged) return { message: `${layer.name} is already defined as ${crs.name} (${crs.code}).` }
+    if (unchanged) return { message: `${isolate(layer.name)} is already defined as ${crs.name} (${crs.code}).` }
     const unknown = !previous || /assumed|unknown|defined by \.prj/i.test(previous)
     return {
       message: unknown
-        ? `Defined ${layer.name} as ${crs.name} (${crs.code}).`
-        : `Warning: ${layer.name} was defined as ${crsLabel(previous)}; it is now ${crs.name} (${crs.code}). Coordinates were not changed — use Project to convert data between systems.`,
+        ? `Defined ${isolate(layer.name)} as ${crs.name} (${crs.code}).`
+        : `Warning: ${isolate(layer.name)} was defined as ${crsLabel(previous)}; it is now ${crs.name} (${crs.code}). Coordinates were not changed — use Project to convert data between systems.`,
       kind: unknown ? 'success' : 'warning',
       updates: [{ layerId: layer.id, updates: { sourceCrs: crs.code } }],
     }

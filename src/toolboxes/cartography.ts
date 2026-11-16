@@ -1,3 +1,4 @@
+import { isolate } from '../bidi'
 import type { RendererConfig } from '../store'
 import { calculateClassBreaks, sampleCategoricalRamp, sampleContinuousRamp } from '../symbology'
 import type { ToolboxTool } from './types'
@@ -27,7 +28,7 @@ export const cartographyTools: ToolboxTool[] = [
     execute: (context, parameters) => {
       const layer = getLayer(context, parameters, 'target')
       return {
-        message: `Applied single-symbol rendering to ${layer.name}.`,
+        message: `Applied single-symbol rendering to ${isolate(layer.name)}.`,
         updates: [{ layerId: layer.id, updates: { renderer: { type: 'single' } } }],
       }
     },
@@ -46,13 +47,13 @@ export const cartographyTools: ToolboxTool[] = [
       const layer = getLayer(context, parameters, 'target')
       const field = getText(parameters, 'field', 'a category field')
       const categories = [...new Set(layer.data.features.map((feature) => feature.properties?.[field]).filter((value) => value !== null && value !== undefined).map(String))]
-      if (!categories.length) throw new Error(`Field "${field}" has no values to symbolize.`)
-      if (categories.length > 100) throw new Error(`Field "${field}" has ${categories.length} unique values; choose a field with at most 100 categories.`)
+      if (!categories.length) throw new Error(`Field "${isolate(field)}" has no values to symbolize.`)
+      if (categories.length > 100) throw new Error(`Field "${isolate(field)}" has ${categories.length} unique values; choose a field with at most 100 categories.`)
       const palette = sampleCategoricalRamp('vivid', categories.length)
       const colors = Object.fromEntries(categories.map((category, index) => [category, palette[index]]))
       const renderer: RendererConfig = { type: 'unique', field, colors, ramp: 'vivid' }
       return {
-        message: `Applied unique-value colors for ${categories.length} categories in ${layer.name}.`,
+        message: `Applied unique-value colors for ${categories.length} categories in ${isolate(layer.name)}.`,
         updates: [{ layerId: layer.id, updates: { renderer } }],
       }
     },
@@ -76,7 +77,7 @@ export const cartographyTools: ToolboxTool[] = [
     execute: (context, parameters) => {
       const layer = getLayer(context, parameters, 'target')
       const field = getText(parameters, 'field', 'a numeric field')
-      if (!fieldNames(layer).includes(field)) throw new Error(`Field "${field}" does not exist on ${layer.name}.`)
+      if (!fieldNames(layer).includes(field)) throw new Error(`Field "${isolate(field)}" does not exist on ${isolate(layer.name)}.`)
       const values = numericValues(layer.data.features.map((feature) => feature.properties?.[field]))
       const requested = getNumber(parameters, 'classes', 'a class count')
       if (!Number.isInteger(requested) || requested < 2 || requested > 7) throw new Error('Class count must be an integer from 2 to 7.')
@@ -86,7 +87,7 @@ export const cartographyTools: ToolboxTool[] = [
       const colors = sampleContinuousRamp('yl-or-rd', breaks.length + 1)
       const renderer: RendererConfig = { type: 'graduated', field, method, breaks, colors, ramp: 'yl-or-rd', classCount: requested }
       return {
-        message: `Applied ${method === 'quantile' ? 'quantile' : 'natural breaks'} classification in ${layer.name}.`,
+        message: `Applied ${method === 'quantile' ? 'quantile' : 'natural breaks'} classification in ${isolate(layer.name)}.`,
         updates: [{ layerId: layer.id, updates: { renderer } }],
       }
     },

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Point } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -50,7 +51,7 @@ export const reverseGeocodeTool: ToolboxTool = {
     const name = getOptionalText(parameters, 'outputName') || `${layer.name} Reverse Geocoded`
     const output = outputLayer(name, featureCollection(outputPoints), layer.sourceCrs)
     return {
-      message: `${name}: reverse geocoded ${outputPoints.length} of ${points.length} points${unmatched ? ` (${unmatched} unmatched)` : ''}. Point coordinates were sent to the public Nominatim service; results are © OpenStreetMap contributors.`,
+      message: `${isolate(name)}: reverse geocoded ${outputPoints.length} of ${points.length} points${unmatched ? ` (${unmatched} unmatched)` : ''}. Point coordinates were sent to the public Nominatim service; results are © OpenStreetMap contributors.`,
       layers: [output],
     }
   },

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { bezierSpline, lineString } from '@turf/turf'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry, Position } from 'geojson'
@@ -53,6 +54,6 @@ export const smoothLineTool: ToolboxTool = {
     })
     assertHasFeatures(smoothed, 'No lines could be smoothed.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Smoothed`, featureCollection(smoothed), layer.sourceCrs)
-    return { message: `${output.name}: smoothed ${smoothed.length.toLocaleString()} lines (${algorithm === 'BEZIER' ? 'Bezier interpolation' : `Chaikin, ${iterations} passes`}).`, layers: [output] }
+    return { message: `${isolate(output.name)}: smoothed ${smoothed.length.toLocaleString()} lines (${algorithm === 'BEZIER' ? 'Bezier interpolation' : `Chaikin, ${iterations} passes`}).`, layers: [output] }
   },
 }

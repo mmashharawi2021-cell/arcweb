@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
 import type { MapLayer } from '../../store'
@@ -86,6 +87,6 @@ export const intersectTool: ToolboxTool = {
     assertHasFeatures(results, 'The layers do not intersect.')
     const fields = [FID_INPUT, ...inputFields, FID_INTERSECT, ...overlayMapping.values()]
     const output = outputLayer(outputName(parameters, `${inputLayer.name} Intersect`), featureCollection(fillSchema(results, fields)), inputLayer.sourceCrs)
-    return { message: `${output.name}: ${results.length.toLocaleString()} intersecting features.`, layers: [output] }
+    return { message: `${isolate(output.name)}: ${results.length.toLocaleString()} intersecting features.`, layers: [output] }
   },
 }

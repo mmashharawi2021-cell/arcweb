@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, Position } from 'geojson'
 import { withoutGeometry } from '../../geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -63,12 +64,12 @@ export const repairGeometryTool: ToolboxTool = {
     const summary = `repaired ${repaired.toLocaleString()} features${deleted ? `, deleted ${deleted.toLocaleString()} null or degenerate features` : ''}`
     if (inPlace) {
       return {
-        message: `${layer.name}: ${summary}.`,
+        message: `${isolate(layer.name)}: ${summary}.`,
         updates: [{ layerId: layer.id, updates: { data: { ...layer.data, features } } }],
       }
     }
     if (!features.length) throw new Error('No features with valid geometry remain after repair.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Repaired`, { type: 'FeatureCollection', features }, layer.sourceCrs)
-    return { message: `${output.name}: ${summary}.`, layers: [output] }
+    return { message: `${isolate(output.name)}: ${summary}.`, layers: [output] }
   },
 }

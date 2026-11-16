@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { Delaunay } from 'd3-delaunay'
 import { createRasterGrid } from '../../rasterEngine'
 import { getPositiveNumber, getPointSamples, gridOutput, outputName, SPATIAL_ANALYST_CATEGORY } from './_shared'
@@ -94,7 +95,7 @@ export const tinInterpolationTool: ToolboxTool = {
     const grid = tinGrid(samples, cellSize)
     const output = gridOutput(outputName(parameters, `${layer.name} TIN`), grid)
     return {
-      message: `${output.name}: interpolated ${samples.length} points with a Delaunay TIN to a ${grid.width} × ${grid.height} grid; cells outside the hull are NoData.`,
+      message: `${isolate(output.name)}: interpolated ${samples.length} points with a Delaunay TIN to a ${grid.width} × ${grid.height} grid; cells outside the hull are NoData.`,
       layers: [output],
     }
   },

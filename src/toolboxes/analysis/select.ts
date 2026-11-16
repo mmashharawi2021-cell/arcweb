@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import { detach } from '../spatial'
 import type { Feature, Geometry } from 'geojson'
@@ -30,7 +31,7 @@ export const selectTool: ToolboxTool = {
     const features = selected.map((feature) => feature.geometry ? detach(feature as Feature<Geometry>) : { ...feature, id: undefined })
     const output = outputLayer(outputName(parameters, `${target.name} Select`), { type: 'FeatureCollection', features: features as Feature<Geometry>[] }, target.sourceCrs)
     return {
-      message: `${output.name}: ${selected.length.toLocaleString()} of ${target.data.features.length.toLocaleString()} features selected.`,
+      message: `${isolate(output.name)}: ${selected.length.toLocaleString()} of ${target.data.features.length.toLocaleString()} features selected.`,
       layers: [output],
     }
   },

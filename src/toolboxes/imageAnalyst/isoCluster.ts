@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { isNoData } from '../../rasterEngine'
 import { assertAlignedGrids, getBandGrids, getPositiveNumber, gridOutput, outputName, IMAGE_ANALYST_CATEGORY } from './_shared'
 import type { ToolboxTool } from '../types'
@@ -125,7 +126,7 @@ export const isoClusterTool: ToolboxTool = {
     }
     const output = gridOutput(outputName(parameters, `${name} Iso Cluster`), { ...first, values, noData: Number.NaN })
     return {
-      message: `${output.name}: assigned ${validIndices.length.toLocaleString()} valid cells to ${classes} deterministic K-means classes using ${grids.length} band(s).`,
+      message: `${isolate(output.name)}: assigned ${validIndices.length.toLocaleString()} valid cells to ${classes} deterministic K-means classes using ${grids.length} band(s).`,
       layers: [output],
     }
   },

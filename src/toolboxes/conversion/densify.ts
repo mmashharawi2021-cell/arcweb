@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, Position } from 'geojson'
 import { getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
 import { assertHasFeatures } from '../spatial'
@@ -80,7 +81,7 @@ export const densifyTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Densified`, { type: 'FeatureCollection', features }, layer.sourceCrs)
     const pointOnly = layer.geometry === 'Point'
     return {
-      message: `${output.name}: added ${budget.added.toLocaleString()} vertices to ${features.length.toLocaleString()} features.${pointOnly ? ' Points cannot be densified.' : ''}`,
+      message: `${isolate(output.name)}: added ${budget.added.toLocaleString()} vertices to ${features.length.toLocaleString()} features.${pointOnly ? ' Points cannot be densified.' : ''}`,
       kind: pointOnly ? 'warning' : 'success',
       layers: [output],
     }

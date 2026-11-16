@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { fieldNames, getLayer, getOptionalText, getText } from '../shared'
 import type { ToolboxTool } from '../types'
 
@@ -29,11 +30,11 @@ export const alterFieldTool: ToolboxTool = {
     const layer = getLayer(context, parameters, 'target')
     const oldName = getText(parameters, 'field', 'a field')
     const field = fieldNames(layer).find((name) => name === oldName || name.toLowerCase() === oldName.toLowerCase())
-    if (!field) throw new Error(`Field "${oldName}" was not found in ${layer.name}.`)
+    if (!field) throw new Error(`Field "${isolate(oldName)}" was not found in ${isolate(layer.name)}.`)
     const newName = getText(parameters, 'newName', 'a new field name')
-    if (!FIELD_NAME.test(newName)) throw new Error(`"${newName}" is not a valid field name.`)
+    if (!FIELD_NAME.test(newName)) throw new Error(`"${isolate(newName)}" is not a valid field name.`)
     if (field !== newName && fieldNames(layer).some((name) => name.toLowerCase() === newName.toLowerCase())) {
-      throw new Error(`A field named "${newName}" already exists.`)
+      throw new Error(`A field named "${isolate(newName)}" already exists.`)
     }
     const aliasAction = getOptionalText(parameters, 'aliasAction') || 'keep'
     if (!['keep', 'set', 'clear'].includes(aliasAction)) throw new Error(`Unknown alias action: ${aliasAction}.`)
@@ -67,10 +68,10 @@ export const alterFieldTool: ToolboxTool = {
     else if (aliasAction === 'clear') delete fieldAliases[newName]
     return {
       message: field !== newName
-        ? `Renamed "${field}" to "${newName}"${aliasAction === 'set' ? ' and set its alias' : aliasAction === 'clear' ? ' and cleared its alias' : ''}.`
-        : aliasAction === 'set' ? `Set the alias for "${field}".`
-          : aliasAction === 'clear' ? `Cleared the alias for "${field}".`
-            : `Field "${field}" is already named "${newName}".`,
+        ? `Renamed "${isolate(field)}" to "${isolate(newName)}"${aliasAction === 'set' ? ' and set its alias' : aliasAction === 'clear' ? ' and cleared its alias' : ''}.`
+        : aliasAction === 'set' ? `Set the alias for "${isolate(field)}".`
+          : aliasAction === 'clear' ? `Cleared the alias for "${isolate(field)}".`
+            : `Field "${isolate(field)}" is already named "${isolate(newName)}".`,
       updates: [{ layerId: layer.id, updates: {
         data, customFields,
         labelField: layer.labelField === field ? newName : layer.labelField,

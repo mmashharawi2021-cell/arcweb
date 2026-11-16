@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -61,7 +62,7 @@ export const centralFeatureTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Central Feature`, featureCollection(results))
     output.pointRadius = 8
     return {
-      message: `${output.name}: ${results.length === 1 ? `feature ${results[0].properties!.CF_ID} is the central feature` : `${results.length} central features across ${groups.length} case(s)`} (CF_SumDist = total ${weightField ? 'weighted ' : ''}distance in meters).${distributionNotes(excluded, skippedCases, 1)}`,
+      message: `${isolate(output.name)}: ${results.length === 1 ? `feature ${results[0].properties!.CF_ID} is the central feature` : `${results.length} central features across ${groups.length} case(s)`} (CF_SumDist = total ${weightField ? 'weighted ' : ''}distance in meters).${distributionNotes(excluded, skippedCases, 1)}`,
       layers: [output],
     }
   },

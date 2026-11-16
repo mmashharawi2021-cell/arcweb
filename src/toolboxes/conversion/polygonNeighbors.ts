@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, Position } from 'geojson'
 import { getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
 import { isPolygon, makeSpatialIndex, pairBudget } from '../spatial'
@@ -154,7 +155,7 @@ export const polygonNeighborsTool: ToolboxTool = {
     output.customFields = [`src_${key}`, `nbr_${key}`, 'LENGTH', 'NODE_COUNT']
     const isolated = polygons.length - new Set(pairs.flatMap((pair) => [pair.source, pair.neighbor])).size
     return {
-      message: `${output.name}: ${pairs.length.toLocaleString()} neighbouring pair(s) among ${polygons.length.toLocaleString()} polygons` +
+      message: `${isolate(output.name)}: ${pairs.length.toLocaleString()} neighbouring pair(s) among ${polygons.length.toLocaleString()} polygons` +
         `${isolated ? `; ${isolated} polygon(s) have no neighbours` : ''}.`,
       layers: [output],
     }

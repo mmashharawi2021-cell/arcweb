@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, LineString, MultiLineString } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -37,6 +38,6 @@ export const featureToLineTool: ToolboxTool = {
     })
     assertHasFeatures(lines, 'Feature To Line needs polygon or line features; the input layer has none.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Lines`, featureCollection(lines))
-    return { message: `${output.name}: created ${lines.length.toLocaleString()} line features.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${lines.length.toLocaleString()} line features.`, layers: [output] }
   },
 }

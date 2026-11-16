@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection, polygon as turfPolygon } from '@turf/helpers'
 import { kinks, union, unkinkPolygon } from '@turf/turf'
 import type { Feature, FeatureCollection, Geometry, MultiPolygon, Polygon, Position } from 'geojson'
@@ -208,7 +209,7 @@ export function collectionBBox(features: Feature[]): [number, number, number, nu
 export function parseFieldList(text: string, available: string[]): string[] {
   return text.split(/[,;]/).map((name) => name.trim()).filter(Boolean).map((name) => {
     const match = available.find((field) => field === name) ?? available.find((field) => field.toLowerCase() === name.toLowerCase())
-    if (!match) throw new Error(`Field "${name}" does not exist. Available fields: ${available.join(', ') || 'none'}.`)
+    if (!match) throw new Error(`Field "${isolate(name)}" does not exist. Available fields: ${available.map(isolate).join(', ') || 'none'}.`)
     return match
   })
 }

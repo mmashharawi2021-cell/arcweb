@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Point, Position } from 'geojson'
 import { fieldNames, getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
@@ -85,6 +86,6 @@ export const generatePointsAlongLinesTool: ToolboxTool = {
     if (!sources) throw new Error('Generate Points Along Lines needs line or polygon features.')
     assertHasFeatures(points, 'The lines are shorter than the interval; enable end points or use a smaller distance.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Points Along`, featureCollection(points), layer.sourceCrs)
-    return { message: `${output.name}: created ${points.length.toLocaleString()} points along ${sources.toLocaleString()} features.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${points.length.toLocaleString()} points along ${sources.toLocaleString()} features.`, layers: [output] }
   },
 }

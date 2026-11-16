@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { point } from '@turf/helpers'
 import type { Feature, MultiPolygon, Polygon, Position } from 'geojson'
@@ -43,7 +44,7 @@ export const polygonToRasterTool: ToolboxTool = {
       const value = Number(feature.properties?.[valueField])
       return validCoordinates && Number.isFinite(value) ? [{ feature, value }] : []
     })
-    if (!polygons.length) throw new Error(`No polygon has a valid geometry and numeric "${valueField}" value.`)
+    if (!polygons.length) throw new Error(`No polygon has a valid geometry and numeric "${isolate(valueField)}" value.`)
     const bounds = [Infinity, Infinity, -Infinity, -Infinity]
     for (const { feature } of polygons) {
       visitPositions(feature.geometry.coordinates, ([x, y]) => {
@@ -83,6 +84,6 @@ export const polygonToRasterTool: ToolboxTool = {
     })
     const name = outputName(parameters, `${layer.name} Raster`)
     const output = gridOutput(name, grid)
-    return { message: `${name}: rasterized ${polygons.length} polygon features to ${width} × ${height} cells at ${cellSize}° resolution.`, layers: [output] }
+    return { message: `${isolate(name)}: rasterized ${polygons.length} polygon features to ${width} × ${height} cells at ${cellSize}° resolution.`, layers: [output] }
   },
 }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import Papa from 'papaparse'
 import centroid from '@turf/centroid'
 import { featureCollection } from '@turf/helpers'
@@ -84,7 +85,7 @@ export const nearTool: ToolboxTool = {
     const added = ['NEAR_FID', 'NEAR_DIST', 'NEAR_X', 'NEAR_Y'].filter((field) => !existing.includes(field))
     const total = inputLayer.data.features.length
     return {
-      message: `Near: ${found.toLocaleString()} of ${total.toLocaleString()} features in ${inputLayer.name} now have NEAR_FID and NEAR_DIST (meters)${found < total ? '; features with no match within the radius are marked -1' : ''}.`,
+      message: `Near: ${found.toLocaleString()} of ${total.toLocaleString()} features in ${isolate(inputLayer.name)} now have NEAR_FID and NEAR_DIST (meters)${found < total ? '; features with no match within the radius are marked -1' : ''}.`,
       kind: found ? 'success' : 'warning',
       updates: [{
         layerId: inputLayer.id,
@@ -184,7 +185,7 @@ export const distanceMatrixTool: ToolboxTool = {
       })
     }
     return {
-      message: `${output.name}: ${links.length.toLocaleString()} distance pairs between ${origins.length.toLocaleString()} input and ${destinations.length.toLocaleString()} near features.`,
+      message: `${isolate(output.name)}: ${links.length.toLocaleString()} distance pairs between ${origins.length.toLocaleString()} input and ${destinations.length.toLocaleString()} near features.`,
       layers: [output],
       downloads,
     }

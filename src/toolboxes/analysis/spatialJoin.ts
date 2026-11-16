@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import booleanIntersects from '@turf/boolean-intersects'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
@@ -108,7 +109,7 @@ export const spatialJoinTool: ToolboxTool = {
       featureCollection(fillSchema(results, fields)),
     )
     return {
-      message: `${output.name}: ${matchedTargets.toLocaleString()} of ${targets.length.toLocaleString()} target features matched; wrote ${results.length.toLocaleString()} rows.`,
+      message: `${isolate(output.name)}: ${matchedTargets.toLocaleString()} of ${targets.length.toLocaleString()} target features matched; wrote ${results.length.toLocaleString()} rows.`,
       kind: matchedTargets ? 'success' : 'warning',
       layers: [output],
     }

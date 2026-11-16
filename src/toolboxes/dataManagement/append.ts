@@ -38,14 +38,14 @@ export const appendTool: ToolboxTool = {
     for (const layer of inputs) {
       const families = new Set(layer.data.features.map((feature) => geometryFamily(feature.geometry)).filter(Boolean))
       if (targetFamily && [...families].some((family) => family !== targetFamily)) {
-        throw new Error(`${layer.name} has ${[...families].join('/')} geometry but the target ${target.name} holds ${targetFamily} features.`)
+        throw new Error(`${isolate(layer.name)} has ${[...families].join('/')} geometry but the target ${isolate(target.name)} holds ${targetFamily} features.`)
       }
       if (test) {
         const inputFields = fieldNames(layer)
         const extra = inputFields.filter((field) => !targetFields.includes(field))
         const missing = targetFields.filter((field) => !inputFields.includes(field))
         if (extra.length || missing.length) {
-          throw new Error(`Schema mismatch for ${layer.name}.${extra.length ? ` Not in target: ${extra.join(', ')}.` : ''}${missing.length ? ` Missing: ${missing.join(', ')}.` : ''} Use the field map option to append anyway.`)
+          throw new Error(`Schema mismatch for ${isolate(layer.name)}.${extra.length ? ` Not in target: ${extra.map(isolate).join(', ')}.` : ''}${missing.length ? ` Missing: ${missing.map(isolate).join(', ')}.` : ''} Use the field map option to append anyway.`)
         }
       }
     }

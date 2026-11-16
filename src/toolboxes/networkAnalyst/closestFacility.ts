@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, LineString } from 'geojson'
 import { geometryPosition, routeCoordinates, shortestPathsFrom, snapLocations } from '../../networkEngine'
 import type { NetworkRoute } from '../../networkEngine'
@@ -83,7 +84,7 @@ export const closestFacilityTool: ToolboxTool = {
 
     const output = geometryOutput(outputName(parameters, `${incidentsLayer.name} Closest Facility`), routes, networkLayer.sourceCrs)
     return {
-      message: `${output.name}: matched ${routes.length} of ${incidentItems.length} incidents to their closest reachable facility.`,
+      message: `${isolate(output.name)}: matched ${routes.length} of ${incidentItems.length} incidents to their closest reachable facility.`,
       kind: routes.length < incidentItems.length ? 'warning' : 'success',
       layers: [output],
     }

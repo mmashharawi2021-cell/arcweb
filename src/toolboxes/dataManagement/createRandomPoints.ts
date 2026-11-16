@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Point, Position } from 'geojson'
@@ -94,7 +95,7 @@ export const createRandomPointsTool: ToolboxTool = {
     if (!points.length) throw new Error('No points could be placed; the constraining areas may be too small for the minimum distance.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Random Points`, featureCollection(points))
     return {
-      message: `${output.name}: created ${points.length.toLocaleString()} random points${byFeature ? ` in ${areas.length.toLocaleString()} polygons` : ' within the layer extent'}.${shortfall ? ` ${shortfall} points could not be placed while honouring the minimum distance.` : ''}`,
+      message: `${isolate(output.name)}: created ${points.length.toLocaleString()} random points${byFeature ? ` in ${areas.length.toLocaleString()} polygons` : ' within the layer extent'}.${shortfall ? ` ${shortfall} points could not be placed while honouring the minimum distance.` : ''}`,
       kind: shortfall ? 'warning' : 'success',
       layers: [output],
     }

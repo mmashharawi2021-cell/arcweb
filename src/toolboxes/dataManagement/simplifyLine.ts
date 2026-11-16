@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import { getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
 import { assertHasFeatures, isLine, usableFeatures } from '../spatial'
@@ -29,7 +30,7 @@ export const simplifyLineTool: ToolboxTool = {
     assertHasFeatures(simplified, 'Every line collapsed at this tolerance.')
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Simplified`, featureCollection(simplified), layer.sourceCrs)
     return {
-      message: `${output.name}: simplified ${simplified.length.toLocaleString()} lines (${countVertices(lines).toLocaleString()} → ${countVertices(simplified).toLocaleString()} vertices).`,
+      message: `${isolate(output.name)}: simplified ${simplified.length.toLocaleString()} lines (${countVertices(lines).toLocaleString()} → ${countVertices(simplified).toLocaleString()} vertices).`,
       layers: [output],
     }
   },

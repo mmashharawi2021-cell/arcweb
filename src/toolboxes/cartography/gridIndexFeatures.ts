@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Polygon, Position } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -75,6 +76,6 @@ export const gridIndexFeaturesTool: ToolboxTool = {
     }
     const name = getOptionalText(parameters, 'outputName') || `${layer.name} Grid Index`
     const output = outputLayer(name, featureCollection(cells), layer.sourceCrs)
-    return { message: `${name}: created ${rows.toLocaleString()} rows × ${columns.toLocaleString()} columns (${total.toLocaleString()} index cells).`, layers: [output] }
+    return { message: `${isolate(name)}: created ${rows.toLocaleString()} rows × ${columns.toLocaleString()} columns (${total.toLocaleString()} index cells).`, layers: [output] }
   },
 }

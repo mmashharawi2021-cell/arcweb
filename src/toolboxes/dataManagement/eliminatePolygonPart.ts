@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import area from '@turf/area'
 import { featureCollection, polygon as turfPolygon } from '@turf/helpers'
 import type { Feature, Geometry, Position } from 'geojson'
@@ -82,7 +83,7 @@ export const eliminatePolygonPartTool: ToolboxTool = {
     })
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Eliminate`, featureCollection(features as Feature<Geometry>[]), layer.sourceCrs)
     return {
-      message: `${output.name}: filled ${removedHoles.toLocaleString()} holes${any ? ` and removed ${removedParts.toLocaleString()} parts` : ''}.`,
+      message: `${isolate(output.name)}: filled ${removedHoles.toLocaleString()} holes${any ? ` and removed ${removedParts.toLocaleString()} parts` : ''}.`,
       layers: [output],
     }
   },

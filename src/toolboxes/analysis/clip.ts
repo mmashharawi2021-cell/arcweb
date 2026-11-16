@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
 import { getLayer, outputLayer } from '../shared'
@@ -40,6 +41,6 @@ export const clipTool: ToolboxTool = {
     }
     assertHasFeatures(results, 'The input and clip layers do not overlap.')
     const output = outputLayer(outputName(parameters, `${target.name} Clip`), featureCollection(results), target.sourceCrs)
-    return { message: `${output.name}: ${results.length.toLocaleString()} features clipped.`, layers: [output] }
+    return { message: `${isolate(output.name)}: ${results.length.toLocaleString()} features clipped.`, layers: [output] }
   },
 }

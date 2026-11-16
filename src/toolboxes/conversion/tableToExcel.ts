@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import JSZip from 'jszip'
 import { getLayer, getOptionalText } from '../shared'
 import type { ToolboxTool, ToolDownload } from '../types'
@@ -59,6 +60,6 @@ export const tableToExcelTool: ToolboxTool = {
   execute: async (context, parameters) => {
     const layer = getLayer(context, parameters, 'target')
     const result = await buildXlsx(layer, getOptionalText(parameters, 'fileName'))
-    return { message: `Prepared ${result.fileName} (${layer.data.features.length.toLocaleString()} rows).`, downloads: [result] }
+    return { message: `Prepared ${isolate(result.fileName)} (${layer.data.features.length.toLocaleString()} rows).`, downloads: [result] }
   },
 }

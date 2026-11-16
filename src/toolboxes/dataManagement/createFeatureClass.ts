@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getOptionalText, getText, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
 
@@ -8,8 +9,8 @@ function parseFields(text: string): string[] {
   const names: string[] = []
   for (const definition of text.split(',')) {
     const match = /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*$/u.exec(definition)
-    if (!match || !FIELD_NAME.test(match[1])) throw new Error(`Invalid field name "${definition}". Use comma-separated field names; field types are not represented by the current layer schema.`)
-    if (names.some((name) => name.toLowerCase() === match[1].toLowerCase())) throw new Error(`Field "${match[1]}" is listed more than once.`)
+    if (!match || !FIELD_NAME.test(match[1])) throw new Error(`Invalid field name "${isolate(definition)}". Use comma-separated field names; field types are not represented by the current layer schema.`)
+    if (names.some((name) => name.toLowerCase() === match[1].toLowerCase())) throw new Error(`Field "${isolate(match[1])}" is listed more than once.`)
     names.push(match[1])
   }
   return names
@@ -43,6 +44,6 @@ export const createFeatureClassTool: ToolboxTool = {
     const layer = outputLayer(name, { type: 'FeatureCollection', features: [] })
     layer.geometry = geometryType as 'Point' | 'Line' | 'Polygon'
     layer.customFields = fields
-    return { message: `${layer.name}: created an empty feature class with ${fields.length} fields.`, layers: [layer] }
+    return { message: `${isolate(layer.name)}: created an empty feature class with ${fields.length} fields.`, layers: [layer] }
   },
 }

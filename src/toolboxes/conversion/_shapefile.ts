@@ -1,4 +1,5 @@
 import JSZip from 'jszip'
+import { isolate } from '../../bidi'
 import { write as writeShp } from '@mapbox/shp-write'
 import rewind from '@turf/rewind'
 import type { Feature, Geometry, MultiLineString, MultiPolygon, Polygon, Position } from 'geojson'
@@ -207,7 +208,7 @@ export async function buildShapefileZip(features: Feature[], fieldNames: string[
     })
     if (!shp || !shx) throw new Error('The shapefile writer failed.')
     const { buffer, fields } = buildDbf(group.rows, fieldNames)
-    renamed = fields.filter((field) => field.name !== field.source).map((field) => `${field.source} → ${field.name}`)
+    renamed = fields.filter((field) => field.name !== field.source).map((field) => `${isolate(field.source)} → ${isolate(field.name)}`)
     zip.file(`${name}.shp`, new Uint8Array(shp.buffer as ArrayBuffer, shp.byteOffset, shp.byteLength))
     zip.file(`${name}.shx`, new Uint8Array(shx.buffer as ArrayBuffer, shx.byteOffset, shx.byteLength))
     zip.file(`${name}.dbf`, buffer)

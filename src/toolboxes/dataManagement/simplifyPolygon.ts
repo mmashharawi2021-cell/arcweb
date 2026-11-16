@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import area from '@turf/area'
 import { featureCollection } from '@turf/helpers'
 import { getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
@@ -33,7 +34,7 @@ export const simplifyPolygonTool: ToolboxTool = {
     const dropped = polygons.length - kept.length
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Simplified`, featureCollection(kept), layer.sourceCrs)
     return {
-      message: `${output.name}: simplified ${kept.length.toLocaleString()} polygons.${dropped ? ` ${dropped} collapsed or small polygons were removed.` : ''}`,
+      message: `${isolate(output.name)}: simplified ${kept.length.toLocaleString()} polygons.${dropped ? ` ${dropped} collapsed or small polygons were removed.` : ''}`,
       kind: dropped ? 'warning' : 'success',
       layers: [output],
     }

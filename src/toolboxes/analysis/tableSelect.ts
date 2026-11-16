@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { fieldNames, getLayer, getOptionalText } from '../shared'
 import type { ToolboxTool } from '../types'
 import { downloadParameter, outputName, outputNameParameter, tableResult } from './_utils'
@@ -26,6 +27,6 @@ export const tableSelectTool: ToolboxTool = {
       parameters, outputName(parameters, `${target.name} TableSelect`),
       selected.map((feature) => ({ ...(feature.properties ?? {}) })), fieldNames(target),
     )
-    return { message: `${layer.name}: ${selected.length.toLocaleString()} rows selected.`, layers: [layer], downloads }
+    return { message: `${isolate(layer.name)}: ${selected.length.toLocaleString()} rows selected.`, layers: [layer], downloads }
   },
 }

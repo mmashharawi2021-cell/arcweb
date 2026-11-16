@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { getLayer, getOptionalText, getText } from '../shared'
 import type { ToolboxTool } from '../types'
 import { fmt, interpretPattern, statisticsTable, tidy, twoTailedP, valueSites } from './_stats'
@@ -113,7 +114,7 @@ export const spatialAutocorrelationTool: ToolboxTool = {
     if (excluded) notes.push(`${excluded} feature(s) without a location or value were excluded`)
     if (matrix.isolated) notes.push(`${matrix.isolated} feature(s) have no neighbors`)
     return {
-      message: `Global Moran's I (${field}): I = ${fmt(result.index)}, expected I = ${fmt(result.expected)}, variance = ${fmt(result.variance)}, z-score = ${fmt(result.z, 4)}, p-value = ${fmt(result.p, 4)} → ${pattern}. ${sentence} [${matrix.description}; n = ${sites.length}]${notes.length ? ` Note: ${notes.join('; ')}.` : ''}`,
+      message: `Global Moran's I (${isolate(field)}): I = ${fmt(result.index)}, expected I = ${fmt(result.expected)}, variance = ${fmt(result.variance)}, z-score = ${fmt(result.z, 4)}, p-value = ${fmt(result.p, 4)} → ${pattern}. ${sentence} [${matrix.description}; n = ${sites.length}]${notes.length ? ` Note: ${notes.join('; ')}.` : ''}`,
       kind: matrix.isolated ? 'warning' : 'success',
       layers: [table],
     }

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature } from 'geojson'
 import { featureCollection } from '@turf/helpers'
 import { getLayer, getNumber, getOptionalText, outputLayer } from '../shared'
@@ -75,6 +76,6 @@ export const bufferTool: ToolboxTool = {
     }
     assertHasFeatures(results, 'Dissolving the buffers produced no polygons.')
     const output = outputLayer(outputName(parameters, `${target.name} Buffer`), featureCollection(results), target.sourceCrs)
-    return { message: `${output.name}: created ${results.length.toLocaleString()} buffer polygons.`, layers: [output] }
+    return { message: `${isolate(output.name)}: created ${results.length.toLocaleString()} buffer polygons.`, layers: [output] }
   },
 }

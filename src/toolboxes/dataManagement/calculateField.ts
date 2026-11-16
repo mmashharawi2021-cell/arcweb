@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { calculateField } from '../../fieldCalculator'
 import { fieldNames, getLayer, getText } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -22,7 +23,7 @@ export const calculateFieldTool: ToolboxTool = {
     const data = calculateField(layer.data, fieldName, expression)
     const isExisting = fieldNames(layer).includes(fieldName)
     return {
-      message: `Calculated "${fieldName}" for ${data.features.length.toLocaleString()} features.`,
+      message: `Calculated "${isolate(fieldName)}" for ${data.features.length.toLocaleString()} features.`,
       updates: [{
         layerId: layer.id,
         updates: { data, customFields: isExisting ? layer.customFields : [...layer.customFields, fieldName] },

@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, LineString } from 'geojson'
 import {
   geometryPosition,
@@ -77,7 +78,7 @@ export const routeTool: ToolboxTool = {
     })
     const output = geometryOutput(outputName(parameters, `${stopsLayer.name} Route`), features, networkLayer.sourceCrs)
     return {
-      message: `${output.name}: generated ${routes.length} route${routes.length === 1 ? '' : ' alternatives'} using ${mode} impedance.`,
+      message: `${isolate(output.name)}: generated ${routes.length} route${routes.length === 1 ? '' : ' alternatives'} using ${mode} impedance.`,
       layers: [output],
     }
   },

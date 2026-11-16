@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import type { Feature, Geometry, Position } from 'geojson'
 import { getFile, getOptionalText, outputLayer } from '../shared'
 import type { ToolboxTool } from '../types'
@@ -141,7 +142,7 @@ export const dxfToFeaturesTool: ToolboxTool = {
     const output = outputLayer(getOptionalText(parameters, 'outputName') || file.name.replace(/\.dxf$/i, '') || 'DXF features', { type: 'FeatureCollection', features })
     output.customFields = ['LAYER', 'ENTITY', 'DXF_ID']
     return {
-      message: `${output.name}: imported ${features.length} entities. DXF has no embedded CRS; coordinates are assumed to be WGS 84.${unsupported ? ` Skipped ${unsupported} unsupported entities.` : ''}`,
+      message: `${isolate(output.name)}: imported ${features.length} entities. DXF has no embedded CRS; coordinates are assumed to be WGS 84.${unsupported ? ` Skipped ${unsupported} unsupported entities.` : ''}`,
       kind: 'warning',
       layers: [output],
     }

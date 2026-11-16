@@ -1,3 +1,4 @@
+import { isolate } from '../../bidi'
 import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
@@ -94,7 +95,7 @@ export const sortTool: ToolboxTool = {
     })
     const features = decorated.map(({ feature }) => ({ type: 'Feature' as const, properties: { ...(feature.properties ?? {}) }, geometry: feature.geometry }))
     const output = outputLayer(getOptionalText(parameters, 'outputName') || `${layer.name} Sort`, featureCollection(features), layer.sourceCrs)
-    const description = [...keys.map(({ field, sign }) => `${field} ${sign < 0 ? 'descending' : 'ascending'}`), ...(spatial !== 'NONE' ? [`spatial ${spatial}`] : [])]
-    return { message: `${output.name}: sorted ${features.length.toLocaleString()} features by ${description.join(', ')}.`, layers: [output] }
+    const description = [...keys.map(({ field, sign }) => `${isolate(field)} ${sign < 0 ? 'descending' : 'ascending'}`), ...(spatial !== 'NONE' ? [`spatial ${spatial}`] : [])]
+    return { message: `${isolate(output.name)}: sorted ${features.length.toLocaleString()} features by ${description.join(', ')}.`, layers: [output] }
   },
 }
