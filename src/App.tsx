@@ -67,6 +67,7 @@ import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './tool
 import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from './toolboxes/selectionScope'
 import { describeToolRun } from './toolboxes/history'
 import './App.css'
+import { isolate } from './bidi'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
 
@@ -689,7 +690,7 @@ function App() {
     useArcWebStore.getState().commitEdit(layer.id, data, `Add ${geometry.type.toLowerCase()} feature`)
     useArcWebStore.getState().setSelectedFeature({ layerId: layer.id, featureId: feature.id })
     useArcWebStore.getState().setTableOpen(true)
-    notify(`Added a ${geometry.type} feature to ${layer.name}.`)
+    notify(`Added a ${geometry.type} feature to ${isolate(layer.name)}.`)
   }, [notify])
 
   const finishSketch = useCallback(() => {
@@ -756,7 +757,7 @@ function App() {
       }
       const expectedGeometry = activeTool === 'draw-point' ? 'Point' : activeTool === 'draw-line' ? 'Line' : 'Polygon'
       if (layer.geometry !== 'Unknown' && layer.geometry !== 'Mixed' && layer.geometry !== expectedGeometry) {
-        notify(`${layer.name} stores ${layer.geometry.toLowerCase()} features; choose a matching sketch tool.`, 'warning')
+        notify(`${isolate(layer.name)} stores ${layer.geometry.toLowerCase()} features; choose a matching sketch tool.`, 'warning')
         return
       }
       const coordinate = snapCoordinate(map, event, state.layers)
@@ -1053,7 +1054,7 @@ function App() {
     setPendingProject(null)
     const camera = project.map.camera
     if (camera) mapRef.current?.jumpTo(camera)
-    notify(`Opened project “${project.name}” — ${project.layers.length} layer${project.layers.length === 1 ? '' : 's'}, ${project.layout.elements.length} layout elements, ${project.map.bookmarks.length} bookmark${project.map.bookmarks.length === 1 ? '' : 's'}.`)
+    notify(`Opened project “${isolate(project.name)}” — ${project.layers.length} layer${project.layers.length === 1 ? '' : 's'}, ${project.layout.elements.length} layout elements, ${project.map.bookmarks.length} bookmark${project.map.bookmarks.length === 1 ? '' : 's'}.`)
   }, [notify, adoptRibbonContext])
 
   const loadProjectFile = useCallback(async (file: File) => {
@@ -1064,7 +1065,7 @@ function App() {
       if (useArcWebStore.getState().layers.length) setPendingProject(project)
       else applyProject(project)
     } catch (error) {
-      notify(`Could not open ${file.name}: ${error instanceof Error ? error.message : 'Unreadable project file.'}`, 'error')
+      notify(`Could not open ${isolate(file.name)}: ${error instanceof Error ? error.message : 'Unreadable project file.'}`, 'error')
     }
   }, [applyProject, notify])
 
@@ -1134,7 +1135,7 @@ function App() {
           if (!data.features.length) throw new Error('The raster has no valid cells to display.')
           const layer = styleRasterCells(createMapLayer(loaded.name, data, raster.crs))
           useArcWebStore.getState().addLayer(layer)
-          notify(`Added raster ${loaded.name} (${raster.width.toLocaleString()} × ${raster.height.toLocaleString()} cells).`)
+          notify(`Added raster ${isolate(loaded.name)} (${raster.width.toLocaleString()} × ${raster.height.toLocaleString()} cells).`)
           continue
         }
         const imported = loaded.layers
@@ -1145,10 +1146,10 @@ function App() {
         notify(warnings.length ? `${result}. ${warnings.join(' ')}` : result, warnings.length ? 'warning' : 'success')
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
-          notify(`Import of ${file.name} cancelled.`, 'warning')
+          notify(`Import of ${isolate(file.name)} cancelled.`, 'warning')
           break
         }
-        notify(`Could not import ${file.name}: ${error instanceof Error ? error.message : 'Unknown file error'}`, 'error')
+        notify(`Could not import ${isolate(file.name)}: ${error instanceof Error ? error.message : 'Unknown file error'}`, 'error')
       } finally {
         if (importAbortRef.current === controller) importAbortRef.current = null
         setImportingFile(null)
@@ -1359,7 +1360,7 @@ function App() {
     layer.customFields = fields
     useArcWebStore.getState().addLayer(layer)
     useArcWebStore.getState().setTableOpen(true)
-    notify(`Created editable ${geometry.toLowerCase()} layer "${name}".`)
+    notify(`Created editable ${geometry.toLowerCase()} layer "${isolate(name)}".`)
   }, [notify])
 
   const setEditingTool = useCallback((nextTool: ToolMode) => {
@@ -1404,7 +1405,7 @@ function App() {
     state.commitEdit(layer.id, { ...layer.data, features }, `Delete ${removed} feature${removed === 1 ? '' : 's'}`)
     state.setSelection(layer.id, [])
     state.setSelectedFeature(null)
-    notify(`Deleted ${removed} feature${removed === 1 ? '' : 's'} from ${layer.name}. Save or discard from the Edit Tools tab.`)
+    notify(`Deleted ${removed} feature${removed === 1 ? '' : 's'} from ${isolate(layer.name)}. Save or discard from the Edit Tools tab.`)
   }, [editTargetIds, notify])
 
   const undoEdit = useCallback(() => {
@@ -1479,9 +1480,9 @@ function App() {
   const exportSelectedLayer = useCallback((layer: MapLayer, format: 'geojson' | 'csv') => {
     try {
       exportLayer(layer, format)
-      notify(`Exported ${layer.name} as ${format.toUpperCase()}.`)
+      notify(`Exported ${isolate(layer.name)} as ${format.toUpperCase()}.`)
     } catch (error) {
-      notify(`Could not export ${layer.name}: ${error instanceof Error ? error.message : 'Export failed.'}`, 'error')
+      notify(`Could not export ${isolate(layer.name)}: ${error instanceof Error ? error.message : 'Export failed.'}`, 'error')
     }
   }, [notify])
 
@@ -1576,7 +1577,7 @@ function App() {
       bearing: map.getBearing(),
       pitch: map.getPitch(),
     })
-    notify(`Bookmark “${name}” saved.`)
+    notify(`Bookmark “${isolate(name)}” saved.`)
   }, [notify])
 
   const goToBookmark = useCallback((bookmark: Bookmark) => {
@@ -1663,7 +1664,7 @@ function App() {
     // Keyboard focus continues on the layer that takes this one's place in the list.
     const neighbour = state.layers[index + 1] ?? state.layers[index - 1] ?? null
     state.removeLayer(layer.id)
-    notify(`Removed ${layer.name} from the map.`)
+    notify(`Removed ${isolate(layer.name)} from the map.`)
     focusLayerInContents(neighbour?.id ?? null)
   }, [notify, pendingRemoval])
 
