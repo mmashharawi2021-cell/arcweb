@@ -5,8 +5,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
 import { coordinateReadout, requireCrs } from './crs'
 import {
-  Check, Compass, Database, Focus, FolderOpen, Map as MapIcon, Moon, PanelRightClose, Settings2, Sun, Trash2, X,
-  LayoutTemplate, Box, Save,
+  Check, Compass, Focus, FolderOpen, Map as MapIcon, Moon, PanelRightClose, Settings2, Sun, Trash2, X, LayoutTemplate, Box, Save,
 } from 'lucide-react'
 import type { Feature } from 'geojson'
 import AttributeTable from './AttributeTable'
@@ -14,7 +13,8 @@ import DockablePanel from './DockablePanel'
 import { SymbologyPanel } from './SymbologyPanel'
 import { getCollectionBounds } from './geo'
 import { runInWorker, type WorkerLike } from './workers/runInWorker'
-import ProjectLibraryDialog from './storage/ProjectLibraryDialog'
+import Backstage, { type BackstageSection } from './project/Backstage'
+import type { UiSettings } from './ui/uiSettings'
 import { registerOfflineProtocol } from './storage/offlineBasemap'
 import { useFadeExit } from './ui/useFadeExit'
 import { useContentFade } from './ui/useContentFade'
@@ -110,7 +110,7 @@ function App() {
   const [identify, setIdentify] = useState<IdentifyState | null>(null)
   const [selectionDialog, setSelectionDialog] = useState<'attributes' | 'location' | null>(null)
   const [bookmarkAnchor, setBookmarkAnchor] = useState<{ left: number; top: number } | null>(null)
-  const [libraryOpen, setLibraryOpen] = useState(false)
+  const [backstage, setBackstage] = useState<BackstageSection | null>(null)
   const toastTimerRef = useRef<number | null>(null)
   const toolExecutionIdRef = useRef(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -140,6 +140,8 @@ function App() {
   const workspaceLayout = useArcWebStore((state) => state.workspaceLayout)
   const basemap = useArcWebStore((state) => state.basemap)
   const theme = useArcWebStore((state) => state.theme)
+  const measureUnits = useArcWebStore((state) => state.measureUnits)
+  const coordinateFormat = useArcWebStore((state) => state.coordinateFormat)
   const activeTab = useArcWebStore((state) => state.activeTab)
   const contentFadeRef = useContentFade(activeTab)
   const tool = useArcWebStore((state) => state.tool)
@@ -525,6 +527,25 @@ function App() {
     }
   }
 
+  const closeBackstage = useCallback(() => setBackstage(null), [])
+  /** Save As › Save a copy in Projects: like Pro, the copy becomes the open project. */
+  const saveProjectCopy = async () => {
+    try {
+      const current = captureWorkspace()
+      await library.create({ ...current, project: { ...current.project, name: `${current.project.name} — copy` } }, true)
+      setBackstage(null)
+      notify(`Saved a copy in Projects. You are now working in “${isolate(current.project.name)} — copy”.`)
+    } catch (error) {
+      notify(`Could not save a copy: ${error instanceof Error ? error.message : 'IndexedDB error'}`, 'error')
+    }
+  }
+  const applyUiSettings = useCallback((settings: UiSettings) => {
+    const state = useArcWebStore.getState()
+    state.setTheme(settings.theme)
+    state.setMeasureUnits(settings.measureUnits)
+    state.setCoordinateFormat(settings.coordinateFormat)
+  }, [])
+
   const zoomToSelected = useCallback(() => {
     const state = useArcWebStore.getState()
     const features: Feature[] = []
@@ -840,8 +861,6 @@ function App() {
           <div className="save-state" data-save-state={library.state} role="status" title={library.error || 'Project library on this device'}><span className="save-dot" />{library.state === 'saved' ? 'Saved locally' : library.state === 'saving' ? 'Saving…' : library.state === 'loading' ? 'Loading…' : 'Save failed'}</div>
         </div>
         <div className="header-actions">
-          <button className="header-button" title="Projects, recovery, backups and offline maps" onClick={() => setLibraryOpen(true)}><Database size={14} />Projects</button>
-          <button className="header-button" title="Open an .arcweb.json project file" onClick={() => projectInputRef.current?.click()}><FolderOpen size={14} />Open Project</button>
           <button className="header-button primary" title="Save the whole workspace (layers, symbology, coordinate system, layout, bookmarks) as an .arcweb.json file" onClick={saveProject}><Save size={14} />Save Project</button>
           <input ref={projectInputRef} className="visually-hidden" type="file" tabIndex={-1} aria-label="Choose an ArcWeb project file" accept=".json,.arcweb.json,application/json" onChange={(event) => {
             const file = event.currentTarget.files?.[0]
@@ -863,13 +882,12 @@ function App() {
           <button className="header-icon" title="Toggle theme" onClick={() => useArcWebStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark')}>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <span className="header-separator" />
-          <button className="clear-session" onClick={() => void clearSession()}><Trash2 size={14} />Clear session</button>
           <div className="avatar">AW</div>
         </div>
       </header>
 
       <nav className="ribbon-tabs" aria-label="Ribbon tabs">
+        <button className="ribbon-tab project-tab" aria-haspopup="dialog" aria-expanded={backstage !== null} onClick={() => setBackstage('new')}>Project</button>
         {CORE_TABS.map((tab) => (
           <button key={tab} className={`ribbon-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => {
             useArcWebStore.getState().setActiveTab(tab)
@@ -1316,9 +1334,24 @@ function App() {
         />
       )}
 
-      {libraryOpen && <ProjectLibraryDialog projectId={library.projectId} capture={captureWorkspace}
-        onOpen={library.open} onCreate={library.create} onFlush={library.flush} onRecover={library.recover}
-        onOffline={selectOfflineBasemap} getBounds={getOfflineAreaBounds} onClose={() => setLibraryOpen(false)} />}
+      {backstage && (
+        <Backstage
+          projectName={projectName}
+          section={backstage}
+          onSection={setBackstage}
+          onClose={closeBackstage}
+          onNewBlank={() => void clearSession()}
+          onOpenFile={() => projectInputRef.current?.click()}
+          onSaveFile={saveProject}
+          onSaveCopy={() => void saveProjectCopy()}
+          library={{
+            projectId: library.projectId, capture: captureWorkspace, onOpen: library.open, onCreate: library.create,
+            onFlush: library.flush, onRecover: library.recover, onOffline: selectOfflineBasemap, getBounds: getOfflineAreaBounds,
+          }}
+          settings={{ theme, measureUnits, coordinateFormat }}
+          onSettings={applyUiSettings}
+        />
+      )}
 
       {toast && <div ref={toastFadeRef} className={`toast toast-${toast.kind}`} role="status"><span className="toast-indicator">{toast.kind === 'error' ? <X size={13} /> : <Check size={13} />}</span><span>{toast.message}</span><button title="Dismiss" onClick={() => setToast(null)}><X size={14} /></button></div>}
     </main>

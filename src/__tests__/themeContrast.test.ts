@@ -54,10 +54,11 @@ describe('focus indicators', () => {
   const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
   const rules = [...`${css}\n${appCss}`.matchAll(/([^{}]*:focus-visible[^{}]*)\{([^}]*)\}/g)].map((match) => ({ selector: match[1].trim(), body: match[2] }))
 
-  it('draws coloured focus outlines with --accent-text (3:1 against panels)', () => {
+  it('draws coloured focus outlines with --accent-text, or --accent-ink on accent fills (3:1 against panels)', () => {
     for (const { selector, body } of rules) {
       const colour = body.match(/outline:\s*\d+px\s+solid\s+var\((--[\w-]+)\)/)
-      if (colour) expect(colour[1], selector).toBe('--accent-text')
+      // --accent-ink is the ring for controls sitting on an --accent fill (checked at 4.5:1 above).
+      if (colour) expect(['--accent-text', '--accent-ink'], selector).toContain(colour[1])
     }
     for (const theme of ['dark', 'light'] as const) {
       for (const background of ['--panel', '--panel-raised', '--bg']) {

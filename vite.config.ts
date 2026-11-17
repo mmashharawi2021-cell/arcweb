@@ -2,6 +2,10 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+
+/** App version for Backstage › About, injected at build time so the app does not bundle the whole package.json. */
+const appVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version as string
 
 /**
  * Vendor chunks. Vite 8 bundles with Rolldown, where `output.codeSplitting.groups`
@@ -21,6 +25,7 @@ const vendorChunks = [
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(appVersion) },
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
   preview: { host: '127.0.0.1', port: 4173, strictPort: true },
   plugins: [react(), tailwindcss(), {
