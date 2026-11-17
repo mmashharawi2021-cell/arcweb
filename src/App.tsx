@@ -16,6 +16,7 @@ import { runInWorker, type WorkerLike } from './workers/runInWorker'
 import Backstage, { type BackstageSection } from './project/Backstage'
 import TitleBar from './shell/TitleBar'
 import { useAppShortcuts } from './shell/useAppShortcuts'
+import { saveProjectNow } from './shell/saveProjectNow'
 import type { UiSettings } from './ui/uiSettings'
 import { registerOfflineProtocol } from './storage/offlineBasemap'
 import { useFadeExit } from './ui/useFadeExit'
@@ -530,15 +531,16 @@ function App() {
   }
 
   const closeBackstage = useCallback(() => setBackstage(null), [])
-  const openProjectPage = useCallback(() => setBackstage('open'), [])
+  // Ctrl+O must not switch the Project page away from a running storage operation.
+  const backstageBusyRef = useRef(false)
+  const setBackstageBusy = useCallback((busy: boolean) => { backstageBusyRef.current = busy }, [])
+  const openProjectPage = useCallback(() => { if (!backstageBusyRef.current) setBackstage('open') }, [])
   const renameProject = useCallback((name: string) => useArcWebStore.getState().setProjectName(name), [])
   /** Quick Access Save / Ctrl+S: projects save automatically; this commits pending changes now. */
-  const flushLibrary = library.flush
+  const { state: libraryState, error: libraryError, flush: flushLibrary } = library
   const saveNow = useCallback(() => {
-    flushLibrary()
-      .then(() => notify('Project saved on this device.'))
-      .catch((error: unknown) => notify(`Could not save: ${error instanceof Error ? error.message : 'IndexedDB error'}`, 'error'))
-  }, [flushLibrary, notify])
+    void saveProjectNow({ state: libraryState, error: libraryError, flush: flushLibrary }, notify)
+  }, [libraryState, libraryError, flushLibrary, notify])
   useAppShortcuts({ save: saveNow, open: openProjectPage })
   /** Save As › Save a copy in Projects: like Pro, the copy becomes the open project. */
   const saveProjectCopy = async () => {
@@ -1336,6 +1338,7 @@ function App() {
           }}
           settings={{ theme, measureUnits, coordinateFormat }}
           onSettings={applyUiSettings}
+          onBusyChange={setBackstageBusy}
         />
       )}
 

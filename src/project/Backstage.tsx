@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { ArrowLeft, Download, FileInput, FilePlus2, FolderOpen, Copy } from 'lucide-react'
 import { trapTabKey, useRestoreFocus } from '../a11y/modalFocus'
@@ -47,35 +47,45 @@ interface BackstageProps {
   library: Omit<ProjectLibraryContentProps, 'sections' | 'onDone' | 'onBusyChange' | 'autoFocusFirst'>
   settings: UiSettings
   onSettings: (settings: UiSettings) => void
+  /** Reports a running storage operation, so the app can keep shortcuts from replacing the page. */
+  onBusyChange?: (busy: boolean) => void
 }
 
 /** ArcGIS Pro–style "Project" page: a full-window view with a blue navigation rail. */
 export default function Backstage({
-  projectName, section, onSection, onClose, onNewBlank, onOpenFile, onSaveFile, onSaveCopy, library, settings, onSettings,
+  projectName, section, onSection, onClose, onNewBlank, onOpenFile, onSaveFile, onSaveCopy, library, settings, onSettings, onBusyChange,
 }: BackstageProps) {
   useRestoreFocus()
   const backRef = useRef<HTMLButtonElement>(null)
   useEffect(() => { backRef.current?.focus() }, [])
 
+  // While a storage operation runs (restore, download, open), leaving would unmount it mid-way:
+  // its result could be lost, or a late restore could overwrite edits made after leaving.
+  const [busy, setBusy] = useState(false)
+  const reportBusy = (value: boolean) => { setBusy(value); onBusyChange?.(value) }
+  const close = () => { if (!busy) onClose() }
+
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    const command = event.ctrlKey || event.metaKey
+    // Ctrl/⌘+S and +O stay application shortcuts; every other key belongs to this page, so
+    // window handlers (layout Delete/arrows, Ctrl+Z, sketch Escape) never act on the hidden map.
+    if (!(command && !event.altKey && (event.key.toLowerCase() === 's' || event.key.toLowerCase() === 'o'))) event.stopPropagation()
     if (event.key === 'Escape') {
-      // Handled here: window-level Escape handlers (sketch cancel, dialogs) must not also run.
       event.preventDefault()
-      event.stopPropagation()
-      onClose()
+      close()
       return
     }
     trapTabKey(event)
   }
 
   return (
-    <div className="backstage" role="dialog" aria-modal="true" aria-label="Project" onKeyDown={onKeyDown}>
+    <div className="backstage" role="dialog" aria-modal="true" aria-label="Project" aria-busy={busy} tabIndex={-1} onKeyDown={onKeyDown}>
       <nav className="backstage-rail" aria-label="Project">
-        <button ref={backRef} type="button" className="backstage-back" aria-label="Back to map" onClick={onClose}><ArrowLeft size={18} aria-hidden="true" /></button>
+        <button ref={backRef} type="button" className="backstage-back" aria-label="Back to map" disabled={busy} onClick={close}><ArrowLeft size={18} aria-hidden="true" /></button>
         <div role="tablist" aria-orientation="vertical" aria-label="Project sections">
           {SECTIONS.map((item) => (
             <button key={item.id} type="button" role="tab" id={`backstage-tab-${item.id}`} aria-selected={item.id === section}
-              aria-controls="backstage-panel" className="backstage-tab" onClick={() => onSection(item.id)}>{item.label}</button>
+              aria-controls="backstage-panel" className="backstage-tab" disabled={busy} onClick={() => onSection(item.id)}>{item.label}</button>
           ))}
         </div>
       </nav>
@@ -91,12 +101,12 @@ export default function Backstage({
         {section === 'open' && (
           <>
             <div className="backstage-cards">
-              <button type="button" className="backstage-card" onClick={onOpenFile}>
+              <button type="button" className="backstage-card" onClick={() => { onClose(); onOpenFile() }}>
                 <FolderOpen size={32} aria-hidden="true" /><strong>Browse for a project file…</strong><span>Open an .arcweb.json file from this computer.</span>
               </button>
             </div>
             <h2>Projects on this device</h2>
-            <ProjectLibraryContent {...library} sections={['projects']} onDone={onClose} />
+            <ProjectLibraryContent {...library} sections={['projects']} onDone={onClose} onBusyChange={reportBusy} />
           </>
         )}
         {section === 'save-as' && (
@@ -109,7 +119,7 @@ export default function Backstage({
             </button>
           </div>
         )}
-        {section === 'library' && <ProjectLibraryContent {...library} sections={['projects', 'recovery', 'backup', 'offline']} onDone={onClose} />}
+        {section === 'library' && <ProjectLibraryContent {...library} sections={['projects', 'recovery', 'backup', 'offline']} onDone={onClose} onBusyChange={reportBusy} />}
         {section === 'options' && (
           <div className="backstage-options">
             <fieldset>

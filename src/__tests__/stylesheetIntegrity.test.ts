@@ -48,3 +48,18 @@ describe('stylesheet integrity', () => {
     expect(stylesheetProblems(css)).toEqual(['comment swallows code from line 1'])
   })
 })
+
+describe('stacking order', () => {
+  const css = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
+  /** z-index of the first rule whose selector list is exactly `selector`. */
+  function zIndexOf(selector: string): number {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const match = css.match(new RegExp(`(^|\\n)${escaped}\\s*\\{[^}]*z-index:\\s*(\\d+)`))
+    if (!match) throw new Error(`no z-index for ${selector}`)
+    return Number(match[2])
+  }
+
+  it('shows messages above the full-window Project page', () => {
+    expect(zIndexOf('.toast')).toBeGreaterThan(zIndexOf('.backstage'))
+  })
+})

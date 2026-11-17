@@ -7,7 +7,10 @@ import type { UiSettings } from '../ui/uiSettings'
 
 // The library section talks to IndexedDB; the Backstage tests only need its placement.
 vi.mock('../storage/ProjectLibraryContent', () => ({
-  default: (props: { sections?: string[] }) => createElement('div', { 'data-testid': 'library', 'data-sections': (props.sections ?? []).join(',') }),
+  default: (props: { sections?: string[]; onBusyChange?: (busy: boolean) => void }) => createElement('div', { 'data-testid': 'library', 'data-sections': (props.sections ?? []).join(',') },
+    // Stands in for a long storage operation (restore, download, open).
+    createElement('button', { id: 'start-busy', onClick: () => props.onBusyChange?.(true) }, 'start busy'),
+    createElement('button', { id: 'end-busy', onClick: () => props.onBusyChange?.(false) }, 'end busy')),
 }))
 
 const { default: Backstage } = await import('../project/Backstage')
@@ -146,5 +149,59 @@ describe('Project backstage', () => {
   it('About shows the application version', () => {
     renderComponent(createElement(Backstage, props({ section: 'about' })))
     expect(document.querySelector('[role="dialog"]')?.textContent).toMatch(/Version \d+\.\d+\.\d+/)
+  })
+
+  it('Browse closes Backstage before opening the file picker', () => {
+    const calls: string[] = []
+    renderComponent(createElement(Backstage, props({ section: 'open', onClose: () => calls.push('close'), onOpenFile: () => calls.push('open-file') })))
+    act(() => button('Browse for a project file…')!.click())
+    expect(calls).toEqual(['close', 'open-file'])
+  })
+
+  it('keeps keys pressed inside Backstage away from window handlers', () => {
+    const spy = vi.fn()
+    window.addEventListener('keydown', spy)
+    renderComponent(createElement(Backstage, props()))
+    const target = document.querySelector('[role="dialog"] button')!
+    for (const init of [{ key: 'Delete' }, { key: 'ArrowDown' }, { key: 'z', ctrlKey: true }, { key: 'Backspace' }]) {
+      act(() => { target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init })) })
+    }
+    window.removeEventListener('keydown', spy)
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('lets Ctrl+S reach the application shortcuts', () => {
+    const spy = vi.fn()
+    window.addEventListener('keydown', spy)
+    renderComponent(createElement(Backstage, props()))
+    act(() => { document.querySelector('[role="dialog"] button')!.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true, bubbles: true, cancelable: true })) })
+    window.removeEventListener('keydown', spy)
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('catches Escape when focus is on the Backstage surface itself', () => {
+    const onClose = vi.fn()
+    renderComponent(createElement(Backstage, props({ onClose })))
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement
+    expect(dialog.getAttribute('tabindex')).toBe('-1')
+    press(dialog, 'Escape')
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('cannot be closed or switched while a storage operation runs', () => {
+    const onClose = vi.fn()
+    const onSection = vi.fn()
+    const onBusyChange = vi.fn()
+    renderComponent(createElement(Backstage, props({ section: 'library', onClose, onSection, onBusyChange })))
+    act(() => (document.getElementById('start-busy') as HTMLButtonElement).click())
+    expect(onBusyChange).toHaveBeenLastCalledWith(true)
+    press(document.querySelector('[role="dialog"] button')!, 'Escape')
+    expect(onClose).not.toHaveBeenCalled()
+    expect((document.querySelector('[aria-label="Back to map"]') as HTMLButtonElement).disabled).toBe(true)
+    expect([...document.querySelectorAll('[role="tab"]')].every((tab) => (tab as HTMLButtonElement).disabled)).toBe(true)
+    act(() => (document.getElementById('end-busy') as HTMLButtonElement).click())
+    expect(onBusyChange).toHaveBeenLastCalledWith(false)
+    press(document.querySelector('[role="dialog"] button')!, 'Escape')
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 })
