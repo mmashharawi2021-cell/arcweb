@@ -1,0 +1,233 @@
+{
+  "comparison": [
+    {
+      "variant": "baseline",
+      "run": 1,
+      "maximumTaskMs": 426,
+      "tasks": [
+        {
+          "start": 3306,
+          "duration": 426
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 1,
+      "maximumTaskMs": 278,
+      "tasks": [
+        {
+          "start": 3303.5,
+          "duration": 108
+        },
+        {
+          "start": 3412.2000000001863,
+          "duration": 184
+        },
+        {
+          "start": 3632.2999999998137,
+          "duration": 81
+        },
+        {
+          "start": 3722.5,
+          "duration": 56
+        },
+        {
+          "start": 3780.0999999996275,
+          "duration": 60
+        },
+        {
+          "start": 3841.5,
+          "duration": 179
+        },
+        {
+          "start": 4642.399999999441,
+          "duration": 278
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "baseline",
+      "run": 2,
+      "maximumTaskMs": 558,
+      "tasks": [
+        {
+          "start": 3451.4000000003725,
+          "duration": 558
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 2,
+      "maximumTaskMs": 217,
+      "tasks": [
+        {
+          "start": 3360.2000000001863,
+          "duration": 114
+        },
+        {
+          "start": 3475.4000000003725,
+          "duration": 217
+        },
+        {
+          "start": 3693.2999999998137,
+          "duration": 54
+        },
+        {
+          "start": 3748.9000000003725,
+          "duration": 95
+        },
+        {
+          "start": 3852,
+          "duration": 66
+        },
+        {
+          "start": 3920,
+          "duration": 61
+        },
+        {
+          "start": 3982.4000000003725,
+          "duration": 157
+        },
+        {
+          "start": 4599.0999999996275,
+          "duration": 155
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "baseline",
+      "run": 3,
+      "maximumTaskMs": 595,
+      "tasks": [
+        {
+          "start": 3328.2999999998137,
+          "duration": 595
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 3,
+      "maximumTaskMs": 201,
+      "tasks": [
+        {
+          "start": 3382.7000000001863,
+          "duration": 120
+        },
+        {
+          "start": 3503.7999999998137,
+          "duration": 182
+        },
+        {
+          "start": 3720.4000000003725,
+          "duration": 85
+        },
+        {
+          "start": 3813,
+          "duration": 56
+        },
+        {
+          "start": 3870.7999999998137,
+          "duration": 59
+        },
+        {
+          "start": 3931.2999999998137,
+          "duration": 160
+        },
+        {
+          "start": 4535,
+          "duration": 201
+        }
+      ],
+      "errors": 0
+    }
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/157.0.8103.78",
+    "revision": "@4b3d0dabb8250b6f152d2d85d79e7706e309d087",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+    "jsVersion": "15.7.112.43"
+  },
+  "fixtureBytes": 14303621,
+  "qa": [
+    {
+      "check": "By attributes",
+      "initialInside": true,
+      "wrapsForward": true,
+      "wrapsBack": true,
+      "restoresOpener": true
+    },
+    {
+      "check": "By location",
+      "initialInside": true,
+      "wrapsForward": true,
+      "wrapsBack": true,
+      "restoresOpener": true
+    },
+    {
+      "check": "Properties",
+      "initialInside": true,
+      "wrapsForward": true,
+      "wrapsBack": true,
+      "restoresOpener": true
+    },
+    {
+      "check": "session reload",
+      "features": 60000,
+      "passed": true
+    },
+    {
+      "check": "reopen exact downloaded project",
+      "bytes": 17294898,
+      "features": 60000
+    },
+    {
+      "check": "Arabic filename feedback",
+      "text": "Added 1 layer from ⁨محطات QA.csv⁩",
+      "isolated": true
+    },
+    {
+      "check": "Save, unsaved edit, reload, Discard",
+      "passed": true
+    },
+    {
+      "check": "cancel large import",
+      "layersUnchanged": true
+    },
+    {
+      "check": "cancel large Buffer",
+      "failedHistory": true
+    },
+    {
+      "check": "next Buffer succeeds with unrelated 60k layer retained",
+      "layers": 3
+    },
+    {
+      "check": "map PNG export",
+      "width": 1632,
+      "height": 688,
+      "bytes": 540519
+    },
+    {
+      "check": "layout PNG export",
+      "width": 2339,
+      "height": 1654,
+      "bytes": 680537
+    },
+    {
+      "check": "layout PDF export",
+      "bytes": 513820,
+      "complete": true
+    }
+  ],
+  "capturedErrors": 0,
+  "finalQaMaximumTaskMs": 173
+}

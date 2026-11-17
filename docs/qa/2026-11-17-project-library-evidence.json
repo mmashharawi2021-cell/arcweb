@@ -1,0 +1,130 @@
+{
+  "fixtureBytes": 14303621,
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/157.0.8103.78",
+    "revision": "@4b3d0dabb8250b6f152d2d85d79e7706e309d087",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+    "jsVersion": "15.7.112.43"
+  },
+  "qa": [
+    {
+      "check": "By attributes",
+      "initialInside": true,
+      "wrapsForward": true,
+      "wrapsBack": true,
+      "restoresOpener": true
+    },
+    {
+      "check": "By location",
+      "initialInside": true,
+      "wrapsForward": true,
+      "wrapsBack": true,
+      "restoresOpener": true
+    },
+    {
+      "check": "Properties",
+      "initialInside": true,
+      "wrapsForward": true,
+      "wrapsBack": true,
+      "restoresOpener": true
+    },
+    {
+      "check": "session reload",
+      "features": 60000,
+      "passed": true
+    },
+    {
+      "check": "reopen exact downloaded project",
+      "bytes": 17294898,
+      "features": 60000
+    },
+    {
+      "check": "Arabic filename feedback",
+      "text": "Added 1 layer from ⁨محطات QA.csv⁩",
+      "isolated": true
+    },
+    {
+      "check": "Save, unsaved edit, reload, Discard",
+      "passed": true
+    },
+    {
+      "check": "cancel large import",
+      "layersUnchanged": true
+    },
+    {
+      "check": "cancel large Buffer",
+      "failedHistory": true
+    },
+    {
+      "check": "next Buffer succeeds with unrelated 60k layer retained",
+      "layers": 3
+    },
+    {
+      "check": "map PNG export",
+      "width": 1604,
+      "height": 688,
+      "bytes": 442040
+    },
+    {
+      "check": "layout PNG export",
+      "width": 2339,
+      "height": 1654,
+      "bytes": 384980
+    },
+    {
+      "check": "layout PDF export",
+      "bytes": 287580,
+      "complete": true
+    }
+  ],
+  "library": [
+    {
+      "check": "project copy preserves existing work",
+      "projects": 4
+    },
+    {
+      "check": "full backup download",
+      "bytes": 7783531,
+      "projects": 4
+    },
+    {
+      "check": "backup restore adds separate projects",
+      "projects": 8
+    },
+    {
+      "check": "offline reload restores app, project and local basemap",
+      "features": 60004,
+      "passed": true
+    }
+  ],
+  "errors": 0,
+  "maximumLongTaskMs": 329,
+  "offlinePaint": {
+    "checks": [
+      {
+        "check": "project copy preserves existing work",
+        "projects": 2
+      },
+      {
+        "check": "full backup download",
+        "bytes": 2435140,
+        "projects": 2
+      },
+      {
+        "check": "backup restore adds separate projects",
+        "projects": 4
+      },
+      {
+        "check": "offline reload restores app, project and local basemap",
+        "features": 60000,
+        "passed": true
+      },
+      {
+        "check": "restored features visibly painted offline",
+        "goldPixels": 96
+      }
+    ],
+    "errors": 0
+  }
+}

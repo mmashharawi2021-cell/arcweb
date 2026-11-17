@@ -1,0 +1,933 @@
+{
+  "date": "2026-11-17",
+  "scope": "Post-commit derivative warming, chunked preparation and retained memory; comprehensive audit remains partial",
+  "baseline": "tmp/performance/save-warmup-baseline-dist",
+  "finalEntry": "assets/index-DE9QcLJv.js",
+  "worker": "assets/mapPrepare.worker-Cgm2yEM3.js",
+  "method": {
+    "memory": "Main-target CDP used JS heap after 1.5s transition wait and explicit GC; point samples, not peaks/steady state/total RAM. Worker heap RPC unavailable is retained explicitly.",
+    "cold": "Single paired fresh import/save and separate-process offline first reopen per dataset; same approximately 5s post-save opportunity; local generated basemap; exact saved hashes and expected bundle asserted. No test/build workload overlaps measured cold startup."
+  },
+  "datasets": {
+    "roads": {
+      "before": {
+        "artifact": "memory-roads-before.json",
+        "fixtureBytes": 62968942,
+        "memory": {
+          "samples": [
+            {
+              "name": "loaded",
+              "main": {
+                "usedSize": 149759172,
+                "totalSize": 152506368,
+                "embedderHeapUsedSize": 2544816,
+                "backingStorageSize": 9468867
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "edited-and-saved",
+              "main": {
+                "usedSize": 230918168,
+                "totalSize": 262586368,
+                "embedderHeapUsedSize": 6064592,
+                "backingStorageSize": 9493276
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "attribute-restored",
+              "main": {
+                "usedSize": 87261572,
+                "totalSize": 89079808,
+                "embedderHeapUsedSize": 5589752,
+                "backingStorageSize": 9493322
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "switched-to-empty-project",
+              "main": {
+                "usedSize": 84829452,
+                "totalSize": 86130688,
+                "embedderHeapUsedSize": 2964464,
+                "backingStorageSize": 3286126
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "reopened-original-project",
+              "main": {
+                "usedSize": 159785720,
+                "totalSize": 160919552,
+                "embedderHeapUsedSize": 3083136,
+                "backingStorageSize": 3266821
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            }
+          ],
+          "exactDataMatch": true,
+          "metric": "Main CDP JS heap after explicit GC; worker heaps are sampled without forced GC and may be unavailable. Excludes total process/GPU/native Blob memory."
+        },
+        "errors": []
+      },
+      "after": {
+        "artifact": "memory-roads-final.json",
+        "fixtureBytes": 62968942,
+        "memory": {
+          "samples": [
+            {
+              "name": "loaded",
+              "main": {
+                "usedSize": 150169800,
+                "totalSize": 153030656,
+                "embedderHeapUsedSize": 2980080,
+                "backingStorageSize": 5857099
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "edited-and-saved",
+              "main": {
+                "usedSize": 86911752,
+                "totalSize": 87801856,
+                "embedderHeapUsedSize": 5637504,
+                "backingStorageSize": 9475732
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                },
+                {
+                  "url": "",
+                  "unavailable": "Error: {\"code\":-32602,\"message\":\"No session with given id\"}"
+                }
+              ]
+            },
+            {
+              "name": "attribute-restored",
+              "main": {
+                "usedSize": 87302828,
+                "totalSize": 88293376,
+                "embedderHeapUsedSize": 5620808,
+                "backingStorageSize": 9475800
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                },
+                {
+                  "url": "",
+                  "unavailable": "Error: {\"code\":-32602,\"message\":\"No session with given id\"}"
+                }
+              ]
+            },
+            {
+              "name": "switched-to-empty-project",
+              "main": {
+                "usedSize": 9845932,
+                "totalSize": 11223040,
+                "embedderHeapUsedSize": 2984168,
+                "backingStorageSize": 3245961
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "reopened-original-project",
+              "main": {
+                "usedSize": 85021912,
+                "totalSize": 85979136,
+                "embedderHeapUsedSize": 3065728,
+                "backingStorageSize": 3246061
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            }
+          ],
+          "exactDataMatch": true,
+          "metric": "Main CDP JS heap after explicit GC; worker heaps are sampled without forced GC and may be unavailable. Excludes total process/GPU/native Blob memory."
+        },
+        "persisted": {
+          "id": "1868936c-76a2-4118-8b4c-2be0bd792d25",
+          "name": "Untitled map",
+          "features": 56600,
+          "layers": [
+            {
+              "id": "79195c3a-8bb7-49ae-9188-4970adf6bebd",
+              "name": "roads",
+              "features": 56600,
+              "hash": "57ec1ef34aa95a4bb1cd18acb989eca92a26d9ef6dde25183f2ebc973c01b81d"
+            }
+          ]
+        },
+        "renderCaches": [
+          {
+            "bytes": 69568934,
+            "chunks": 566
+          },
+          {
+            "bytes": 69568922,
+            "chunks": 566
+          },
+          {
+            "bytes": 69568922,
+            "chunks": 566
+          }
+        ],
+        "errors": []
+      },
+      "saveBefore": {
+        "artifact": "first-save-v2-before-roads.json",
+        "fixtureBytes": 62968942,
+        "persisted": {
+          "id": "de130e57-1250-4e19-8504-5965253cd2a9",
+          "name": "Untitled map",
+          "features": 56600,
+          "layers": [
+            {
+              "id": "b0b2cd0c-371c-4f67-b04f-2ea8cbc4108d",
+              "name": "roads",
+              "features": 56600,
+              "hash": "32503b7d8fd23cddb2a25b7edfc07fda7dcafb74d906bec6e67bf2b74738126b"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [],
+        "errors": []
+      },
+      "saveAfter": {
+        "artifact": "first-save-v2-after-roads.json",
+        "fixtureBytes": 62968942,
+        "persisted": {
+          "id": "61a18812-0069-4218-9f33-cf60cc4fd1c3",
+          "name": "Untitled map",
+          "features": 56600,
+          "layers": [
+            {
+              "id": "307d829f-6ec5-4c81-bc0b-29d06b90d556",
+              "name": "roads",
+              "features": 56600,
+              "hash": "1dcf0b2ad8c6b2625dce8109b39b7df35b6a06627bfec08acbc0401ce4f38b3c"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [
+          {
+            "bytes": 69568922,
+            "chunks": 566
+          }
+        ],
+        "errors": []
+      },
+      "coldBefore": {
+        "artifact": "first-cold-v2-before-roads.json",
+        "persisted": {
+          "id": "de130e57-1250-4e19-8504-5965253cd2a9",
+          "name": "Untitled map",
+          "features": 56600,
+          "layers": [
+            {
+              "id": "b0b2cd0c-371c-4f67-b04f-2ea8cbc4108d",
+              "name": "roads",
+              "features": 56600,
+              "hash": "32503b7d8fd23cddb2a25b7edfc07fda7dcafb74d906bec6e67bf2b74738126b"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [
+          {
+            "bytes": 69568922,
+            "chunks": 566
+          }
+        ],
+        "coldBrowserRestart": true,
+        "networkOffline": true,
+        "entry": "http://127.0.0.1:6199/assets/index-p70jNB1w.js",
+        "readyMs": 2537,
+        "exactDataMatch": true,
+        "startup": {
+          "tasks": [
+            {
+              "start": 125.80000000074506,
+              "duration": 97
+            },
+            {
+              "start": 294.90000000037253,
+              "duration": 108
+            },
+            {
+              "start": 408.69999999925494,
+              "duration": 94
+            },
+            {
+              "start": 711.9000000003725,
+              "duration": 548
+            },
+            {
+              "start": 4741.5999999996275,
+              "duration": 781
+            }
+          ],
+          "stages": []
+        },
+        "navigation": {
+          "tasks": []
+        },
+        "errors": []
+      },
+      "coldAfter": {
+        "artifact": "first-cold-v2-after-roads.json",
+        "persisted": {
+          "id": "61a18812-0069-4218-9f33-cf60cc4fd1c3",
+          "name": "Untitled map",
+          "features": 56600,
+          "layers": [
+            {
+              "id": "307d829f-6ec5-4c81-bc0b-29d06b90d556",
+              "name": "roads",
+              "features": 56600,
+              "hash": "1dcf0b2ad8c6b2625dce8109b39b7df35b6a06627bfec08acbc0401ce4f38b3c"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [
+          {
+            "bytes": 69568922,
+            "chunks": 566
+          }
+        ],
+        "coldBrowserRestart": true,
+        "networkOffline": true,
+        "entry": "http://127.0.0.1:6200/assets/index-DE9QcLJv.js",
+        "readyMs": 1334,
+        "exactDataMatch": true,
+        "startup": {
+          "tasks": [
+            {
+              "start": 214.09999999962747,
+              "duration": 111
+            },
+            {
+              "start": 390.2000000011176,
+              "duration": 76
+            },
+            {
+              "start": 471.30000000074506,
+              "duration": 75
+            },
+            {
+              "start": 787.5,
+              "duration": 379
+            },
+            {
+              "start": 3834,
+              "duration": 798
+            }
+          ],
+          "stages": []
+        },
+        "navigation": {
+          "tasks": []
+        },
+        "errors": []
+      }
+    },
+    "countries": {
+      "before": {
+        "artifact": "memory-countries-before.json",
+        "fixtureBytes": 4930492,
+        "memory": {
+          "samples": [
+            {
+              "name": "loaded",
+              "main": {
+                "usedSize": 68728844,
+                "totalSize": 70467584,
+                "embedderHeapUsedSize": 3056136,
+                "backingStorageSize": 3526037
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "edited-and-saved",
+              "main": {
+                "usedSize": 46432160,
+                "totalSize": 48185344,
+                "embedderHeapUsedSize": 15022944,
+                "backingStorageSize": 3540384
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "attribute-restored",
+              "main": {
+                "usedSize": 46794928,
+                "totalSize": 48709632,
+                "embedderHeapUsedSize": 15032624,
+                "backingStorageSize": 3540022
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "switched-to-empty-project",
+              "main": {
+                "usedSize": 43758000,
+                "totalSize": 45301760,
+                "embedderHeapUsedSize": 3080096,
+                "backingStorageSize": 3256815
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "reopened-original-project",
+              "main": {
+                "usedSize": 103383588,
+                "totalSize": 104284160,
+                "embedderHeapUsedSize": 3391968,
+                "backingStorageSize": 3543167
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            }
+          ],
+          "exactDataMatch": true,
+          "metric": "Main CDP JS heap after explicit GC; worker heaps are sampled without forced GC and may be unavailable. Excludes total process/GPU/native Blob memory."
+        },
+        "persisted": {
+          "id": "25ce08fc-596c-45b2-8dd9-5c511847665e",
+          "name": "Untitled map",
+          "features": 258,
+          "layers": [
+            {
+              "id": "3583a07f-8c93-4693-8f71-865b3c17189f",
+              "name": "countries",
+              "features": 258,
+              "hash": "1251284910f418156e99c254574951c501a5e4abcff18fe5f5034032b5bdae71"
+            }
+          ]
+        },
+        "renderCaches": [
+          {
+            "bytes": 22494306,
+            "chunks": 3
+          }
+        ],
+        "errors": []
+      },
+      "after": {
+        "artifact": "memory-countries-final.json",
+        "fixtureBytes": 4930492,
+        "memory": {
+          "samples": [
+            {
+              "name": "loaded",
+              "main": {
+                "usedSize": 68803104,
+                "totalSize": 69681152,
+                "embedderHeapUsedSize": 3062040,
+                "backingStorageSize": 3528892
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "edited-and-saved",
+              "main": {
+                "usedSize": 46709812,
+                "totalSize": 48185344,
+                "embedderHeapUsedSize": 15032496,
+                "backingStorageSize": 3543131
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: {\"code\":-32602,\"message\":\"No session with given id\"}"
+                },
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "attribute-restored",
+              "main": {
+                "usedSize": 46839472,
+                "totalSize": 47923200,
+                "embedderHeapUsedSize": 15043456,
+                "backingStorageSize": 3542769
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: {\"code\":-32602,\"message\":\"No session with given id\"}"
+                },
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "switched-to-empty-project",
+              "main": {
+                "usedSize": 9818652,
+                "totalSize": 11223040,
+                "embedderHeapUsedSize": 3091624,
+                "backingStorageSize": 3246058
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            },
+            {
+              "name": "reopened-original-project",
+              "main": {
+                "usedSize": 69485832,
+                "totalSize": 70467584,
+                "embedderHeapUsedSize": 3381328,
+                "backingStorageSize": 3531547
+              },
+              "workers": [
+                {
+                  "url": "",
+                  "unavailable": "Error: Timed out: Runtime.getHeapUsage"
+                }
+              ]
+            }
+          ],
+          "exactDataMatch": true,
+          "metric": "Main CDP JS heap after explicit GC; worker heaps are sampled without forced GC and may be unavailable. Excludes total process/GPU/native Blob memory."
+        },
+        "persisted": {
+          "id": "d3ed13fb-7288-41a2-aa82-79d7fdd894f3",
+          "name": "Untitled map",
+          "features": 258,
+          "layers": [
+            {
+              "id": "80eee470-19f6-46f5-9c2e-24af160a0533",
+              "name": "countries",
+              "features": 258,
+              "hash": "4717300fb524f1a376cad879c87122855872ec86a9918dc7fa543ffe5e36cb0c"
+            }
+          ]
+        },
+        "renderCaches": [
+          {
+            "bytes": 22494307,
+            "chunks": 3
+          },
+          {
+            "bytes": 22494306,
+            "chunks": 3
+          },
+          {
+            "bytes": 22494306,
+            "chunks": 3
+          }
+        ],
+        "errors": []
+      },
+      "saveBefore": {
+        "artifact": "first-save-before-countries.json",
+        "fixtureBytes": 4930492,
+        "persisted": {
+          "id": "fa1dd253-fd3d-4a5e-a05b-ea88292631b8",
+          "name": "Untitled map",
+          "features": 258,
+          "layers": [
+            {
+              "id": "260f4bd6-2994-4fbf-a7d5-ced6a93e5766",
+              "name": "countries",
+              "features": 258,
+              "hash": "139ef694a2de60e03ce7cbaa812b76d9b057e53d63c8f5c7c30f14f3ee7bdf83"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [],
+        "errors": []
+      },
+      "saveAfter": {
+        "artifact": "first-save-after-countries.json",
+        "fixtureBytes": 4930492,
+        "persisted": {
+          "id": "9c7550a7-fd14-441e-855a-b45e86a01698",
+          "name": "Untitled map",
+          "features": 258,
+          "layers": [
+            {
+              "id": "29fb75fb-1887-4208-908b-69b4a4867a14",
+              "name": "countries",
+              "features": 258,
+              "hash": "19b5937a096910178a75843d8eb4807893512943a8a070637c0d7738147708c3"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [
+          {
+            "bytes": 22494306,
+            "chunks": 3
+          }
+        ],
+        "errors": []
+      },
+      "coldBefore": {
+        "artifact": "first-cold-before-countries.json",
+        "persisted": {
+          "id": "fa1dd253-fd3d-4a5e-a05b-ea88292631b8",
+          "name": "Untitled map",
+          "features": 258,
+          "layers": [
+            {
+              "id": "260f4bd6-2994-4fbf-a7d5-ced6a93e5766",
+              "name": "countries",
+              "features": 258,
+              "hash": "139ef694a2de60e03ce7cbaa812b76d9b057e53d63c8f5c7c30f14f3ee7bdf83"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [
+          {
+            "bytes": 22494306,
+            "chunks": 3
+          }
+        ],
+        "coldBrowserRestart": true,
+        "networkOffline": true,
+        "entry": "http://127.0.0.1:6201/assets/index-p70jNB1w.js",
+        "readyMs": 1543,
+        "exactDataMatch": true,
+        "startup": {
+          "tasks": [
+            {
+              "start": 123.19999999925494,
+              "duration": 118
+            },
+            {
+              "start": 309.40000000037253,
+              "duration": 88
+            },
+            {
+              "start": 402.2999999988824,
+              "duration": 87
+            },
+            {
+              "start": 601.4000000003725,
+              "duration": 141
+            },
+            {
+              "start": 746.0999999996275,
+              "duration": 137
+            },
+            {
+              "start": 1478.2999999988824,
+              "duration": 50
+            },
+            {
+              "start": 2368.5,
+              "duration": 192
+            }
+          ],
+          "stages": []
+        },
+        "navigation": {
+          "tasks": []
+        },
+        "errors": []
+      },
+      "coldAfter": {
+        "artifact": "first-cold-after-countries.json",
+        "persisted": {
+          "id": "9c7550a7-fd14-441e-855a-b45e86a01698",
+          "name": "Untitled map",
+          "features": 258,
+          "layers": [
+            {
+              "id": "29fb75fb-1887-4208-908b-69b4a4867a14",
+              "name": "countries",
+              "features": 258,
+              "hash": "19b5937a096910178a75843d8eb4807893512943a8a070637c0d7738147708c3"
+            }
+          ],
+          "offlineBasemap": "QA local basemap"
+        },
+        "renderCaches": [
+          {
+            "bytes": 22494306,
+            "chunks": 3
+          }
+        ],
+        "coldBrowserRestart": true,
+        "networkOffline": true,
+        "entry": "http://127.0.0.1:6202/assets/index-DE9QcLJv.js",
+        "readyMs": 1462,
+        "exactDataMatch": true,
+        "startup": {
+          "tasks": [
+            {
+              "start": 192.09999999962747,
+              "duration": 131
+            },
+            {
+              "start": 360.2000000011176,
+              "duration": 51
+            },
+            {
+              "start": 411.80000000074506,
+              "duration": 121
+            },
+            {
+              "start": 539.7000000011176,
+              "duration": 119
+            },
+            {
+              "start": 830.0999999996275,
+              "duration": 199
+            },
+            {
+              "start": 1032.9000000003725,
+              "duration": 190
+            },
+            {
+              "start": 1344.300000000745,
+              "duration": 78
+            },
+            {
+              "start": 2530.4000000003725,
+              "duration": 258
+            }
+          ],
+          "stages": []
+        },
+        "navigation": {
+          "tasks": []
+        },
+        "errors": []
+      }
+    }
+  },
+  "regression": {
+    "command": "node scripts/qa/profile-browser.mjs dist tmp/performance/save-warmup-final-smoke.json --qa --library --download-area --no-cpu",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/157.0.8103.79",
+      "revision": "@6dc9bc3bdaea5c35ed6d41fceab2f7a3a2227c4f",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "jsVersion": "15.7.112.43"
+    },
+    "qa": [
+      {
+        "check": "By attributes",
+        "initialInside": true,
+        "wrapsForward": true,
+        "wrapsBack": true,
+        "restoresOpener": true
+      },
+      {
+        "check": "By location",
+        "initialInside": true,
+        "wrapsForward": true,
+        "wrapsBack": true,
+        "restoresOpener": true
+      },
+      {
+        "check": "Properties",
+        "initialInside": true,
+        "wrapsForward": true,
+        "wrapsBack": true,
+        "restoresOpener": true
+      },
+      {
+        "check": "session reload",
+        "features": 60000,
+        "passed": true
+      },
+      {
+        "check": "reopen exact downloaded project",
+        "bytes": 17294898,
+        "features": 60000
+      },
+      {
+        "check": "Arabic filename feedback",
+        "text": "Added 1 layer from ⁨محطات QA.csv⁩",
+        "isolated": true
+      },
+      {
+        "check": "Save, unsaved edit, reload, Discard",
+        "passed": true
+      },
+      {
+        "check": "cancel large import",
+        "layersUnchanged": true
+      },
+      {
+        "check": "cancel large Buffer",
+        "failedHistory": true
+      },
+      {
+        "check": "next Buffer succeeds with unrelated 60k layer retained",
+        "layers": 3
+      },
+      {
+        "check": "map PNG export",
+        "width": 1632,
+        "height": 688,
+        "bytes": 445598
+      },
+      {
+        "check": "layout PNG export",
+        "width": 2339,
+        "height": 1654,
+        "bytes": 384980
+      },
+      {
+        "check": "layout PDF export",
+        "bytes": 287580,
+        "complete": true
+      }
+    ],
+    "library": [
+      {
+        "check": "project copy preserves existing work",
+        "projects": 4
+      },
+      {
+        "check": "full backup download",
+        "bytes": 6885365,
+        "projects": 4
+      },
+      {
+        "check": "backup restore adds separate projects",
+        "projects": 8
+      },
+      {
+        "check": "cancel online area download before storage commit",
+        "passed": true
+      },
+      {
+        "check": "download NASA imagery area",
+        "zooms": [
+          0,
+          1
+        ],
+        "tiles": 5,
+        "passed": true
+      },
+      {
+        "check": "offline reload restores app, project and local basemap",
+        "features": 60004,
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  "validation": {
+    "typescript": {
+      "command": "node_modules/.bin/tsc.cmd -b",
+      "exit": 0
+    },
+    "lint": {
+      "command": "npm.cmd run lint",
+      "exit": 0,
+      "warnings": 0,
+      "errors": 0
+    },
+    "tests": {
+      "command": "npm.cmd test",
+      "exit": 0,
+      "files": 52,
+      "passed": 401
+    },
+    "build": {
+      "command": "npm.cmd run build",
+      "exit": 0,
+      "modules": 3054,
+      "workerBytes": 3383
+    }
+  },
+  "limitations": [
+    "Warmup can be cancelled or interrupted before next open",
+    "No total RAM/worker peak claim",
+    "MapLibre full-data return pause remains",
+    "Full audit and complete nullable-geometry typing remain unresolved"
+  ]
+}

@@ -1,0 +1,781 @@
+{
+  "date": "2026-11-17",
+  "scope": "Focused import performance follow-up; comprehensive audit remains partial",
+  "baseline": "tmp/performance/import-baseline-dist, pre-change production working-tree snapshot",
+  "method": "Three alternating baseline/optimized fresh-profile production Chrome runs per dataset; CPU sampling disabled; blocking=sum(max(0,longTask.duration-50)) in import-to-save-plus-3.5s window",
+  "roads": [
+    {
+      "variant": "baseline",
+      "run": 1,
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 2629,
+        "durableSaveMs": 4531
+      },
+      "maximumTaskMs": 770,
+      "blockingTimeMs": 2743,
+      "tasks": [
+        {
+          "start": 4390.600000000559,
+          "duration": 608
+        },
+        {
+          "start": 5271.9000000003725,
+          "duration": 534
+        },
+        {
+          "start": 5869.700000000186,
+          "duration": 116
+        },
+        {
+          "start": 5989.200000000186,
+          "duration": 286
+        },
+        {
+          "start": 6278.4000000003725,
+          "duration": 729
+        },
+        {
+          "start": 9268.600000000559,
+          "duration": 770
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 1,
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 2416,
+        "durableSaveMs": 3165
+      },
+      "maximumTaskMs": 617,
+      "blockingTimeMs": 567,
+      "tasks": [
+        {
+          "start": 7960.700000000186,
+          "duration": 617
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "baseline",
+      "run": 2,
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 2756,
+        "durableSaveMs": 5063
+      },
+      "maximumTaskMs": 1032,
+      "blockingTimeMs": 2915,
+      "tasks": [
+        {
+          "start": 4592.799999999814,
+          "duration": 377
+        },
+        {
+          "start": 5296.799999999814,
+          "duration": 598
+        },
+        {
+          "start": 5895.799999999814,
+          "duration": 58
+        },
+        {
+          "start": 5974.799999999814,
+          "duration": 149
+        },
+        {
+          "start": 6128,
+          "duration": 359
+        },
+        {
+          "start": 6491.899999999441,
+          "duration": 1032
+        },
+        {
+          "start": 9676.199999999255,
+          "duration": 692
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 2,
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 2729,
+        "durableSaveMs": 3687
+      },
+      "maximumTaskMs": 558,
+      "blockingTimeMs": 508,
+      "tasks": [
+        {
+          "start": 8151.200000000186,
+          "duration": 558
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "baseline",
+      "run": 3,
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 2476,
+        "durableSaveMs": 4387
+      },
+      "maximumTaskMs": 727,
+      "blockingTimeMs": 2696,
+      "tasks": [
+        {
+          "start": 4145.0999999996275,
+          "duration": 606
+        },
+        {
+          "start": 5043.299999999814,
+          "duration": 534
+        },
+        {
+          "start": 5578.5,
+          "duration": 52
+        },
+        {
+          "start": 5650.299999999814,
+          "duration": 120
+        },
+        {
+          "start": 5773.200000000186,
+          "duration": 294
+        },
+        {
+          "start": 6070,
+          "duration": 713
+        },
+        {
+          "start": 8926.5,
+          "duration": 727
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 3,
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 3386,
+        "durableSaveMs": 4506
+      },
+      "maximumTaskMs": 698,
+      "blockingTimeMs": 664,
+      "tasks": [
+        {
+          "start": 6646.600000000559,
+          "duration": 66
+        },
+        {
+          "start": 9644.200000000186,
+          "duration": 698
+        }
+      ],
+      "errors": 0
+    }
+  ],
+  "countries": [
+    {
+      "variant": "baseline",
+      "run": 1,
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1607,
+        "durableSaveMs": 2107
+      },
+      "maximumTaskMs": 519,
+      "blockingTimeMs": 911,
+      "tasks": [
+        {
+          "start": 4030.899999999441,
+          "duration": 151
+        },
+        {
+          "start": 4309.299999999814,
+          "duration": 519
+        },
+        {
+          "start": 4830.799999999814,
+          "duration": 79
+        },
+        {
+          "start": 4929.200000000186,
+          "duration": 201
+        },
+        {
+          "start": 5131.399999999441,
+          "duration": 181
+        },
+        {
+          "start": 5909.0999999996275,
+          "duration": 80
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 1,
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1274,
+        "durableSaveMs": 1767
+      },
+      "maximumTaskMs": 200,
+      "blockingTimeMs": 544,
+      "tasks": [
+        {
+          "start": 4061.600000000559,
+          "duration": 65
+        },
+        {
+          "start": 4224.5,
+          "duration": 102
+        },
+        {
+          "start": 4449.100000000559,
+          "duration": 71
+        },
+        {
+          "start": 4528.100000000559,
+          "duration": 185
+        },
+        {
+          "start": 4716.100000000559,
+          "duration": 183
+        },
+        {
+          "start": 5744.100000000559,
+          "duration": 200
+        },
+        {
+          "start": 5981.4000000003725,
+          "duration": 88
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "baseline",
+      "run": 2,
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1358,
+        "durableSaveMs": 1841
+      },
+      "maximumTaskMs": 513,
+      "blockingTimeMs": 848,
+      "tasks": [
+        {
+          "start": 3868.7000000001863,
+          "duration": 95
+        },
+        {
+          "start": 4071.2000000001863,
+          "duration": 513
+        },
+        {
+          "start": 4584.899999999441,
+          "duration": 92
+        },
+        {
+          "start": 4684.5,
+          "duration": 171
+        },
+        {
+          "start": 4856.299999999814,
+          "duration": 190
+        },
+        {
+          "start": 5663.299999999814,
+          "duration": 87
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 2,
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1582,
+        "durableSaveMs": 1836
+      },
+      "maximumTaskMs": 203,
+      "blockingTimeMs": 397,
+      "tasks": [
+        {
+          "start": 4300,
+          "duration": 54
+        },
+        {
+          "start": 4415.199999999255,
+          "duration": 70
+        },
+        {
+          "start": 4564.399999999441,
+          "duration": 52
+        },
+        {
+          "start": 4619.699999999255,
+          "duration": 147
+        },
+        {
+          "start": 4768.199999999255,
+          "duration": 136
+        },
+        {
+          "start": 5395.699999999255,
+          "duration": 203
+        },
+        {
+          "start": 5634.199999999255,
+          "duration": 85
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "baseline",
+      "run": 3,
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1311,
+        "durableSaveMs": 1816
+      },
+      "maximumTaskMs": 490,
+      "blockingTimeMs": 827,
+      "tasks": [
+        {
+          "start": 3766.5999999996275,
+          "duration": 105
+        },
+        {
+          "start": 3989.5999999996275,
+          "duration": 490
+        },
+        {
+          "start": 4480.5,
+          "duration": 65
+        },
+        {
+          "start": 4554.899999999441,
+          "duration": 210
+        },
+        {
+          "start": 4765.5999999996275,
+          "duration": 175
+        },
+        {
+          "start": 5451.299999999814,
+          "duration": 82
+        }
+      ],
+      "errors": 0
+    },
+    {
+      "variant": "optimized",
+      "run": 3,
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1200,
+        "durableSaveMs": 1702
+      },
+      "maximumTaskMs": 202,
+      "blockingTimeMs": 532,
+      "tasks": [
+        {
+          "start": 3913.899999999441,
+          "duration": 60
+        },
+        {
+          "start": 4089.399999999441,
+          "duration": 116
+        },
+        {
+          "start": 4341.200000000186,
+          "duration": 70
+        },
+        {
+          "start": 4417.5,
+          "duration": 184
+        },
+        {
+          "start": 4603.399999999441,
+          "duration": 175
+        },
+        {
+          "start": 5728,
+          "duration": 202
+        },
+        {
+          "start": 5968.5999999996275,
+          "duration": 75
+        }
+      ],
+      "errors": 0
+    }
+  ],
+  "contentIntegrity": [
+    {
+      "dataset": "countries",
+      "backup": "tmp/performance/library-downloads-1794916380758/arcweb-library-backup.zip",
+      "features": 258,
+      "allGeometryAndPropertiesMatch": true,
+      "sha256": "354e04a1c75b7611076420cb5949682e48a5fdfc79cc449211c00b4cee9a5f79"
+    },
+    {
+      "dataset": "roads",
+      "backup": "tmp/performance/library-downloads-1794916434061/arcweb-library-backup.zip",
+      "features": 56600,
+      "allGeometryAndPropertiesMatch": true,
+      "sha256": "1b5aebc509ba555f9f2732e8fed0f90ef838c125b287ba3c3d99f829ecc49acb"
+    }
+  ],
+  "runtime": [
+    {
+      "artifact": "import-final-smoke.json",
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/157.0.8103.79",
+        "revision": "@6dc9bc3bdaea5c35ed6d41fceab2f7a3a2227c4f",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+        "jsVersion": "15.7.112.43"
+      },
+      "fixtureBytes": 14303621,
+      "qa": [
+        {
+          "check": "By attributes",
+          "initialInside": true,
+          "wrapsForward": true,
+          "wrapsBack": true,
+          "restoresOpener": true
+        },
+        {
+          "check": "By location",
+          "initialInside": true,
+          "wrapsForward": true,
+          "wrapsBack": true,
+          "restoresOpener": true
+        },
+        {
+          "check": "Properties",
+          "initialInside": true,
+          "wrapsForward": true,
+          "wrapsBack": true,
+          "restoresOpener": true
+        },
+        {
+          "check": "session reload",
+          "features": 60000,
+          "passed": true
+        },
+        {
+          "check": "reopen exact downloaded project",
+          "bytes": 17294869,
+          "features": 60000
+        },
+        {
+          "check": "Arabic filename feedback",
+          "text": "Added 1 layer from ⁨محطات QA.csv⁩",
+          "isolated": true
+        },
+        {
+          "check": "Save, unsaved edit, reload, Discard",
+          "passed": true
+        },
+        {
+          "check": "cancel large import",
+          "layersUnchanged": true
+        },
+        {
+          "check": "cancel large Buffer",
+          "failedHistory": true
+        },
+        {
+          "check": "next Buffer succeeds with unrelated 60k layer retained",
+          "layers": 3
+        },
+        {
+          "check": "map PNG export",
+          "width": 1632,
+          "height": 688,
+          "bytes": 445598
+        },
+        {
+          "check": "layout PNG export",
+          "width": 2339,
+          "height": 1654,
+          "bytes": 384980
+        },
+        {
+          "check": "layout PDF export",
+          "bytes": 287580,
+          "complete": true
+        }
+      ],
+      "library": [
+        {
+          "check": "project copy preserves existing work",
+          "projects": 4
+        },
+        {
+          "check": "full backup download",
+          "bytes": 6886943,
+          "projects": 4
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 8
+        },
+        {
+          "check": "cancel online area download before storage commit",
+          "passed": true
+        },
+        {
+          "check": "download NASA imagery area",
+          "zooms": [
+            0,
+            1
+          ],
+          "tiles": 5,
+          "passed": true
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 60004,
+          "passed": true
+        }
+      ],
+      "persisted": {
+        "id": "1d0f42f0-7621-43d0-b541-3198ead04eba",
+        "name": "Untitled map — copy",
+        "features": 60004,
+        "layers": [
+          {
+            "id": "de5c5306-b36b-422f-9f0c-53e89ded015b",
+            "name": "محطات QA Buffer",
+            "features": 2,
+            "hash": "9fa400520fdc3aa96784c1dd9b8fcacd55f960ad87dd04d98b77887235878ddf"
+          },
+          {
+            "id": "c5e8c0ac-4f23-4333-a409-910e98f7c7cc",
+            "name": "محطات QA",
+            "features": 2,
+            "hash": "564b62cc9b8285d1ba36633d43cd5fd1ad5f14729a78b377e9d7e32ef1a49d92"
+          },
+          {
+            "id": "9e709f0d-0ca7-4e94-8e20-86091fdc7682",
+            "name": "points-60000",
+            "features": 60000,
+            "hash": "ba3d162d7b097842fdeb71d7d964225ab41428518dd8fdb71c225c436281b348"
+          }
+        ],
+        "offlineBasemap": "NASA Blue Marble — saved area"
+      },
+      "errors": []
+    },
+    {
+      "artifact": "import-final-countries.json",
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/157.0.8103.79",
+        "revision": "@6dc9bc3bdaea5c35ed6d41fceab2f7a3a2227c4f",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+        "jsVersion": "15.7.112.43"
+      },
+      "fixtureBytes": 4930492,
+      "library": [
+        {
+          "check": "project copy preserves existing work",
+          "projects": 2
+        },
+        {
+          "check": "full backup download",
+          "bytes": 21748036,
+          "projects": 2
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 4
+        },
+        {
+          "check": "cancel online area download before storage commit",
+          "passed": true
+        },
+        {
+          "check": "download NASA imagery area",
+          "zooms": [
+            0,
+            1
+          ],
+          "tiles": 5,
+          "passed": true
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 258,
+          "passed": true
+        }
+      ],
+      "persisted": {
+        "id": "223db0be-cd1b-4e1d-892b-e55908ee9b0a",
+        "name": "Untitled map — copy",
+        "features": 258,
+        "layers": [
+          {
+            "id": "21a22a60-48f4-4767-be8b-11b1d73b95c3",
+            "name": "countries",
+            "features": 258,
+            "hash": "bb13697f9aafbb933b9e4f093585215240e35aa0a010e0e013c2f1df064841e7"
+          }
+        ],
+        "offlineBasemap": "NASA Blue Marble — saved area"
+      },
+      "errors": []
+    },
+    {
+      "artifact": "import-final-countries-cold.json",
+      "coldBrowserRestart": true,
+      "networkOffline": true,
+      "readyMs": 1336,
+      "exactDataMatch": true,
+      "persisted": {
+        "id": "223db0be-cd1b-4e1d-892b-e55908ee9b0a",
+        "name": "Untitled map — copy",
+        "features": 258,
+        "layers": [
+          {
+            "id": "21a22a60-48f4-4767-be8b-11b1d73b95c3",
+            "name": "countries",
+            "features": 258,
+            "hash": "bb13697f9aafbb933b9e4f093585215240e35aa0a010e0e013c2f1df064841e7"
+          }
+        ],
+        "offlineBasemap": "NASA Blue Marble — saved area"
+      },
+      "errors": []
+    },
+    {
+      "artifact": "import-final-roads.json",
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/157.0.8103.79",
+        "revision": "@6dc9bc3bdaea5c35ed6d41fceab2f7a3a2227c4f",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+        "jsVersion": "15.7.112.43"
+      },
+      "fixtureBytes": 62968942,
+      "library": [
+        {
+          "check": "browser quota fault injection preserves committed data and retries",
+          "passed": true
+        },
+        {
+          "check": "two live tabs reject stale writes and preserve a separate copy",
+          "passed": true
+        },
+        {
+          "check": "project copy preserves existing work",
+          "projects": 3
+        },
+        {
+          "check": "full backup download",
+          "bytes": 84488427,
+          "projects": 3
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 6
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 56600,
+          "passed": true
+        },
+        {
+          "check": "restored features visibly painted offline",
+          "goldPixels": 32381
+        }
+      ],
+      "persisted": {
+        "id": "4b5d9ff5-38ef-412b-a3fd-aba1f188c151",
+        "name": "Primary tab QA — copy",
+        "features": 56600,
+        "layers": [
+          {
+            "id": "fa0776cf-3692-4b85-a0e2-98eb9f39792f",
+            "name": "roads",
+            "features": 56600,
+            "hash": "0c8771c7eea7767bbce90cca9325eba33407e4bcc5a332c44292b4cb779788a1"
+          }
+        ],
+        "offlineBasemap": "QA offline basemap"
+      },
+      "errors": []
+    },
+    {
+      "artifact": "import-final-roads-cold.json",
+      "coldBrowserRestart": true,
+      "networkOffline": true,
+      "readyMs": 1246,
+      "exactDataMatch": true,
+      "persisted": {
+        "id": "4b5d9ff5-38ef-412b-a3fd-aba1f188c151",
+        "name": "Primary tab QA — copy",
+        "features": 56600,
+        "layers": [
+          {
+            "id": "fa0776cf-3692-4b85-a0e2-98eb9f39792f",
+            "name": "roads",
+            "features": 56600,
+            "hash": "0c8771c7eea7767bbce90cca9325eba33407e4bcc5a332c44292b4cb779788a1"
+          }
+        ],
+        "offlineBasemap": "QA offline basemap"
+      },
+      "errors": []
+    }
+  ],
+  "validation": {
+    "typescript": {
+      "command": "node_modules/.bin/tsc.cmd -b",
+      "exit": 0
+    },
+    "lint": {
+      "command": "npm.cmd run lint",
+      "exit": 0,
+      "warnings": 0,
+      "errors": 0
+    },
+    "tests": {
+      "command": "npm.cmd test",
+      "exit": 0,
+      "files": 49,
+      "passed": 380
+    },
+    "build": {
+      "command": "npm.cmd run build",
+      "exit": 0,
+      "modules": 3051,
+      "mapWorkerBytes": 519492
+    }
+  },
+  "unresolved": [
+    "Large MapLibre source replies still block the main thread",
+    "Cold reopen/edit fallback and KML/raster performance not redesigned",
+    "Nullable-geometry typing remains unresolved",
+    "Comprehensive GIS audit not complete"
+  ]
+}

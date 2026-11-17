@@ -58,3 +58,67 @@ When instructed to add a new tool from ArcMap (e.g., "Add Dissolve tool"):
   `npm.cmd test`, and `npm.cmd run build`.
 - Treat the drive-case issue as a toolchain limitation; do not weaken tests or
   alter application logic to work around it.
+
+## 9. Project Library and Offline Storage
+
+- `src/storage/` owns the local project library. `arcweb-library-v1` is a versioned
+  IndexedDB database with atomic project/chunk/recovery commits and optimistic
+  revision checks. Original source files use OPFS with an IndexedDB fallback.
+- Legacy `idb-keyval` session/settings keys are read-only migration inputs. Do not
+  delete them or clear browser databases as a troubleshooting step. Confirm a
+  new commit and export a backup before any intentional data removal.
+- Metadata-only saves must not rewrite feature chunks. Preserve immutable feature
+  references when normalizing already-valid IDs. Test transaction rollback,
+  stale-tab rejection, edit-session recovery and backup round trips.
+- Keep the launch origin stable: both `start.bat` (development) and
+  `start-offline.bat` (production preview) use `http://127.0.0.1:5173` with strict
+  port checks. `localhost`, another port or another browser profile has separate
+  storage. Move projects between origins with exported project/backup files.
+- Production builds generate `sw.js` for same-origin application assets only.
+  Development mode does not install a service worker. External provider tiles
+  must not be prefetched or bulk-downloaded without a compatible provider policy.
+  Offline basemaps use user-supplied local XYZ ZIP packages or the bounded NASA
+  Blue Marble area downloader. Do not redirect that downloader to a different
+  provider without verifying its access, caching and offline-download policy.
+- Points use chunks of up to 1,000 features; lines/polygons use up to 100.
+  Await each chunk request inside the same active IndexedDB transaction rather
+  than enqueueing every expensive structured clone in a single main-thread task.
+- `fake-indexeddb` is a development-only test dependency. Runtime storage remains
+  entirely client-side with no database server or new backend.
+
+## 10. Import and Map Worker Transport
+
+- Vector imports use acknowledged batches (1,000 points / 100 other features).
+  Do not send the entire feature array in the final worker reply or commit partial
+  batches to application state. Cancellation must terminate the worker.
+- Import workers prepare the render Blob and field catalog without dropping any
+  original attributes or changing geometry. Keep prepared-layer/data identity shared.
+  The map resource owner revokes Blob URLs; consuming a seed must release its cache entry.
+- Keep the MapLibre worker bootstrap in `src/workers/maplibre.worker.ts`. Register
+  local Blob loading there: MapLibre's protocol lookup uses the prefix before
+  `://`, so browser Blob URLs require `blob:http` and `blob:https`, as well as `blob`.
+  A bare side-effect import of the worker can be removed by the bundler; retain
+  its constructor reference. Verify the production map worker and offline reopen.
+- Large-source MapLibre replies can still cause long main-thread tasks. A successful
+  sampled run is not proof of universal frame-time budgets or complete GIS type safety.
+- Normal library opens prepare large/nonpoint sources in `mapPrepare.worker.ts`
+  from immutable chunk descriptors, without posting full feature arrays to it.
+  Preserve collection identity when restore does not need to repair feature IDs;
+  otherwise prepared resources and field catalogs are lost.
+- `map-render-v1:` entries in `meta` are disposable render Blobs/catalogs, keyed
+  by the collection header and ordered immutable chunk IDs. They are not project
+  data, must not be exported as authoritative backups, and must not prevent opening
+  on cache/quota/worker failure. Keep save headroom and remove orphan caches during
+  compaction. Changing render-copy semantics requires a cache-prefix version bump.
+- After a successful active-project commit, warm eligible render descriptors in
+  the background. Keep one deferred job, cancel superseded versions/close, skip
+  unchanged descriptors, and let a reader join the same job. Never retain captured
+  feature arrays in the job or make authoritative save success depend on it.
+- Repository reuse references are weak: losing them may require writing fresh
+  immutable chunks but must never change saved data. Prune obsolete bookkeeping
+  and clear it on repository close. Retired map callbacks must retain only the
+  URL resource, not the previous original collection.
+- Build stored render Blobs one source chunk at a time. Do not flatten all chunks
+  into a second full collection or stringify the entire collection at once. Preserve
+  header, IDs, order, all attributes, and catalogs of null-geometry rows. Clean
+  derivative caches of expired revisions without deleting authoritative chunks.

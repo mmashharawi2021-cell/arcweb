@@ -1,0 +1,361 @@
+{
+  "sources": [
+    {
+      "name": "countries",
+      "url": "https://naturalearth.s3.amazonaws.com/10m_cultural/ne_10m_admin_0_countries.zip",
+      "license": "Public domain",
+      "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "zipBytes": 4930492,
+      "geojsonBytes": 22465372,
+      "features": 258,
+      "coordinates": 548471,
+      "zipSha256": "ce1ac7036499a0edd641fbc093cd209a98f96a49d2eca8480aaacad35138a7f6",
+      "geojsonSha256": "4935258dd4221f10a36745ce2a562be975b36f6508ff49d62429bdae862a1de0"
+    },
+    {
+      "name": "roads",
+      "url": "https://naturalearth.s3.amazonaws.com/10m_cultural/ne_10m_roads.zip",
+      "license": "Public domain",
+      "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "zipBytes": 9075919,
+      "geojsonBytes": 62968942,
+      "features": 56600,
+      "coordinates": 709166,
+      "zipSha256": "880b235383a1e1ccf33f4ea6f82b6755a2ffbce07e3974e412b43e88fe954ae9",
+      "geojsonSha256": "e7d0cfd07bf2b700b7c5cc64c29a12eea5172dc5035f8694ed14648954fd79d0"
+    }
+  ],
+  "runs": [
+    {
+      "name": "real-countries",
+      "fixtureBytes": 4930492,
+      "importTiming": {
+        "layerAvailableMs": 1186,
+        "durableSaveMs": 1704
+      },
+      "persisted": {
+        "id": "cdba2571-21f3-4545-9015-81af56697019",
+        "name": "Untitled map — copy",
+        "features": 258,
+        "layers": [
+          {
+            "id": "48865eb7-600d-4768-a1c5-8d3bc6e24519",
+            "name": "countries",
+            "features": 258,
+            "hash": "b985b155f6a8f43e8553ae7a8c72bac01196d563c1b5511d703bc8501bea4122"
+          }
+        ],
+        "offlineBasemap": "NASA Blue Marble — saved area"
+      },
+      "library": [
+        {
+          "check": "project copy preserves existing work",
+          "projects": 2
+        },
+        {
+          "check": "full backup download",
+          "bytes": 21745869,
+          "projects": 2
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 4
+        },
+        {
+          "check": "cancel online area download before storage commit",
+          "passed": true
+        },
+        {
+          "check": "download NASA imagery area",
+          "zooms": [
+            0,
+            1
+          ],
+          "tiles": 5,
+          "passed": true
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 258,
+          "passed": true
+        }
+      ],
+      "errors": 0,
+      "maximumLongTaskMs": 456,
+      "maxRecordedPutMs": 202
+    },
+    {
+      "name": "cold-countries",
+      "readyMs": 953,
+      "coldBrowserRestart": true,
+      "networkOffline": true,
+      "exactDataMatch": true,
+      "persisted": {
+        "id": "cdba2571-21f3-4545-9015-81af56697019",
+        "name": "Untitled map — copy",
+        "features": 258,
+        "layers": [
+          {
+            "id": "48865eb7-600d-4768-a1c5-8d3bc6e24519",
+            "name": "countries",
+            "features": 258,
+            "hash": "b985b155f6a8f43e8553ae7a8c72bac01196d563c1b5511d703bc8501bea4122"
+          }
+        ],
+        "offlineBasemap": "NASA Blue Marble — saved area"
+      },
+      "errors": 0
+    },
+    {
+      "name": "real-roads",
+      "fixtureBytes": 62968942,
+      "library": [
+        {
+          "check": "project copy preserves existing work",
+          "projects": 2
+        },
+        {
+          "check": "full backup download",
+          "bytes": 42082767,
+          "projects": 2
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 4
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 56600,
+          "passed": true
+        },
+        {
+          "check": "restored features visibly painted offline",
+          "goldPixels": 58658
+        }
+      ],
+      "errors": 0,
+      "maximumLongTaskMs": 767,
+      "maxRecordedPutMs": 16.899999999906868
+    },
+    {
+      "name": "real-roads-v2",
+      "fixtureBytes": 62968942,
+      "importTiming": {
+        "layerAvailableMs": 2569,
+        "durableSaveMs": 4681
+      },
+      "persisted": {
+        "id": "7a5ab9a5-f4e3-493f-a6cc-dc72c4028e0b",
+        "name": "Primary tab QA — copy",
+        "features": 56600,
+        "layers": [
+          {
+            "id": "9780d279-4008-485f-8bfe-cc31f757bd61",
+            "name": "roads",
+            "features": 56600,
+            "hash": "8cc4eb7358d2fd2c1f3ad09f1e0486335df4edd431ccfb4787adaf2bcd437a08"
+          }
+        ],
+        "offlineBasemap": "QA offline basemap"
+      },
+      "library": [
+        {
+          "check": "browser quota fault injection preserves committed data and retries",
+          "passed": true
+        },
+        {
+          "check": "two live tabs reject stale writes and preserve a separate copy",
+          "passed": true
+        },
+        {
+          "check": "project copy preserves existing work",
+          "projects": 3
+        },
+        {
+          "check": "full backup download",
+          "bytes": 84479170,
+          "projects": 3
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 6
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 56600,
+          "passed": true
+        },
+        {
+          "check": "restored features visibly painted offline",
+          "goldPixels": 58658
+        }
+      ],
+      "errors": 0,
+      "maximumLongTaskMs": 903,
+      "maxRecordedPutMs": 3.8999999999068677
+    },
+    {
+      "name": "cold-roads",
+      "readyMs": 1425,
+      "coldBrowserRestart": true,
+      "networkOffline": true,
+      "exactDataMatch": true,
+      "persisted": {
+        "id": "7a5ab9a5-f4e3-493f-a6cc-dc72c4028e0b",
+        "name": "Primary tab QA — copy",
+        "features": 56600,
+        "layers": [
+          {
+            "id": "9780d279-4008-485f-8bfe-cc31f757bd61",
+            "name": "roads",
+            "features": 56600,
+            "hash": "8cc4eb7358d2fd2c1f3ad09f1e0486335df4edd431ccfb4787adaf2bcd437a08"
+          }
+        ],
+        "offlineBasemap": "QA offline basemap"
+      },
+      "errors": 0
+    },
+    {
+      "name": "area-final-smoke",
+      "fixtureBytes": 14303621,
+      "importTiming": {
+        "layerAvailableMs": 924,
+        "durableSaveMs": 1441
+      },
+      "persisted": {
+        "id": "710ea06c-3cff-43ec-b90e-6bf68f83868e",
+        "name": "Untitled map — copy",
+        "features": 60004,
+        "layers": [
+          {
+            "id": "2ed1fb8f-6c8f-4527-9879-1d1f311e1f77",
+            "name": "محطات QA Buffer",
+            "features": 2,
+            "hash": "6d921a9098d8e1fb75e7e388b472a0d3583dcee7958ea9568c4a6ee53ab06005"
+          },
+          {
+            "id": "9fdd3ab4-fb8e-4af0-8cf8-a21a94207d42",
+            "name": "محطات QA",
+            "features": 2,
+            "hash": "befbcc0064bd872509f12e88eef1d8aa0198cd681807dfc3231bdb7976c5ee5e"
+          },
+          {
+            "id": "e24a5f1a-6892-4ff5-9463-8809e1560827",
+            "name": "points-60000",
+            "features": 60000,
+            "hash": "c76928300831d9bff90b3adf39eebf8042f65792c60c9f9e3a013398fa6b79b6"
+          }
+        ],
+        "offlineBasemap": "NASA Blue Marble — saved area"
+      },
+      "library": [
+        {
+          "check": "project copy preserves existing work",
+          "projects": 4
+        },
+        {
+          "check": "full backup download",
+          "bytes": 7759379,
+          "projects": 4
+        },
+        {
+          "check": "backup restore adds separate projects",
+          "projects": 8
+        },
+        {
+          "check": "cancel online area download before storage commit",
+          "passed": true
+        },
+        {
+          "check": "download NASA imagery area",
+          "zooms": [
+            0,
+            1
+          ],
+          "tiles": 5,
+          "passed": true
+        },
+        {
+          "check": "offline reload restores app, project and local basemap",
+          "features": 60004,
+          "passed": true
+        }
+      ],
+      "qa": [
+        {
+          "check": "By attributes",
+          "initialInside": true,
+          "wrapsForward": true,
+          "wrapsBack": true,
+          "restoresOpener": true
+        },
+        {
+          "check": "By location",
+          "initialInside": true,
+          "wrapsForward": true,
+          "wrapsBack": true,
+          "restoresOpener": true
+        },
+        {
+          "check": "Properties",
+          "initialInside": true,
+          "wrapsForward": true,
+          "wrapsBack": true,
+          "restoresOpener": true
+        },
+        {
+          "check": "session reload",
+          "features": 60000,
+          "passed": true
+        },
+        {
+          "check": "reopen exact downloaded project",
+          "bytes": 17294898,
+          "features": 60000
+        },
+        {
+          "check": "Arabic filename feedback",
+          "text": "Added 1 layer from ⁨محطات QA.csv⁩",
+          "isolated": true
+        },
+        {
+          "check": "Save, unsaved edit, reload, Discard",
+          "passed": true
+        },
+        {
+          "check": "cancel large import",
+          "layersUnchanged": true
+        },
+        {
+          "check": "cancel large Buffer",
+          "failedHistory": true
+        },
+        {
+          "check": "next Buffer succeeds with unrelated 60k layer retained",
+          "layers": 3
+        },
+        {
+          "check": "map PNG export",
+          "width": 1604,
+          "height": 688,
+          "bytes": 442040
+        },
+        {
+          "check": "layout PNG export",
+          "width": 2339,
+          "height": 1654,
+          "bytes": 384980
+        },
+        {
+          "check": "layout PDF export",
+          "bytes": 287580,
+          "complete": true
+        }
+      ],
+      "errors": 0,
+      "maximumLongTaskMs": 229,
+      "maxRecordedPutMs": 1.8999999999068677
+    }
+  ]
+}
