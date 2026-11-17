@@ -8,14 +8,14 @@ import {
   Check, Compass, Database, Focus, FolderOpen, Map as MapIcon, Moon, PanelRightClose, Settings2, Sun, Trash2, X,
   LayoutTemplate, Box, Save,
 } from 'lucide-react'
-import type { Feature, FeatureCollection, Geometry } from 'geojson'
+import type { Feature } from 'geojson'
 import AttributeTable from './AttributeTable'
 import DockablePanel from './DockablePanel'
 import { SymbologyPanel } from './SymbologyPanel'
 import { getCollectionBounds } from './geo'
 import { runInWorker, type WorkerLike } from './workers/runInWorker'
 import ProjectLibraryDialog from './storage/ProjectLibraryDialog'
-import { offlineStyle, registerOfflineProtocol } from './storage/offlineBasemap'
+import { registerOfflineProtocol } from './storage/offlineBasemap'
 import { useFadeExit } from './ui/useFadeExit'
 import { useContentFade } from './ui/useContentFade'
 import { selectToolInputLayers } from './workers/toolInputs'
@@ -27,21 +27,17 @@ import { exportLayoutSheet, type LayoutExportFormat } from './layout/exportLayou
 import LayoutPanel from './layout/LayoutPanel'
 import LayoutView from './layout/LayoutView'
 import { pageSize, useLayoutStore, type LayoutElementType } from './layout/layoutStore'
+import { geometryBounds } from './mapRendering'
 import {
-  ensureMapOverlays, geometryBounds, getRenderedFeatureLayerIds, setSelectionOverlay, syncMapLayers,
-} from './mapRendering'
-import {
-  useArcWebStore, type AnalysisRecord, type Bookmark, type ContextualTab, type FeatureId, type FeatureSelection, type MapLayer, type SelectionMethod, type TableView,
+  useArcWebStore, type AnalysisRecord, type Bookmark, type ContextualTab, type FeatureId, type MapLayer, type SelectionMethod, type TableView,
 } from './store'
 import SceneNavigator from './scene/SceneNavigator'
-import { applySceneTerrain, type TerrainState } from './scene/terrain'
 import {
   CONTEXTUAL_TAB_META, CONTEXTUAL_TABS, CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isContextualTab, isRasterLayer, reconcileRibbonTabs,
 } from './ribbon/contextualTabs'
 import ContextMenu from './contextMenu/ContextMenu'
 import {
-  buildLayerMenu, buildMapCanvasMenu, formatLngLat, isRightClickGesture, runLayerMenuAction, runMapCanvasMenuAction,
-  type MenuEntry,
+  buildLayerMenu, buildMapCanvasMenu, formatLngLat, runLayerMenuAction, runMapCanvasMenuAction, type MenuEntry,
 } from './contextMenu/menuModel'
 import { ViewRibbon } from './ribbon/ViewRibbon'
 import { EditSessionRibbon, FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/ContextualRibbons'
@@ -54,8 +50,8 @@ import ToolboxPanel from './toolboxes/ToolboxPanel'
 import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './toolboxes/types'
 import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from './toolboxes/selectionScope'
 import { describeToolRun } from './toolboxes/history'
-import { basemaps, baseStyle } from './basemaps'
-import { nearestVertexPath, queryFeaturesAt, replaceCoordinate, snapCoordinate } from './mapGeometry'
+import { basemaps } from './basemaps'
+import { queryFeaturesAt } from './mapGeometry'
 import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
 import { AnalysisRibbon, EditRibbon, InsertRibbon, LayoutRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
@@ -66,6 +62,9 @@ import { useProjectIO } from './useProjectIO'
 import { useFileImport } from './useFileImport'
 import { useFeatureEdits } from './editing/useFeatureEdits'
 import { useSketchTools } from './editing/useSketchTools'
+import { useMapInstance, type MapEvents } from './map/useMapInstance'
+import { useMapSync } from './map/useMapSync'
+import { useMapClick, type IdentifyState } from './map/useMapClick'
 import './App.css'
 import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
@@ -76,15 +75,6 @@ registerOfflineProtocol()
 const WORKSPACE_LAYOUT_STORAGE_KEY = 'arcweb-workspace-layout-v1'
 
 
-/** Features identified by the last Explore click and where to float their pop-up. */
-interface IdentifyState {
-  key: number
-  hits: FeatureSelection[]
-  index: number
-  x: number
-  y: number
-  lngLat: [number, number]
-}
 
 const EMPTY_TABLE_VIEW: TableView = { sort: null, filters: {} }
 
@@ -111,7 +101,6 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const mapHostRef = useRef<HTMLDivElement>(null)
-  const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const layoutPageRef = useRef<HTMLDivElement>(null)
   const workspaceHydratedRef = useRef(false)
   const skipWorkspacePersistRef = useRef(false)
@@ -123,16 +112,13 @@ function App() {
   const [libraryOpen, setLibraryOpen] = useState(false)
   const toastTimerRef = useRef<number | null>(null)
   const toolExecutionIdRef = useRef(0)
-  const previousBasemapRef = useRef<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' | 'warning' } | null>(null)
   const toastFadeRef = useFadeExit<HTMLDivElement>()
   const removeFadeRef = useFadeExit<HTMLDivElement>()
   const projectFadeRef = useFadeExit<HTMLDivElement>()
-  const [mapLoaded, setMapLoaded] = useState(false)
   const [sceneView, setSceneView] = useState(false)
   const sceneViewRef = useRef(false)
-  const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null)
   const [toolExecutionProgress, setToolExecutionProgress] = useState<{ name: string; current: number; total: number; message: string } | null>(null)
   const [mapFrameHost, setMapFrameHost] = useState<HTMLDivElement | null>(null)
   const [layoutExporting, setLayoutExporting] = useState(false)
@@ -161,6 +147,8 @@ function App() {
   const mapPropertiesOpen = useArcWebStore((state) => state.mapPropertiesOpen)
   const layoutPaper = useLayoutStore((state) => state.paper)
   const layoutOrientation = useLayoutStore((state) => state.orientation)
+  const mapEventsRef = useRef<MapEvents | null>(null)
+  const { mapInstance, mapLoaded } = useMapInstance({ mapRef, mapHostRef, workspaceRef, sceneViewRef, eventsRef: mapEventsRef, viewMode, mapFrameHost })
   const tableHeight = workspaceLayout.panels.attributeTable.frame.height
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId) ?? null
   const selectedFeatureIsEditable = Boolean(
@@ -176,7 +164,6 @@ function App() {
   const redoStack = useArcWebStore((state) => state.redoStack)
   const tableViews = useArcWebStore((state) => state.tableViews)
   const sceneSettings = useArcWebStore((state) => state.sceneSettings)
-  const [terrainState, setTerrainState] = useState<TerrainState>({ warning: null, range: null })
   const pendingEditLayerNames = useMemo(() => layers
     .filter((layer) => editSnapshots[layer.id] !== undefined && editSnapshots[layer.id] !== layer.data)
     .map((layer) => layer.name), [layers, editSnapshots])
@@ -224,6 +211,16 @@ function App() {
     measurePoints, sketchPoints, movingVertexRef, addMeasurePoint, addSketchPoint, redrawOverlays, finishSketch,
     setEditingTool, toggleMeasureTool, clearMeasurements, saveEdits, discardEdits,
   } = useSketchTools({ mapRef, mapLoaded, notify, appendFeature })
+  const terrainState = useMapSync({ mapRef, mapLoaded, sceneView, sceneViewRef, viewMode, offlineBasemap, projectStorageReady, redrawOverlays })
+  const { handleMapClick, showIdentify } = useMapClick({ notify, workspaceRef, setIdentify, appendFeature, addMeasurePoint, addSketchPoint, movingVertexRef })
+  // The map reads its handlers through this ref, so handler changes never rebuild the map.
+  useEffect(() => {
+    mapEventsRef.current = {
+      onClick: handleMapClick,
+      onFinishSketch: finishSketch,
+      onCanvasMenu: (request) => setContextMenu({ kind: 'canvas', ...request }),
+    }
+  })
 
   const updatePanelFrame = useCallback((panelId: WorkspacePanelId, frame: PanelFrame) => {
     const state = useArcWebStore.getState()
@@ -331,290 +328,7 @@ function App() {
     }
   }, [workspaceLayout.preset])
 
-  /** Selects the first hit and opens the Identify pop-up next to a viewport point. */
-  const showIdentify = useCallback((hits: FeatureSelection[], client: { x: number; y: number }, lngLat: [number, number]) => {
-    const state = useArcWebStore.getState()
-    state.setSelectedLayer(hits[0].layerId)
-    state.setSelectedFeature(hits[0])
-    const bounds = workspaceRef.current?.getBoundingClientRect()
-    const x = client.x - (bounds?.left ?? 0)
-    const y = client.y - (bounds?.top ?? 0)
-    setIdentify({
-      key: Date.now(),
-      hits,
-      index: 0,
-      x: Math.max(8, Math.min(x + 18, (bounds?.width ?? 900) - 328)),
-      y: Math.max(8, Math.min(y - 24, (bounds?.height ?? 600) - 380)),
-      lngLat,
-    })
-  }, [])
 
-  const handleMapClick = useCallback((map: MapLibreMap, event: maplibregl.MapMouseEvent) => {
-    const state = useArcWebStore.getState()
-    const activeTool = state.tool
-    if (activeTool === 'distance' || activeTool === 'area') {
-      addMeasurePoint(map, [event.lngLat.lng, event.lngLat.lat], activeTool)
-      return
-    }
-    if (activeTool === 'draw-point' || activeTool === 'draw-line' || activeTool === 'draw-polygon') {
-      const layer = state.layers.find((item) => item.id === state.selectedLayerId)
-      if (!layer) {
-        notify('Create or select a target layer before drawing.', 'warning')
-        return
-      }
-      const expectedGeometry = activeTool === 'draw-point' ? 'Point' : activeTool === 'draw-line' ? 'Line' : 'Polygon'
-      if (layer.geometry !== 'Unknown' && layer.geometry !== 'Mixed' && layer.geometry !== expectedGeometry) {
-        notify(`${isolate(layer.name)} stores ${layer.geometry.toLowerCase()} features; choose a matching sketch tool.`, 'warning')
-        return
-      }
-      const coordinate = snapCoordinate(map, event, state.layers)
-      if (activeTool === 'draw-point') {
-        appendFeature(layer, { type: 'Point', coordinates: coordinate })
-        return
-      }
-      addSketchPoint(map, coordinate, activeTool)
-      return
-    }
-    if (activeTool === 'move-vertex') {
-      const selection = state.selectedFeature
-      const layer = selection && state.layers.find((item) => item.id === selection.layerId)
-      const feature = layer?.data.features.find((item) => item.id === selection?.featureId)
-      if (!layer || !feature?.geometry || feature.geometry.type === 'GeometryCollection') {
-        movingVertexRef.current = null
-        notify('Select a feature with an editable geometry first.', 'warning')
-        return
-      }
-      const pending = movingVertexRef.current
-      if (pending?.layerId === layer.id && pending.featureId === selection.featureId) {
-        const coordinate = snapCoordinate(map, event, state.layers, selection)
-        const nextFeature = {
-          ...feature,
-          geometry: {
-            ...feature.geometry,
-            coordinates: replaceCoordinate(feature.geometry.coordinates, pending.path, coordinate),
-          },
-        } as Feature<Geometry>
-        const data: FeatureCollection = {
-          ...layer.data,
-          features: layer.data.features.map((item) => item.id === selection.featureId ? nextFeature : item),
-        }
-        useArcWebStore.getState().commitEdit(layer.id, data, 'Move vertex')
-        movingVertexRef.current = null
-        notify('Feature vertex moved.')
-        return
-      }
-      movingVertexRef.current = null
-      const nearest = nearestVertexPath(map, feature as Feature<Geometry>, event.point)
-      if (!nearest) {
-        notify('Click within 18 px of a vertex to select it.', 'warning')
-        return
-      }
-      movingVertexRef.current = { layerId: layer.id, featureId: selection.featureId, path: nearest.path }
-      notify('Vertex selected. Click its new location.')
-      return
-    }
-
-    // Explore tool: identify every feature under the pointer.
-    const hits = queryFeaturesAt(map, event.point, state.layers)
-    if (!hits.length) {
-      state.setSelectedFeature(null)
-      setIdentify(null)
-      return
-    }
-    // Ctrl/Cmd+click adds or removes the feature from the selection. (Shift+click cannot be
-    // used: MapLibre reserves Shift for box zoom and suppresses the click.)
-    if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
-      state.toggleSelected(hits[0].layerId, hits[0].featureId)
-      return
-    }
-    showIdentify(hits, { x: event.originalEvent.clientX, y: event.originalEvent.clientY }, [event.lngLat.lng, event.lngLat.lat])
-  }, [appendFeature, notify, showIdentify, addMeasurePoint, addSketchPoint, movingVertexRef])
-
-  useEffect(() => {
-    const host = mapHostRef.current
-    if (!host) return
-    // The map lives in a container React does not own, so it can be moved into the
-    // layout's map frame and back without re-creating the MapLibre instance.
-    const container = document.createElement('div')
-    container.className = 'map-canvas'
-    host.appendChild(container)
-    mapContainerRef.current = container
-    const map = new maplibregl.Map({
-      container,
-      style: { version: 8, sources: {}, layers: [{ id: 'initial-background', type: 'background', paint: { 'background-color': '#19242b' } }] },
-      center: [-98, 39],
-      zoom: 3.15,
-      attributionControl: false,
-      maxZoom: 20,
-      // Terrain views need a lower horizon than the 60° default.
-      maxPitch: 85,
-      canvasContextAttributes: { preserveDrawingBuffer: true },
-    })
-    mapRef.current = map
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), 'top-right')
-    map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left')
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
-    const onReady = () => {
-      if (!map.isStyleLoaded()) {
-        map.once('idle', onReady)
-        return
-      }
-      ensureMapOverlays(map)
-      syncMapLayers(map, useArcWebStore.getState().layers, sceneViewRef.current)
-      setSelectionOverlay(map, useArcWebStore.getState().layers, useArcWebStore.getState().selectedFeature, useArcWebStore.getState().selections)
-      window.requestAnimationFrame(() => {
-        setMapInstance(map)
-        setMapLoaded(true)
-      })
-    }
-    const onClick = (event: maplibregl.MapMouseEvent) => handleMapClick(map, event)
-    let rightDown: { x: number; y: number } | null = null
-    const onMouseDown = (event: maplibregl.MapMouseEvent) => {
-      if (event.originalEvent.button === 2) rightDown = { x: event.point.x, y: event.point.y }
-    }
-    const onContextMenu = (event: maplibregl.MapMouseEvent) => {
-      event.originalEvent.preventDefault()
-      const wasClick = isRightClickGesture(rightDown, event.point)
-      rightDown = null
-      // Skip the end of a right-drag rotation, and the map frame inside the print layout.
-      if (!wasClick || useArcWebStore.getState().viewMode !== 'map') return
-      setContextMenu({
-        kind: 'canvas',
-        x: event.originalEvent.clientX,
-        y: event.originalEvent.clientY,
-        point: { x: event.point.x, y: event.point.y },
-        lngLat: [event.lngLat.lng, event.lngLat.lat],
-        canIdentify: getRenderedFeatureLayerIds(map, useArcWebStore.getState().layers).length > 0,
-      })
-    }
-    const onDoubleClick = (event: maplibregl.MapMouseEvent) => {
-      const activeTool = useArcWebStore.getState().tool
-      if (activeTool === 'draw-line' || activeTool === 'draw-polygon') {
-        event.preventDefault()
-        finishSketch()
-      }
-    }
-    map.once('load', onReady)
-    map.on('click', onClick)
-    map.on('dblclick', onDoubleClick)
-    map.on('mousedown', onMouseDown)
-    map.on('contextmenu', onContextMenu)
-    return () => {
-      map.off('load', onReady)
-      map.off('mousedown', onMouseDown)
-      map.off('contextmenu', onContextMenu)
-      quickMarkersRef.current = []
-      setQuickMarkerCount(0)
-      map.off('click', onClick)
-      map.off('dblclick', onDoubleClick)
-      map.remove()
-      container.remove()
-      mapContainerRef.current = null
-      mapRef.current = null
-      setMapInstance(null)
-    }
-  }, [finishSketch, handleMapClick])
-
-  useEffect(() => {
-    const workspace = workspaceRef.current
-    const map = mapRef.current
-    if (!workspace || !map || !mapLoaded) return
-    let frame: number | null = null
-    const resizeMap = () => {
-      if (frame !== null) return
-      frame = window.requestAnimationFrame(() => { frame = null; map.resize() })
-    }
-    const cancelResize = () => { if (frame !== null) window.cancelAnimationFrame(frame) }
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', resizeMap)
-      return () => { window.removeEventListener('resize', resizeMap); cancelResize() }
-    }
-    const observer = new ResizeObserver(resizeMap)
-    observer.observe(workspace)
-    return () => { observer.disconnect(); cancelResize() }
-  }, [mapLoaded])
-
-  useEffect(() => {
-    const map = mapRef.current
-    const key = offlineBasemap?.assetId ?? basemap
-    if (!map || !mapLoaded || !projectStorageReady || previousBasemapRef.current === key) return
-    previousBasemapRef.current = key
-    const onStyleReady = () => {
-      window.requestAnimationFrame(() => {
-        if (!map.isStyleLoaded()) {
-          map.once('idle', onStyleReady)
-          return
-        }
-        ensureMapOverlays(map)
-        syncMapLayers(map, useArcWebStore.getState().layers, sceneViewRef.current)
-        setSelectionOverlay(map, useArcWebStore.getState().layers, useArcWebStore.getState().selectedFeature, useArcWebStore.getState().selections)
-        redrawOverlays(map)
-      })
-    }
-    map.once('style.load', onStyleReady)
-    map.setStyle(offlineBasemap ? offlineStyle(offlineBasemap) : baseStyle(basemap))
-  }, [basemap, offlineBasemap, projectStorageReady, mapLoaded, redrawOverlays])
-
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapLoaded) return
-    const syncMapState = () => {
-      if (mapRef.current !== map) return
-      if (!map.isStyleLoaded()) {
-        map.once('idle', syncMapState)
-        return
-      }
-      const state = useArcWebStore.getState()
-      syncMapLayers(map, state.layers, sceneView)
-      setSelectionOverlay(map, state.layers, state.selectedFeature, state.selections)
-    }
-    syncMapState()
-  }, [layers, mapLoaded, selectedFeature, selections, sceneView])
-
-  useEffect(() => {
-    sceneViewRef.current = sceneView
-    const map = mapRef.current
-    if (!map || !mapLoaded) return
-    if (sceneView) map.dragRotate.enable()
-    else map.dragRotate.disable()
-    // Leaving 3D also returns the map to north-up.
-    map.easeTo(sceneView ? { pitch: 60, duration: 350 } : { pitch: 0, bearing: 0, duration: 350 })
-    if (viewMode !== 'layout' && map.isStyleLoaded()) {
-      syncMapLayers(map, useArcWebStore.getState().layers, sceneView)
-    }
-  }, [sceneView, mapLoaded, viewMode])
-
-  // Terrain follows the scene settings, the DEM layer's data and basemap swaps (which rebuild the style).
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapLoaded) return
-    let cancelled = false
-    const apply = () => {
-      if (cancelled) return
-      if (!map.isStyleLoaded()) {
-        map.once('idle', apply)
-        return
-      }
-      try {
-        setTerrainState(applySceneTerrain(map, sceneSettings, layers, sceneView && viewMode === 'map'))
-      } catch (error) {
-        setTerrainState({ warning: `Terrain could not be shown: ${error instanceof Error ? error.message : 'MapLibre error'}`, range: null })
-      }
-    }
-    apply()
-    return () => { cancelled = true }
-  }, [sceneSettings, layers, sceneView, viewMode, mapLoaded, basemap])
-
-
-
-  // Layout view shows the live map inside the map frame; map view puts it back in the workspace.
-  useEffect(() => {
-    const container = mapContainerRef.current
-    const target = viewMode === 'layout' && mapFrameHost ? mapFrameHost : mapHostRef.current
-    if (!container || !target || container.parentElement === target) return
-    target.appendChild(container)
-    mapRef.current?.resize()
-  }, [viewMode, mapFrameHost, mapLoaded])
 
 
   const zoomToLayer = useCallback((layer: MapLayer) => {
