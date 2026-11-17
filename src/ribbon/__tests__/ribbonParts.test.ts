@@ -188,3 +188,25 @@ describe('Escape from ribbon popovers', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('pressed state and captions', () => {
+  afterEach(() => { document.body.innerHTML = '' })
+
+  it('a split menu button shows its pressed state on the main part', () => {
+    const { container } = renderComponent(createElement(RibbonMenuButton, {
+      id: 'measure', label: 'Measure', icon: Ruler, size: 'large', split: true, pressed: true, onClick: () => {},
+      items: [{ id: 'a', label: 'Area', onSelect: () => {} }],
+    }))
+    const main = container.querySelector('[data-command="measure"]')!
+    expect(main.getAttribute('aria-pressed')).toBe('true')
+    expect(main.classList.contains('is-pressed')).toBe(true)
+  })
+
+  it('a group can show a caption different from its label', () => {
+    const { container } = renderComponent(createElement(RibbonGroup, { label: 'Selection', caption: 'Selection · 3 selected' },
+      createElement(RibbonButton, { id: 'x', label: 'Clear', icon: Ruler, size: 'small', onClick: () => {} }),
+    ))
+    expect(container.querySelector('[role="group"]')?.getAttribute('aria-label')).toBe('Selection')
+    expect(container.querySelector('.ribbon-group-caption')?.textContent).toBe('Selection · 3 selected')
+  })
+})

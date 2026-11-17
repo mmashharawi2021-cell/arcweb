@@ -146,8 +146,8 @@ export function RibbonMenuButton({ items, split = false, ...button }: RibbonMenu
     <div ref={wrapperRef} className={`ribbon-menu ribbon-menu-${button.size}${split ? ' is-split' : ''}`} onKeyDown={onWrapperKeyDown}>
       {split ? (
         <>
-          <button type="button" className={`ribbon-button ribbon-button-${button.size}`} data-command={button.id} aria-label={button.label}
-            data-ribbon-tooltip={tooltip} disabled={button.disabled} onClick={button.onClick}>
+          <button type="button" className={`ribbon-button ribbon-button-${button.size}${button.pressed ? ' is-pressed' : ''}`} data-command={button.id} aria-label={button.label}
+            aria-pressed={button.pressed} data-ribbon-tooltip={tooltip} disabled={button.disabled} onClick={button.onClick}>
             <ButtonFace icon={button.icon} label={button.label} size={button.size} />
           </button>
           <button {...menuTrigger} className="ribbon-split-arrow" aria-label={`${button.label} options`} data-ribbon-tooltip={`${button.label} options`}>
@@ -167,7 +167,7 @@ export function RibbonMenuButton({ items, split = false, ...button }: RibbonMenu
             <button key={id} type="button" role="menuitem" className="ribbon-dropdown-item" disabled={disabled}
               onClick={() => { close(true); onSelect() }}>
               {Icon ? <Icon size={16} aria-hidden="true" /> : <span className="ribbon-dropdown-spacer" />}
-              <span>{label}</span>
+              <bdi>{label}</bdi>
             </button>
           ))}
         </div>
@@ -227,7 +227,10 @@ export function RibbonGallery({ id, label, icon, items, onSelect }: RibbonGaller
 }
 
 interface RibbonGroupProps {
+  /** Group name: the caption, the accessible name and the key for collapse state. */
   label: string
+  /** Caption text when it should differ from the label (e.g. "Selection · 3 selected"). */
+  caption?: ReactNode
   /** Icon shown on the single button of a collapsed group. */
   icon?: LucideIcon
   collapsed?: boolean
@@ -236,7 +239,7 @@ interface RibbonGroupProps {
   children?: ReactNode
 }
 
-export function RibbonGroup({ label, icon, collapsed = false, onLauncher, children }: RibbonGroupProps) {
+export function RibbonGroup({ label, caption: captionText, icon, collapsed = false, onLauncher, children }: RibbonGroupProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const { open, setOpen, wrapperRef, onWrapperKeyDown } = usePopover(() => triggerRef.current?.focus())
@@ -246,7 +249,7 @@ export function RibbonGroup({ label, icon, collapsed = false, onLauncher, childr
   }, [open])
   const caption = (
     <div className="ribbon-group-caption">
-      {label}
+      {captionText ?? label}
       {onLauncher && (
         <button type="button" className="ribbon-group-launcher" aria-label={`${label} settings`} data-ribbon-tooltip={`${label} settings`} onClick={onLauncher}>
           <ChevronDown size={9} aria-hidden="true" />

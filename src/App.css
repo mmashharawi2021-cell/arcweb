@@ -1355,3 +1355,9 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
 .title-bar-title { display: flex; align-items: baseline; gap: 6px; min-width: 0; font-size: 12px; }
 .title-bar-title .project-name { width: auto; min-width: 6ch; max-width: 36ch; field-sizing: content; text-align: center; }
 .title-bar-app { color: var(--muted); white-space: nowrap; }
+
+/* ── Pro ribbon tabs built from RibbonParts: groups fill the toolbar and collapse from the right ── */
+.ribbon-groups { display: flex; flex: 1 1 auto; min-width: 0; align-items: stretch; overflow: hidden; }
+.ribbon-groups > .ribbon-group:first-child { padding-left: 0; }
+.ribbon-stack { display: flex; flex-direction: column; justify-content: flex-start; gap: 0; padding-top: 1px; }
+.ribbon-stack .ribbon-button-small { justify-content: flex-start; }

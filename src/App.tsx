@@ -620,6 +620,11 @@ function App() {
   }, [])
 
   const closeBookmarks = useCallback(() => setBookmarkAnchor(null), [])
+  /** Opens the bookmarks panel under the ribbon's Bookmarks button. */
+  const openBookmarksPanel = useCallback(() => {
+    const bounds = document.querySelector('[data-command="bookmarks"]')?.getBoundingClientRect()
+    setBookmarkAnchor(bounds ? { left: bounds.left, top: bounds.bottom + 8 } : { left: 24, top: 140 })
+  }, [])
 
   const exportLayout = useCallback(async (format: LayoutExportFormat, dpi = 200) => {
     setLayoutExporting(true)
@@ -941,30 +946,28 @@ function App() {
             offlineBasemapActive={Boolean(offlineBasemap)}
             tool={tool}
             hasLayers={layers.length > 0}
-            hasTableLayer={Boolean(selectedLayer)}
             hasSelection={hasSelection}
             selectedCount={selectedCount}
-            tableOpen={tableOpen}
-            bookmarksOpen={Boolean(bookmarkAnchor)}
-            view={workspaceView}
+            bookmarks={bookmarks}
+            canGoBack={false}
+            canGoForward={false}
             onSelectBasemap={(id) => { selectOfflineBasemap(undefined); useArcWebStore.getState().setBasemap(id) }}
             onExplore={() => setEditingTool('pan')}
             onZoomIn={() => mapRef.current?.zoomIn({ duration: 250 })}
             onZoomOut={() => mapRef.current?.zoomOut({ duration: 250 })}
             onFullExtent={zoomToAll}
-            onToggleBookmarks={(event) => {
-              const bounds = event.currentTarget.getBoundingClientRect()
-              setBookmarkAnchor(bookmarkAnchor ? null : { left: bounds.left, top: bounds.bottom + 8 })
-            }}
+            onBack={() => {}}
+            onForward={() => {}}
+            onGoToBookmark={(id) => { const bookmark = bookmarks.find((item) => item.id === id); if (bookmark) goToBookmark(bookmark) }}
+            onManageBookmarks={openBookmarksPanel}
+            onAddData={openFilePicker}
+            onOpenProjectFile={() => projectInputRef.current?.click()}
             onSelectByAttributes={() => setSelectionDialog('attributes')}
             onSelectByLocation={() => setSelectionDialog('location')}
             onZoomToSelected={zoomToSelected}
             onClearSelection={clearSelection}
             onToggleMeasure={toggleMeasureTool}
-            onToggleTable={() => useArcWebStore.getState().setTableOpen(!tableOpen)}
             onOpenMapProperties={openMapProperties}
-            onShowView={showView}
-            onToggleLayout={() => showView(viewMode === 'layout' ? '2d' : 'layout')}
           />
         ) : activeTab === 'Insert' ? (
           <InsertRibbon onAddData={openFilePicker} />
