@@ -122,3 +122,27 @@ When instructed to add a new tool from ArcMap (e.g., "Add Dissolve tool"):
   into a second full collection or stringify the entire collection at once. Preserve
   header, IDs, order, all attributes, and catalogs of null-geometry rows. Clean
   derivative caches of expired revisions without deleting authoritative chunks.
+
+## 11. App Shell Structure
+
+`src/App.tsx` composes the workspace; keep logic out of it and in focused modules:
+
+- **Map:** `src/map/useMapInstance.ts` (single MapLibre instance, resize, layout-frame
+  moves), `useMapSync.ts` (basemap, layers, selection, 3D, terrain), `useMapClick.ts`
+  (tool routing and Identify). Pure geometry helpers live in `src/mapGeometry.ts`.
+- **Editing:** `src/editing/useFeatureEdits.ts` (data edits, undo/redo shortcuts) and
+  `useSketchTools.ts` (measure/sketch/move-vertex state and overlays).
+- **Project I/O:** `src/useProjectIO.ts` (library session, project files, assets,
+  offline basemap) and `src/useFileImport.ts` (import loop and cancellation).
+- **UI pieces:** `src/contents/`, `src/ribbon/CoreRibbons.tsx`, `src/StatusBar.tsx`,
+  `src/MapOverlays.tsx`, `src/ui/ConfirmDialog.tsx`.
+
+Identity rules (breaking them causes silent, expensive restarts):
+- `capture`/`restore` passed to `useProjectLibrary` must keep a stable identity; a new
+  identity restarts the library session. `useProjectIO` reads App callbacks via a ref.
+- The map is created once. Map event handlers are read through `mapEventsRef`; never
+  add handler functions to the map-creation effect's dependencies.
+- Pointer-rate state (cursor, zoom) belongs in the component that displays it
+  (`StatusBar`), not in App, so pointer moves do not re-render the shell.
+- Ribbon tooltips: `addRibbonTooltips` only decorates buttons written inline, so each
+  ribbon component applies it to its own output.
