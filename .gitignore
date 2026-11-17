@@ -26,3 +26,7 @@ dist-ssr
 # QA scratch (fixtures, downloads) and coverage output
 tmp/
 coverage/
+
+# Local tool output
+lint.out
+tsc.out
