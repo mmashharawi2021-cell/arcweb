@@ -153,6 +153,7 @@ function App() {
   const theme = useArcWebStore((state) => state.theme)
   const measureUnits = useArcWebStore((state) => state.measureUnits)
   const coordinateFormat = useArcWebStore((state) => state.coordinateFormat)
+  const snapping = useArcWebStore((state) => state.snapping)
   const activeTab = useArcWebStore((state) => state.activeTab)
   const contentFadeRef = useContentFade(activeTab)
   const tool = useArcWebStore((state) => state.tool)
@@ -1045,7 +1046,25 @@ function App() {
             onToggleTheme={() => useArcWebStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark')}
           />
         ) : activeTab === 'Edit' ? (
-          <EditRibbon tool={tool} hasLayer={Boolean(selectedLayer)} selectedFeatureIsEditable={selectedFeatureIsEditable} onSetTool={setEditingTool} />
+          <EditRibbon
+            tool={tool}
+            hasLayer={Boolean(selectedLayer)}
+            selectedFeatureIsEditable={selectedFeatureIsEditable}
+            pendingEdits={pendingEditLayerNames.length > 0}
+            canUndo={undoStack.length > 0}
+            canRedo={redoStack.length > 0}
+            hasSelection={editTargetIds.length > 0}
+            snapping={snapping}
+            onSetTool={setEditingTool}
+            onSave={saveEdits}
+            onDiscard={discardEdits}
+            onUndo={undoEdit}
+            onRedo={redoEdit}
+            onSnapping={(next) => useArcWebStore.getState().setSnapping(next)}
+            onDeleteSelected={deleteSelectedFeatures}
+            onSelectTool={() => setEditingTool(tool === 'select-box' ? 'pan' : 'select-box')}
+            onClearSelection={clearSelection}
+          />
         ) : (
           <ShareRibbon
             hasLayer={Boolean(selectedLayer)}

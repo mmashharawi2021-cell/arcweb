@@ -59,6 +59,9 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
     const activeTool = state.tool
     // The rectangle selection tool handles its own clicks and drags (useBoxSelect).
     if (activeTool === 'select-box') return
+    const snap = (exclude?: FeatureSelection | null): Coordinate => state.snapping.enabled
+      ? snapCoordinate(map, event, state.layers, exclude, state.snapping.tolerancePx)
+      : [event.lngLat.lng, event.lngLat.lat]
     if (activeTool === 'distance' || activeTool === 'area') {
       addMeasurePoint(map, [event.lngLat.lng, event.lngLat.lat], activeTool)
       return
@@ -74,7 +77,7 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
         notify(`${isolate(layer.name)} stores ${layer.geometry.toLowerCase()} features; choose a matching sketch tool.`, 'warning')
         return
       }
-      const coordinate = snapCoordinate(map, event, state.layers)
+      const coordinate = snap()
       if (activeTool === 'draw-point') {
         appendFeature(layer, { type: 'Point', coordinates: coordinate })
         return
@@ -93,7 +96,7 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
       }
       const pending = movingVertexRef.current
       if (pending?.layerId === layer.id && pending.featureId === selection.featureId) {
-        const coordinate = snapCoordinate(map, event, state.layers, selection)
+        const coordinate = snap(selection)
         const nextFeature = {
           ...feature,
           geometry: {

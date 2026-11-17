@@ -15,6 +15,8 @@ export interface WorkspaceSlice {
   measureUnits: LengthUnit
   /** Status-bar coordinate notation (Backstage › Options). */
   coordinateFormat: CoordinateFormat
+  /** Edit › Snapping: snap sketch and move-vertex clicks to nearby vertices within `tolerancePx`. */
+  snapping: { enabled: boolean; tolerancePx: number }
   activeTab: AppTab
   /** Tab restored when the active contextual tab disappears. */
   ribbonReturnTab: AppTab
@@ -33,6 +35,7 @@ export interface WorkspaceSlice {
   setTheme: (theme: 'dark' | 'light') => void
   setMeasureUnits: (units: LengthUnit) => void
   setCoordinateFormat: (format: CoordinateFormat) => void
+  setSnapping: (snapping: { enabled: boolean; tolerancePx: number }) => void
   setActiveTab: (tab: AppTab) => void
   setRibbonTabs: (activeTab: AppTab, returnTab: AppTab) => void
   setTool: (tool: ToolMode) => void
@@ -52,6 +55,7 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
     theme: settings.theme,
     measureUnits: settings.measureUnits,
     coordinateFormat: settings.coordinateFormat,
+    snapping: { enabled: true, tolerancePx: 10 },
     activeTab: 'Map',
     ribbonReturnTab: 'Map',
     tool: 'pan',
@@ -68,6 +72,7 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
     setTheme: (theme) => set({ theme }),
     setMeasureUnits: (measureUnits) => set({ measureUnits }),
     setCoordinateFormat: (coordinateFormat) => set({ coordinateFormat }),
+    setSnapping: (snapping) => set({ snapping }),
     setActiveTab: (activeTab) => set((state) => activeTab === state.activeTab ? {} : {
       activeTab,
       // Entering a contextual tab by hand remembers the tab to return to when its context ends.

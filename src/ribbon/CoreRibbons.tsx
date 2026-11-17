@@ -1,4 +1,5 @@
 import {
+  CircleDot, Magnet, Move, Pentagon, PenTool, Redo2, RotateCcw, Save, Spline, Trash2, Undo2,
   Archive, CircleDashed, Download, FileOutput, Hammer, History as HistoryIcon, ImageDown, Layers, Link, Merge, Scissors, SquaresIntersect, SquaresUnite, ChevronLeft, ChevronRight, Crosshair, FolderOpen, Layers3, Navigation, AreaChart, Bookmark as BookmarkIcon, Eraser, FileImage, FilePlus2, FileText, Focus, Globe2, LayoutTemplate, ListFilter, Map as MapIcon, Minus, MousePointer2, Plus, Ruler, ScanSearch, Sparkles, SquareDashedMousePointer, Table2,
 } from 'lucide-react'
 import { basemaps } from '../basemaps'
@@ -222,22 +223,69 @@ interface EditRibbonProps {
   tool: ToolMode
   hasLayer: boolean
   selectedFeatureIsEditable: boolean
+  /** Some layer has edits since the session started. */
+  pendingEdits: boolean
+  canUndo: boolean
+  canRedo: boolean
+  hasSelection: boolean
+  snapping: { enabled: boolean; tolerancePx: number }
   onSetTool: (tool: ToolMode) => void
+  onSave: () => void
+  onDiscard: () => void
+  onUndo: () => void
+  onRedo: () => void
+  onSnapping: (snapping: { enabled: boolean; tolerancePx: number }) => void
+  onDeleteSelected: () => void
+  onSelectTool: () => void
+  onClearSelection: () => void
 }
 
-export function EditRibbon({ tool, hasLayer, selectedFeatureIsEditable, onSetTool }: EditRibbonProps) {
-  return addRibbonTooltips(
-    <div className="phase-ribbon-actions">
-      {([
-        ['draw-point', 'Point'],
-        ['draw-line', 'Line'],
-        ['draw-polygon', 'Polygon'],
-        ['move-vertex', 'Move vertex'],
-      ] as const).map(([mode, label]) => (
-        <button key={mode} className={`ribbon-action ${tool === mode ? 'tool-selected' : ''}`} disabled={mode === 'move-vertex' ? !selectedFeatureIsEditable : !hasLayer} onClick={() => onSetTool(tool === mode ? 'pan' : mode)}><MousePointer2 size={17} /><span>{label}</span></button>
-      ))}
-      <div className="group-caption">Feature tools · snapping enabled</div>
-    </div>,
+const SNAP_TOLERANCES = [5, 10, 15, 20]
+
+/** ArcGIS Pro's Edit tab: Manage Edits, Snapping, Features and Selection. */
+export function EditRibbon(props: EditRibbonProps) {
+  const { tool, snapping } = props
+  const toggleTool = (mode: ToolMode) => props.onSetTool(tool === mode ? 'pan' : mode)
+  return (
+    <RibbonGroupBar>
+      <RibbonGroup label="Manage Edits" icon={Save}>
+        <RibbonButton id="save-edits" label="Save" icon={Save} size="large" disabled={!props.pendingEdits}
+          tooltip={{ title: 'Save Edits', body: 'Keep every edit made in this edit session.' }} onClick={props.onSave} />
+        <RibbonButton id="discard-edits" label="Discard" icon={RotateCcw} size="large" disabled={!props.pendingEdits}
+          tooltip={{ title: 'Discard Edits', body: 'Restore the layers as they were when editing started.' }} onClick={props.onDiscard} />
+        <div className="ribbon-stack">
+          <RibbonButton id="undo-edit" label="Undo" icon={Undo2} size="small" disabled={!props.canUndo} tooltip={{ title: 'Undo', shortcut: 'Ctrl+Z' }} onClick={props.onUndo} />
+          <RibbonButton id="redo-edit" label="Redo" icon={Redo2} size="small" disabled={!props.canRedo} tooltip={{ title: 'Redo', shortcut: 'Ctrl+Y' }} onClick={props.onRedo} />
+        </div>
+      </RibbonGroup>
+      <RibbonGroup label="Snapping" icon={Magnet} caption={`Snapping · ${snapping.tolerancePx} px`}>
+        <RibbonMenuButton id="snapping" label="Snapping" icon={Magnet} size="large" split pressed={snapping.enabled}
+          tooltip={{ title: 'Snapping', body: 'Snap new vertices to existing vertices near the pointer.' }}
+          onClick={() => props.onSnapping({ ...snapping, enabled: !snapping.enabled })}
+          items={SNAP_TOLERANCES.map((tolerancePx) => ({
+            id: `snap-${tolerancePx}`,
+            label: `${tolerancePx} px${tolerancePx === snapping.tolerancePx ? ' ✓' : ''}`,
+            onSelect: () => props.onSnapping({ enabled: true, tolerancePx }),
+          }))} />
+      </RibbonGroup>
+      <RibbonGroup label="Features" icon={PenTool}>
+        <RibbonMenuButton id="create-features" label="Create" icon={PenTool} size="large" disabled={!props.hasLayer}
+          pressed={tool === 'draw-point' || tool === 'draw-line' || tool === 'draw-polygon'}
+          items={([['draw-point', 'Point', CircleDot], ['draw-line', 'Line', Spline], ['draw-polygon', 'Polygon', Pentagon]] as const).map(([mode, label, icon]) => ({
+            id: mode, label, icon, onSelect: () => props.onSetTool(mode),
+          }))} />
+        <RibbonButton id="move-vertex" label="Move Vertex" icon={Move} size="large" pressed={tool === 'move-vertex'}
+          disabled={!props.selectedFeatureIsEditable && tool !== 'move-vertex'}
+          tooltip={{ title: 'Move Vertex', body: 'Click a vertex of the selected feature, then click its new location.' }}
+          onClick={() => toggleTool('move-vertex')} />
+        <RibbonButton id="delete-features" label="Delete" icon={Trash2} size="large" disabled={!props.hasSelection}
+          tooltip={{ title: 'Delete', body: 'Delete the selected features of the target layer.' }} onClick={props.onDeleteSelected} />
+      </RibbonGroup>
+      <RibbonGroup label="Selection" icon={SquareDashedMousePointer}>
+        <RibbonButton id="edit-select" label="Select" icon={SquareDashedMousePointer} size="large" pressed={tool === 'select-box'} onClick={props.onSelectTool} />
+        <RibbonButton id="edit-clear-selection" label="Clear" icon={Eraser} size="large" disabled={!props.hasSelection} onClick={props.onClearSelection} />
+      </RibbonGroup>
+    </RibbonGroupBar>
   )
 }
 

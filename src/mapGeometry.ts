@@ -46,13 +46,15 @@ export function snapCoordinate(
   event: maplibregl.MapMouseEvent,
   layers: MapLayer[],
   exclude?: FeatureSelection | null,
+  /** Snap only to vertices within this many screen pixels. */
+  tolerancePx = 10,
 ): [number, number] {
   const renderedLayers = getRenderedFeatureLayerIds(map, layers)
   if (!renderedLayers.length) return [event.lngLat.lng, event.lngLat.lat]
   const point = event.point
   const rendered = map.queryRenderedFeatures([
-    [point.x - 10, point.y - 10],
-    [point.x + 10, point.y + 10],
+    [point.x - tolerancePx, point.y - tolerancePx],
+    [point.x + tolerancePx, point.y + tolerancePx],
   ], { layers: renderedLayers })
   let closest: { coordinate: Position; distance: number } | null = null
   for (const candidate of rendered) {
@@ -63,7 +65,7 @@ export function snapCoordinate(
     for (const vertex of getPositions(candidate.geometry.coordinates)) {
       const projected = map.project([vertex.coordinate[0], vertex.coordinate[1]])
       const distance = Math.hypot(projected.x - point.x, projected.y - point.y)
-      if (distance <= 10 && (!closest || distance < closest.distance)) closest = { coordinate: vertex.coordinate, distance }
+      if (distance <= tolerancePx && (!closest || distance < closest.distance)) closest = { coordinate: vertex.coordinate, distance }
     }
   }
   return closest

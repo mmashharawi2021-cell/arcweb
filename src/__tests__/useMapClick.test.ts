@@ -13,10 +13,11 @@ const geometry = vi.hoisted(() => ({
   snapped: [10, 20] as [number, number],
   hits: [] as FeatureSelection[],
   nearest: null as { path: number[]; distance: number } | null,
+  snapCalls: [] as unknown[][],
 }))
 vi.mock('../mapGeometry', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../mapGeometry')>()),
-  snapCoordinate: () => geometry.snapped,
+  snapCoordinate: (...args: unknown[]) => { geometry.snapCalls.push(args); return geometry.snapped },
   queryFeaturesAt: () => geometry.hits,
   nearestVertexPath: () => geometry.nearest,
 }))
@@ -69,6 +70,7 @@ describe('useMapClick', () => {
     useArcWebStore.getState().clearSession()
     geometry.hits = []
     geometry.nearest = null
+    geometry.snapCalls = []
   })
 
   it('adds a measure vertex at the clicked location', () => {
@@ -141,6 +143,29 @@ describe('useMapClick', () => {
     act(() => result.current.handleMapClick(map, click()))
     expect(identify.current).toBeNull()
     expect(useArcWebStore.getState().selectedFeature).toBeNull()
+  })
+
+  it('does not snap when snapping is off', () => {
+    const { result, options } = setup()
+    addLayer('Mixed')
+    act(() => {
+      useArcWebStore.getState().setSnapping({ enabled: false, tolerancePx: 10 })
+      useArcWebStore.getState().setTool('draw-point')
+    })
+    act(() => result.current.handleMapClick(map, click()))
+    expect(geometry.snapCalls).toHaveLength(0)
+    expect(options.appendFeature).toHaveBeenCalledWith(expect.anything(), { type: 'Point', coordinates: [34.5, 31.5] })
+  })
+
+  it('passes the snapping tolerance to snapCoordinate', () => {
+    const { result } = setup()
+    addLayer('Mixed')
+    act(() => {
+      useArcWebStore.getState().setSnapping({ enabled: true, tolerancePx: 15 })
+      useArcWebStore.getState().setTool('draw-line')
+    })
+    act(() => result.current.handleMapClick(map, click()))
+    expect(geometry.snapCalls[0][4]).toBe(15)
   })
 
   it('leaves clicks to the rectangle selection tool', () => {
