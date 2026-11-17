@@ -105,7 +105,7 @@ it('split menu button runs the main action without opening the menu', () => { /*
 ```
 
 - [ ] **Step 2: Run tests to verify they fail** — `npx.cmd vitest run src/ribbon/__tests__` → FAIL (modules not found).
-- [ ] **Step 3: Implement** `renderComponent`, `collapseGroups` (greedy from the right until the total ≤ available) and the four components. Measure group widths once per resize with a `ResizeObserver` on the toolbar in a `useRibbonCollapse(ref): boolean[]` hook exported from `RibbonParts.tsx`. CSS in `App.css`: large button 64×66 px with 32 px icon over a two-line label; small buttons 22 px rows, 16 px icon, stacked three per column.
+- [ ] **Step 3: Implement** `renderComponent`, `collapseGroups` (greedy from the right until the total ≤ available) and the four components. Measure group widths with a `useRibbonCollapse(ref): Record<string, boolean>` hook in `src/ribbon/useRibbonCollapse.ts` (state keyed by each group's `aria-label`; re-measures on toolbar/group resize and when the groups change). Every `RibbonGroup` in a toolbar needs a unique `label`; pass `collapsed={collapsed[label]}`. CSS in `App.css`: large button 64×66 px with 32 px icon over a two-line label; small buttons 22 px rows, 16 px icon, stacked three per column.
 - [ ] **Step 4: Run tests to verify they pass.**
 - [ ] **Step 5: Commit** — `feat(ribbon): add Pro-style ribbon primitives and group collapse`.
 
