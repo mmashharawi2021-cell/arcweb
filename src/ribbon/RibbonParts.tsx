@@ -226,7 +226,7 @@ export function RibbonGallery({ id, label, icon, items, onSelect }: RibbonGaller
   )
 }
 
-interface RibbonGroupProps {
+export interface RibbonGroupProps {
   /** Group name: the caption, the accessible name and the key for collapse state. */
   label: string
   /** Caption text when it should differ from the label (e.g. "Selection · 3 selected"). */

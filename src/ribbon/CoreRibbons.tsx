@@ -1,6 +1,5 @@
-import { useRef } from 'react'
 import {
-  ChevronLeft, ChevronRight, Crosshair, FolderOpen, Layers3, Navigation, AreaChart, Bookmark as BookmarkIcon, CloudUpload, Eraser, FileImage, FilePlus2, FileText, Focus, Globe2, LayoutTemplate, ListFilter, Map as MapIcon, Minus, MousePointer2, Plus, Ruler, ScanSearch, Sparkles, SquareDashedMousePointer, Table2, Upload,
+  Archive, CircleDashed, Download, FileOutput, Hammer, History as HistoryIcon, ImageDown, Layers, Link, Merge, Scissors, SquaresIntersect, SquaresUnite, ChevronLeft, ChevronRight, Crosshair, FolderOpen, Layers3, Navigation, AreaChart, Bookmark as BookmarkIcon, Eraser, FileImage, FilePlus2, FileText, Focus, Globe2, LayoutTemplate, ListFilter, Map as MapIcon, Minus, MousePointer2, Plus, Ruler, ScanSearch, Sparkles, SquareDashedMousePointer, Table2,
 } from 'lucide-react'
 import { basemaps } from '../basemaps'
 import { insertableElements } from '../layout/catalog'
@@ -9,7 +8,11 @@ import type { LayoutExportFormat } from '../layout/exportLayout'
 import type { BasemapId, ToolMode, ViewMode } from '../store'
 import { addRibbonTooltips } from './ribbonTooltips'
 import { RibbonButton, RibbonGallery, RibbonGroup, RibbonMenuButton } from './RibbonParts'
-import { useRibbonCollapse } from './useRibbonCollapse'
+import { RibbonGroupBar } from './RibbonGroupBar'
+import { LAYOUT_TEMPLATES, type LayoutTemplateId } from '../layout/templates'
+import { toolboxTools } from '../toolboxes/registry'
+import { ANALYSIS_GALLERY, galleryTools } from './analysisGallery'
+import type { LucideIcon } from 'lucide-react'
 
 /** Which canvas the workspace shows. */
 export type WorkspaceView = '2d' | '3d' | 'layout'
@@ -58,12 +61,10 @@ interface MapRibbonProps {
 /** ArcGIS Pro's Map tab: Navigate, Layer, Selection, Inquiry and View groups. Groups collapse when space runs out. */
 export function MapRibbon(props: MapRibbonProps) {
   const { tool, hasSelection, selectedCount } = props
-  const ref = useRef<HTMLDivElement>(null)
-  const collapsed = useRibbonCollapse(ref)
   const measuring = tool === 'distance' || tool === 'area'
   return (
-    <div ref={ref} className="ribbon-groups">
-      <RibbonGroup label="Navigate" icon={Navigation} collapsed={collapsed.Navigate}>
+    <RibbonGroupBar>
+      <RibbonGroup label="Navigate" icon={Navigation}>
         <RibbonButton id="explore" label="Explore" icon={MousePointer2} size="large" pressed={tool === 'pan'}
           tooltip={{ title: 'Explore', body: 'Pan the map and click a feature to open its pop-up (Ctrl+click adds it to the selection).' }}
           onClick={props.onExplore} />
@@ -83,7 +84,7 @@ export function MapRibbon(props: MapRibbonProps) {
             { id: 'manage-bookmarks', label: 'Manage Bookmarks…', icon: BookmarkIcon, onSelect: props.onManageBookmarks },
           ]} />
       </RibbonGroup>
-      <RibbonGroup label="Layer" icon={Layers3} collapsed={collapsed.Layer}>
+      <RibbonGroup label="Layer" icon={Layers3}>
         <RibbonGallery id="basemap" label="Basemap" icon={MapIcon} onSelect={(id) => props.onSelectBasemap(id as BasemapId)}
           items={basemaps.map((item) => ({
             id: item.id,
@@ -97,7 +98,7 @@ export function MapRibbon(props: MapRibbonProps) {
             { id: 'add-project-file', label: 'Project file…', icon: FolderOpen, onSelect: props.onOpenProjectFile },
           ]} />
       </RibbonGroup>
-      <RibbonGroup label="Selection" icon={SquareDashedMousePointer} collapsed={collapsed.Selection}
+      <RibbonGroup label="Selection" icon={SquareDashedMousePointer}
         caption={selectedCount ? `Selection · ${selectedCount.toLocaleString('en-US')} selected` : undefined}>
         <RibbonMenuButton id="select" label="Select" icon={SquareDashedMousePointer} size="large" split pressed={tool === 'select-box'} disabled={!props.onSelectTool || !props.hasLayers}
           onClick={() => props.onSelectTool?.('select-box')}
@@ -109,7 +110,7 @@ export function MapRibbon(props: MapRibbonProps) {
           <RibbonButton id="zoom-to-selection" label="Zoom To" icon={Focus} size="small" disabled={!hasSelection} onClick={props.onZoomToSelected} />
         </div>
       </RibbonGroup>
-      <RibbonGroup label="Inquiry" icon={Ruler} collapsed={collapsed.Inquiry}>
+      <RibbonGroup label="Inquiry" icon={Ruler}>
         <RibbonMenuButton id="measure" label="Measure" icon={Ruler} size="large" split pressed={measuring}
           onClick={() => props.onToggleMeasure('distance')}
           items={[
@@ -121,27 +122,69 @@ export function MapRibbon(props: MapRibbonProps) {
           <RibbonButton id="go-to-xy" label="Go To XY" icon={Crosshair} size="small" disabled={!props.onGoToXY} onClick={props.onGoToXY} />
         </div>
       </RibbonGroup>
-      <RibbonGroup label="View" icon={Globe2} collapsed={collapsed.View}>
+      <RibbonGroup label="View" icon={Globe2}>
         <RibbonButton id="map-properties" label="Properties" icon={Globe2} size="large"
           tooltip={{ title: 'Map Properties', body: 'Coordinate systems and map information.' }} onClick={props.onOpenMapProperties} />
       </RibbonGroup>
-    </div>
+    </RibbonGroupBar>
   )
 }
 
-export function InsertRibbon({ onAddData }: { onAddData: () => void }) {
-  return addRibbonTooltips(<>
-    <div className="tool-group add-data-group">
-      <button className="add-data-button" onClick={onAddData}><FilePlus2 size={19} /><span>Add data</span></button>
-      <div className="group-caption">Import local data</div>
-    </div>
-    <div className="ribbon-separator" />
-    <div className="supported-files"><CloudUpload size={19} /><div><strong>Drop a file onto the map</strong><span>GeoJSON · Shapefile ZIP · KML · CSV · GeoTIFF</span></div></div>
-  </>)
+interface InsertRibbonProps {
+  /** Insert › New Layout: replace the layout sheet with a template and show the layout. */
+  onNewLayout: (template: LayoutTemplateId) => void
+  /** Insert › New Layer: create an empty editable layer. */
+  onNewLayer: () => void
+  onAddData: () => void
 }
 
-export function AnalysisRibbon() {
-  return <div className="ribbon-contextual-copy"><Sparkles size={17} /><div><strong>Spatial analysis</strong><span>Choose an operation and input layers in the Geoprocessing pane.</span></div></div>
+/** ArcGIS Pro's Insert tab: Project (New Layout, New Layer) and Layer (Add Data). */
+export function InsertRibbon({ onNewLayout, onNewLayer, onAddData }: InsertRibbonProps) {
+  return (
+    <RibbonGroupBar>
+      <RibbonGroup label="Project" icon={LayoutTemplate}>
+        <RibbonMenuButton id="new-layout" label="New Layout" icon={LayoutTemplate} size="large"
+          tooltip={{ title: 'New Layout', body: 'Replace the print layout with a template and open it.' }}
+          items={LAYOUT_TEMPLATES.map((template) => ({ id: `layout-${template.id}`, label: template.name, onSelect: () => onNewLayout(template.id) }))} />
+        <RibbonButton id="new-layer" label="New Layer" icon={Layers} size="large"
+          tooltip={{ title: 'New Layer', body: 'Create an empty point, line or polygon layer to draw in.' }} onClick={onNewLayer} />
+      </RibbonGroup>
+      <RibbonGroup label="Layer" icon={FilePlus2}>
+        <RibbonButton id="add-data" label="Add Data" icon={FilePlus2} size="large"
+          tooltip={{ title: 'Add Data', body: 'GeoJSON, Shapefile ZIP, KML, CSV or GeoTIFF from this computer. You can also drop files on the map.' }} onClick={onAddData} />
+      </RibbonGroup>
+    </RibbonGroupBar>
+  )
+}
+
+const GALLERY_ICONS: Record<string, LucideIcon> = {
+  buffer: CircleDashed, clip: Scissors, intersect: SquaresIntersect, union: SquaresUnite, dissolve: Merge, 'spatial-join': Link,
+}
+
+interface AnalysisRibbonProps {
+  onOpenTools: () => void
+  onOpenHistory: () => void
+  onOpenTool: (toolId: string) => void
+}
+
+/** ArcGIS Pro's Analysis tab: Geoprocessing (Tools, History) and the Tools gallery. */
+export function AnalysisRibbon({ onOpenTools, onOpenHistory, onOpenTool }: AnalysisRibbonProps) {
+  return (
+    <RibbonGroupBar>
+      <RibbonGroup label="Geoprocessing" icon={Hammer}>
+        <RibbonButton id="geoprocessing-tools" label="Tools" icon={Hammer} size="large"
+          tooltip={{ title: 'Tools', body: 'Open the Geoprocessing pane to find and run any tool.' }} onClick={onOpenTools} />
+        <RibbonButton id="geoprocessing-history" label="History" icon={HistoryIcon} size="large"
+          tooltip={{ title: 'History', body: 'Tools run in this project; re-open one with its settings.' }} onClick={onOpenHistory} />
+      </RibbonGroup>
+      <RibbonGroup label="Tools" icon={Sparkles}>
+        {galleryTools(ANALYSIS_GALLERY, toolboxTools).map((tool) => (
+          <RibbonButton key={tool.id} id={`tool-${tool.id}`} label={tool.name} icon={GALLERY_ICONS[tool.id] ?? Hammer} size="large"
+            tooltip={{ title: tool.name, body: tool.description }} onClick={() => onOpenTool(tool.id)} />
+        ))}
+      </RibbonGroup>
+    </RibbonGroupBar>
+  )
 }
 
 interface LayoutRibbonProps {
@@ -201,20 +244,39 @@ export function EditRibbon({ tool, hasLayer, selectedFeatureIsEditable, onSetToo
 interface ShareRibbonProps {
   hasLayer: boolean
   layoutExporting: boolean
-  onExportLayer: (format: 'geojson' | 'csv') => void
   onExportMap: () => void
   onExportLayout: (format: LayoutExportFormat) => void
+  onExportLayer: (format: 'geojson' | 'csv') => void
+  /** Project › Download Project File (.arcweb.json). */
+  onDownloadProject: () => void
+  /** Project › Back Up Projects: opens Project › Projects & offline. */
+  onBackupProjects: () => void
 }
 
-export function ShareRibbon({ hasLayer, layoutExporting, onExportLayer, onExportMap, onExportLayout }: ShareRibbonProps) {
-  return addRibbonTooltips(
-    <div className="phase-ribbon-actions">
-      <button className="ribbon-action" disabled={!hasLayer} onClick={() => onExportLayer('geojson')}><FilePlus2 size={17} /><span>GeoJSON</span></button>
-      <button className="ribbon-action" disabled={!hasLayer} onClick={() => onExportLayer('csv')}><Table2 size={17} /><span>CSV</span></button>
-      <button className="ribbon-action" onClick={onExportMap}><Upload size={17} /><span>Map PNG</span></button>
-      <button className="ribbon-action" disabled={layoutExporting} title="Export the print layout sheet as a high-resolution PNG" onClick={() => onExportLayout('png')}><FileImage size={17} /><span>Layout PNG</span></button>
-      <button className="ribbon-action" disabled={layoutExporting} title="Export the print layout sheet as a PDF" onClick={() => onExportLayout('pdf')}><FileText size={17} /><span>Layout PDF</span></button>
-      <div className="group-caption">Export locally</div>
-    </div>,
+/** ArcGIS Pro's Share tab, for a local app: Output (map, layout, layer) and Project files. */
+export function ShareRibbon({ hasLayer, layoutExporting, onExportMap, onExportLayout, onExportLayer, onDownloadProject, onBackupProjects }: ShareRibbonProps) {
+  return (
+    <RibbonGroupBar>
+      <RibbonGroup label="Output" icon={FileOutput}>
+        <RibbonButton id="export-map" label="Export Map" icon={ImageDown} size="large"
+          tooltip={{ title: 'Export Map', body: 'Save the current map view as a PNG image.' }} onClick={onExportMap} />
+        <RibbonMenuButton id="export-layout" label="Export Layout" icon={LayoutTemplate} size="large" disabled={layoutExporting}
+          items={[
+            { id: 'export-layout-png', label: 'PNG', icon: FileImage, onSelect: () => onExportLayout('png') },
+            { id: 'export-layout-pdf', label: 'PDF', icon: FileText, onSelect: () => onExportLayout('pdf') },
+          ]} />
+        <RibbonMenuButton id="export-layer" label="Export Layer" icon={FileOutput} size="large" disabled={!hasLayer}
+          items={[
+            { id: 'export-layer-geojson', label: 'GeoJSON', icon: FilePlus2, onSelect: () => onExportLayer('geojson') },
+            { id: 'export-layer-csv', label: 'CSV', icon: Table2, onSelect: () => onExportLayer('csv') },
+          ]} />
+      </RibbonGroup>
+      <RibbonGroup label="Project" icon={Archive}>
+        <RibbonButton id="download-project" label="Download Project File" icon={Download} size="large"
+          tooltip={{ title: 'Download Project File', body: 'Save the whole workspace as an .arcweb.json file.' }} onClick={onDownloadProject} />
+        <RibbonButton id="backup-projects" label="Back Up Projects" icon={Archive} size="large"
+          tooltip={{ title: 'Back Up Projects', body: 'Export every project on this device, with recovery points and source files.' }} onClick={onBackupProjects} />
+      </RibbonGroup>
+    </RibbonGroupBar>
   )
 }

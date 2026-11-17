@@ -120,6 +120,8 @@ function App() {
   const [bookmarkAnchor, setBookmarkAnchor] = useState<{ left: number; top: number } | null>(null)
   const [backstage, setBackstage] = useState<BackstageSection | null>(null)
   const [goToXYOpen, setGoToXYOpen] = useState(false)
+  // Ribbon requests to the Geoprocessing pane; a new nonce remounts it on the requested tool/view.
+  const [toolboxRequest, setToolboxRequest] = useState<{ nonce: number; toolId?: string; view?: 'tools' | 'history' }>({ nonce: 0 })
   const toastTimerRef = useRef<number | null>(null)
   const toolExecutionIdRef = useRef(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -770,6 +772,19 @@ function App() {
     if (action === 'marker') addQuickMarker(lngLat)
   }, [addQuickMarker])
   const closeGoToXY = useCallback(() => setGoToXYOpen(false), [])
+  /** Shows the Geoprocessing pane (Analysis tab, right pane open), optionally on a tool or the history. */
+  const openGeoprocessing = useCallback((request: { toolId?: string; view?: 'tools' | 'history' }) => {
+    const state = useArcWebStore.getState()
+    state.setActiveTab('Analysis')
+    state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
+    setToolboxRequest((current) => ({ nonce: current.nonce + 1, ...request }))
+  }, [])
+  /** Insert › New Layer: the Edit pane holds the new-layer form. */
+  const openNewLayerForm = useCallback(() => {
+    const state = useArcWebStore.getState()
+    state.setActiveTab('Edit')
+    state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
+  }, [])
 
   const centerMapAt = useCallback((lngLat: [number, number]) => {
     mapRef.current?.easeTo({ center: lngLat, duration: 450 })
@@ -989,9 +1004,17 @@ function App() {
             onSelectTool={() => setEditingTool(tool === 'select-box' ? 'pan' : 'select-box')}
           />
         ) : activeTab === 'Insert' ? (
-          <InsertRibbon onAddData={openFilePicker} />
+          <InsertRibbon
+            onNewLayout={(template) => { useLayoutStore.getState().applyTemplate(template); showView('layout') }}
+            onNewLayer={openNewLayerForm}
+            onAddData={openFilePicker}
+          />
         ) : activeTab === 'Analysis' ? (
-          <AnalysisRibbon />
+          <AnalysisRibbon
+            onOpenTools={() => openGeoprocessing({})}
+            onOpenHistory={() => openGeoprocessing({ view: 'history' })}
+            onOpenTool={(toolId) => openGeoprocessing({ toolId })}
+          />
         ) : activeTab === 'Layout' ? (
           <LayoutRibbon
             viewMode={viewMode}
@@ -1030,6 +1053,8 @@ function App() {
             onExportLayer={(format) => { if (selectedLayer) exportSelectedLayer(selectedLayer, format) }}
             onExportMap={() => void exportCurrentMap()}
             onExportLayout={(format) => void exportLayout(format)}
+            onDownloadProject={saveProject}
+            onBackupProjects={() => setBackstage('library')}
           />
         )}
         <div className="toolbar-spacer" />
@@ -1164,6 +1189,9 @@ function App() {
           >
             <aside className="dock symbology-dock toolbox-dock">
               <ToolboxPanel
+                key={toolboxRequest.nonce}
+                initialToolId={toolboxRequest.toolId}
+                initialView={toolboxRequest.view}
                 layers={layers}
                 selectedLayerId={selectedLayerId}
                 floating={workspaceLayout.panels.geoprocessing.floating}

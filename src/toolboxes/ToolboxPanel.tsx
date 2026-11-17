@@ -20,6 +20,10 @@ interface ToolboxPanelProps {
   /** Cancels the running tool. */
   onCancel: () => void
   onClose: () => void
+  /** Open this tool's form on mount (Analysis › Tools gallery). Unknown ids show the toolbox. */
+  initialToolId?: string
+  /** Open on the history view on mount (Analysis › History). */
+  initialView?: 'tools' | 'history'
 }
 
 function formatDuration(ms: number) {
@@ -38,18 +42,20 @@ function makeDefaultValues(tool: ToolboxTool, layers: MapLayer[], selectedLayerI
   return values
 }
 
-export default function ToolboxPanel({ layers, selectedLayerId, selectionCount, running, history, floating, onToggleFloat, onExecute, onCancel, onClose }: ToolboxPanelProps) {
-  const [view, setView] = useState<'tools' | 'history'>('tools')
+export default function ToolboxPanel({ layers, selectedLayerId, selectionCount, running, history, floating, onToggleFloat, onExecute, onCancel, onClose, initialToolId, initialView }: ToolboxPanelProps) {
+  const [view, setView] = useState<'tools' | 'history'>(initialView ?? 'tools')
+  // Ribbon requests remount the panel (keyed by request), so the initial tool is set once here.
+  const [initialTool] = useState(() => toolboxTools.find((tool) => tool.id === initialToolId) ?? null)
   // ArcGIS processes only the selected features when a selection exists; the box lets students opt out.
   const [useSelection, setUseSelection] = useState(true)
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
-  const [activeToolId, setActiveToolId] = useState<string | null>(null)
+  const [activeToolId, setActiveToolId] = useState<string | null>(initialTool?.id ?? null)
   const searching = query.trim().length > 0
   const results = useMemo(() => (searching ? searchTools(query) : []), [query, searching])
   const tree = useMemo(() => buildToolboxTree(), [])
   const activeTool = toolboxTools.find((tool) => tool.id === activeToolId) ?? null
-  const [values, setValues] = useState<ToolboxParameters>({})
+  const [values, setValues] = useState<ToolboxParameters>(() => initialTool ? makeDefaultValues(initialTool, layers, selectedLayerId) : {})
 
   const toggle = (key: string) => setExpanded((current) => {
     const next = new Set(current)
