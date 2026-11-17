@@ -143,6 +143,16 @@ describe('useMapClick', () => {
     expect(useArcWebStore.getState().selectedFeature).toBeNull()
   })
 
+  it('leaves clicks to the rectangle selection tool', () => {
+    const { result, identify } = setup()
+    const layer = addLayer('Point')
+    geometry.hits = [{ layerId: layer.id, featureId: 'w1' }]
+    act(() => useArcWebStore.getState().setTool('select-box'))
+    act(() => result.current.handleMapClick(map, click()))
+    expect(identify.current).toBeNull()
+    expect(useArcWebStore.getState().selectedFeature).toBeNull()
+  })
+
   it('keeps handleMapClick stable across renders', () => {
     const { result, rerender } = setup()
     const first = result.current.handleMapClick

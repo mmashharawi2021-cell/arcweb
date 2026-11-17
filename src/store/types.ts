@@ -12,7 +12,7 @@ export type CoreTab = 'Map' | 'Insert' | 'Analysis' | 'Edit' | 'View' | 'Layout'
 export type ContextualTab = 'FeatureLayer' | 'RasterLayer' | 'EditSession'
 export type AppTab = CoreTab | ContextualTab
 export type ViewMode = 'map' | 'layout'
-export type ToolMode = 'pan' | 'distance' | 'area' | 'draw-point' | 'draw-line' | 'draw-polygon' | 'move-vertex'
+export type ToolMode = 'pan' | 'select-box' | 'distance' | 'area' | 'draw-point' | 'draw-line' | 'draw-polygon' | 'move-vertex'
 export type FeatureId = string | number
 export interface FeatureSelection { layerId: string; featureId: FeatureId }
 /** How a new set of matches combines with a layer's current selection (ArcGIS "Selection type"). */

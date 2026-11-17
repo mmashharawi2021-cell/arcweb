@@ -99,7 +99,7 @@ export function MapRibbon(props: MapRibbonProps) {
       </RibbonGroup>
       <RibbonGroup label="Selection" icon={SquareDashedMousePointer} collapsed={collapsed.Selection}
         caption={selectedCount ? `Selection · ${selectedCount.toLocaleString('en-US')} selected` : undefined}>
-        <RibbonMenuButton id="select" label="Select" icon={SquareDashedMousePointer} size="large" split disabled={!props.onSelectTool || !props.hasLayers}
+        <RibbonMenuButton id="select" label="Select" icon={SquareDashedMousePointer} size="large" split pressed={tool === 'select-box'} disabled={!props.onSelectTool || !props.hasLayers}
           onClick={() => props.onSelectTool?.('select-box')}
           items={[{ id: 'select-rectangle', label: 'Rectangle', icon: SquareDashedMousePointer, onSelect: () => props.onSelectTool?.('select-box') }]} />
         <RibbonButton id="select-by-attributes" label="Select By Attributes" icon={ListFilter} size="large" disabled={!props.hasLayers} onClick={props.onSelectByAttributes} />

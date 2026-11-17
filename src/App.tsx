@@ -70,6 +70,8 @@ import { useMapSync } from './map/useMapSync'
 import { useExtentHistory } from './map/useExtentHistory'
 import GoToXY, { type GoToAction } from './map/GoToXY'
 import { flashLocation } from './map/flashLocation'
+import { useBoxSelect } from './map/useBoxSelect'
+import { applyBoxSelection, featuresInBox } from './map/boxSelect'
 import { useMapClick, type IdentifyState } from './map/useMapClick'
 import { startUiSettingsSync } from './ui/uiSettingsSync'
 import './App.css'
@@ -160,6 +162,7 @@ function App() {
   const mapEventsRef = useRef<MapEvents | null>(null)
   const { mapInstance, mapLoaded } = useMapInstance({ mapRef, mapHostRef, workspaceRef, sceneViewRef, eventsRef: mapEventsRef, viewMode, mapFrameHost })
   const extentHistory = useExtentHistory(mapInstance)
+  useBoxSelect(mapInstance, tool === 'select-box', (bounds, method) => applyBoxSelection(featuresInBox(useArcWebStore.getState().layers, bounds), method))
   const tableHeight = workspaceLayout.panels.attributeTable.frame.height
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId) ?? null
   const selectedFeatureIsEditable = Boolean(
@@ -983,6 +986,7 @@ function App() {
             onToggleMeasure={toggleMeasureTool}
             onOpenMapProperties={openMapProperties}
             onGoToXY={() => setGoToXYOpen(true)}
+            onSelectTool={() => setEditingTool(tool === 'select-box' ? 'pan' : 'select-box')}
           />
         ) : activeTab === 'Insert' ? (
           <InsertRibbon onAddData={openFilePicker} />

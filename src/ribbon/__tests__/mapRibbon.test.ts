@@ -144,6 +144,14 @@ describe('Map ribbon', () => {
     expect(onOpenProjectFile).toHaveBeenCalledTimes(1)
   })
 
+  it('Select toggles the rectangle tool and shows it as active', () => {
+    const onSelectTool = vi.fn()
+    renderComponent(createElement(MapRibbon, props({ onSelectTool, tool: 'select-box' })))
+    expect(command('select').getAttribute('aria-pressed')).toBe('true')
+    act(() => command('select').click())
+    expect(onSelectTool).toHaveBeenCalledWith('select-box')
+  })
+
   it('disables Go To XY and Select until their tools are wired', () => {
     renderComponent(createElement(MapRibbon, props()))
     expect(command('go-to-xy').disabled).toBe(true)

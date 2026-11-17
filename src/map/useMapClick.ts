@@ -57,6 +57,8 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
   const handleMapClick = useCallback((map: MapLibreMap, event: maplibregl.MapMouseEvent) => {
     const state = useArcWebStore.getState()
     const activeTool = state.tool
+    // The rectangle selection tool handles its own clicks and drags (useBoxSelect).
+    if (activeTool === 'select-box') return
     if (activeTool === 'distance' || activeTool === 'area') {
       addMeasurePoint(map, [event.lngLat.lng, event.lngLat.lat], activeTool)
       return
