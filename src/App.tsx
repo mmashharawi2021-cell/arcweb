@@ -3,10 +3,10 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 import * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
-import { coordinateReadout, crsLabel, requireCrs, scaleDenominator, utmCodeFor, WGS84 } from './crs'
+import { coordinateReadout, requireCrs } from './crs'
 import {
-  AreaChart, Check, Compass, Database, Focus, FolderOpen, Map as MapIcon, Moon, MousePointer2, PanelRightClose,
-  Ruler, Settings2, Sun, Trash2, Upload, X, LayoutTemplate, Box, Save,
+  Check, Compass, Database, Focus, FolderOpen, Map as MapIcon, Moon, PanelRightClose, Settings2, Sun, Trash2, X,
+  LayoutTemplate, Box, Save,
 } from 'lucide-react'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import AttributeTable from './AttributeTable'
@@ -66,7 +66,6 @@ import {
 import { applyWorkspacePreset, normalizeWorkspaceLayout } from './workspaceLayout'
 import type { PanelFrame, WorkspacePanelId, WorkspacePreset } from './workspaceLayout'
 import { seedFieldCatalog } from './symbology'
-import { trapTabKey } from './a11y/modalFocus'
 import { SelectByAttributesDialog, SelectByLocationDialog } from './selection/SelectionDialogs'
 import ToolboxPanel from './toolboxes/ToolboxPanel'
 import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './toolboxes/types'
@@ -74,13 +73,16 @@ import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from '.
 import { describeToolRun } from './toolboxes/history'
 import { basemaps, baseStyle } from './basemaps'
 import {
-  createSketchFeature, distanceBetween, formatDistance, nearestVertexPath, polygonArea, queryFeaturesAt,
+  createSketchFeature, nearestVertexPath, queryFeaturesAt,
   replaceCoordinate, snapCoordinate,
 } from './mapGeometry'
 import { styleRasterCells } from './rasterStyle'
 import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
 import { AnalysisRibbon, EditRibbon, InsertRibbon, LayoutRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
+import StatusBar from './StatusBar'
+import { DropOverlay, ImportProgress, MeasurementCard, SketchCard, ToolProgress } from './MapOverlays'
+import ConfirmDialog from './ui/ConfirmDialog'
 import './App.css'
 import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
@@ -152,14 +154,12 @@ function App() {
   const toastFadeRef = useFadeExit<HTMLDivElement>()
   const removeFadeRef = useFadeExit<HTMLDivElement>()
   const projectFadeRef = useFadeExit<HTMLDivElement>()
-  const [cursor, setCursor] = useState<[number, number] | null>(null)
   const [measurePoints, setMeasurePoints] = useState<[number, number][]>([])
   const [sketchPoints, setSketchPoints] = useState<[number, number][]>([])
   const [mapLoaded, setMapLoaded] = useState(false)
   const [sceneView, setSceneView] = useState(false)
   const sceneViewRef = useRef(false)
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null)
-  const [zoom, setZoom] = useState(3.15)
   const [importingFile, setImportingFile] = useState<{ name: string; index: number; total: number } | null>(null)
   const [toolExecutionProgress, setToolExecutionProgress] = useState<{ name: string; current: number; total: number; message: string } | null>(null)
   const [mapFrameHost, setMapFrameHost] = useState<HTMLDivElement | null>(null)
@@ -550,16 +550,11 @@ function App() {
       ensureMapOverlays(map)
       syncMapLayers(map, useArcWebStore.getState().layers, sceneViewRef.current)
       setSelectionOverlay(map, useArcWebStore.getState().layers, useArcWebStore.getState().selectedFeature, useArcWebStore.getState().selections)
-      setZoom(map.getZoom())
       window.requestAnimationFrame(() => {
         setMapInstance(map)
         setMapLoaded(true)
       })
     }
-    const onMouseMove = (event: maplibregl.MapMouseEvent) => {
-      setCursor([event.lngLat.lng, event.lngLat.lat])
-    }
-    const onZoom = () => setZoom(map.getZoom())
     const onClick = (event: maplibregl.MapMouseEvent) => handleMapClick(map, event)
     let rightDown: { x: number; y: number } | null = null
     const onMouseDown = (event: maplibregl.MapMouseEvent) => {
@@ -588,22 +583,18 @@ function App() {
       }
     }
     map.once('load', onReady)
-    map.on('mousemove', onMouseMove)
     map.on('click', onClick)
     map.on('dblclick', onDoubleClick)
-    map.on('zoom', onZoom)
     map.on('mousedown', onMouseDown)
     map.on('contextmenu', onContextMenu)
     return () => {
       map.off('load', onReady)
-      map.off('mousemove', onMouseMove)
       map.off('mousedown', onMouseDown)
       map.off('contextmenu', onContextMenu)
       quickMarkersRef.current = []
       setQuickMarkerCount(0)
       map.off('click', onClick)
       map.off('dblclick', onDoubleClick)
-      map.off('zoom', onZoom)
       map.remove()
       container.remove()
       mapContainerRef.current = null
@@ -1584,16 +1575,6 @@ function App() {
   const identifiedHit = identifyHits[identifyIndex]
 
   const displayCrsDefinition = requireCrs(displayCrs)
-  // With a geographic display system the secondary readout is the pointer's UTM zone.
-  const wgsReadout = cursor ? coordinateReadout(WGS84, cursor[0], cursor[1]) : null
-  const projectedReadout = cursor
-    ? coordinateReadout(displayCrsDefinition.kind === 'geographic' ? utmCodeFor(cursor[0], cursor[1]) : displayCrs, cursor[0], cursor[1])
-    : null
-  const scale = cursor
-    ? `1:${Math.round(scaleDenominator(cursor[1], zoom)).toLocaleString('en-US')}`
-    : '—'
-  const length = measurePoints.slice(1).reduce((sum, point, index) => sum + distanceBetween(measurePoints[index], point), 0)
-  const area = polygonArea(measurePoints)
 
   return (
     <main ref={contentFadeRef} inert={library.state === 'loading'} aria-busy={library.state === 'loading'} className={`arc-app preset-${workspaceLayout.preset} ${workspaceLayout.fullCanvas ? 'full-canvas' : ''}`}>
@@ -1648,7 +1629,7 @@ function App() {
               const state = useArcWebStore.getState()
               state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
             }
-            if (tab === 'Layout') { setSceneView(false); useArcWebStore.getState().setViewMode('layout') }
+            if (tab === 'Layout') showView('layout')
           }}>{tab}</button>
         ))}
         {CONTEXTUAL_TABS.filter((tab) => visibleContextualTabs.includes(tab)).map((tab) => (
@@ -1817,29 +1798,16 @@ function App() {
         }}>
           <div className="map-host" ref={mapHostRef} />
           {workspaceLayout.fullCanvas && <button className="full-canvas-exit" onClick={toggleFullCanvas}><X size={14} />Restore workspace</button>}
-          {importingFile && (
-            <div className="import-progress" role="status" aria-live="polite">
-              <span className="import-spinner" aria-hidden="true" />
-              <span className="import-progress-copy"><strong>Loading {importingFile.name}</strong><small>Reading local data · file {importingFile.index} of {importingFile.total}</small></span>
-              <button type="button" className="import-cancel" onClick={cancelImport}>Cancel</button>
-              <span className="import-progress-track"><span /></span>
-            </div>
-          )}
-          {toolExecutionProgress && (
-            <div className="tool-execution-progress" role="status" aria-live="polite">
-              <span className="import-spinner" aria-hidden="true" />
-              <span className="import-progress-copy"><strong>{toolExecutionProgress.name}</strong><small>{toolExecutionProgress.message} · {toolExecutionProgress.current} of {toolExecutionProgress.total}</small></span>
-              <span className="tool-progress-track"><span style={{ width: `${Math.min(100, Math.max(0, toolExecutionProgress.current / Math.max(1, toolExecutionProgress.total) * 100))}%` }} /></span>
-            </div>
-          )}
+          {importingFile && <ImportProgress file={importingFile} onCancel={cancelImport} />}
+          {toolExecutionProgress && <ToolProgress progress={toolExecutionProgress} />}
           {viewMode === 'layout' && (
             <LayoutView map={mapInstance} layers={layers} basemap={basemap} pageRef={layoutPageRef} onMapFrameHost={setMapFrameHost} />
           )}
           <div className="map-top-left">
             <div className="view-switch" role="tablist" aria-label="View">
-              <button role="tab" aria-selected={viewMode === 'map' && !sceneView} className={viewMode === 'map' && !sceneView ? 'active' : ''} onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode('map') }}><MapIcon size={13} /> 2D Map</button>
-              <button role="tab" aria-selected={viewMode === 'map' && sceneView} className={viewMode === 'map' && sceneView ? 'active' : ''} onClick={() => { setSceneView(true); useArcWebStore.getState().setViewMode('map') }}><Box size={13} /> 3D Scene</button>
-              <button role="tab" aria-selected={viewMode === 'layout'} className={viewMode === 'layout' ? 'active' : ''} onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode('layout') }}><LayoutTemplate size={13} /> Layout</button>
+              <button role="tab" aria-selected={workspaceView === '2d'} className={workspaceView === '2d' ? 'active' : ''} onClick={() => showView('2d')}><MapIcon size={13} /> 2D Map</button>
+              <button role="tab" aria-selected={workspaceView === '3d'} className={workspaceView === '3d' ? 'active' : ''} onClick={() => showView('3d')}><Box size={13} /> 3D Scene</button>
+              <button role="tab" aria-selected={workspaceView === 'layout'} className={workspaceView === 'layout' ? 'active' : ''} onClick={() => showView('layout')}><LayoutTemplate size={13} /> Layout</button>
             </div>
             {viewMode === 'map' && <span className="map-coordinate-badge"><span className="live-dot" />{sceneView ? '3D Scene · right-drag to rotate' : offlineBasemap?.name ?? basemaps.find((item) => item.id === basemap)?.name}</span>}
           </div>
@@ -1856,12 +1824,7 @@ function App() {
             />
           )}
           {(tool === 'distance' || tool === 'area') && (
-            <div className="measurement-card">
-              <div className="measurement-icon">{tool === 'distance' ? <Ruler size={15} /> : <AreaChart size={15} />}</div>
-              <div><strong>{tool === 'distance' ? 'Measure distance' : 'Measure area'}</strong><span>{measurePoints.length < (tool === 'area' ? 3 : 2) ? 'Click map to add vertices' : tool === 'distance' ? formatDistance(length) : `${(area / 1_000_000).toFixed(3)} km²`}</span></div>
-              <button title="Clear measurement" onClick={clearMeasurements}><Trash2 size={14} /></button>
-              <button title="Finish measurement" onClick={() => useArcWebStore.getState().setTool('pan')}><Check size={15} /></button>
-            </div>
+            <MeasurementCard mode={tool} points={measurePoints} onClear={clearMeasurements} onFinish={() => useArcWebStore.getState().setTool('pan')} />
           )}
           {identify && identifiedHit && (
             <IdentifyPopup
@@ -1895,28 +1858,17 @@ function App() {
             />
           )}
           {(tool === 'draw-line' || tool === 'draw-polygon') && (
-            <div className="measurement-card sketch-card">
-              <div className="measurement-icon"><MousePointer2 size={15} /></div>
-              <div><strong>{tool === 'draw-line' ? 'Sketch line' : 'Sketch polygon'}</strong><span>{sketchPoints.length} vertices · double-click to finish</span></div>
-              <button title="Cancel sketch" onClick={() => setEditingTool('pan')}><X size={14} /></button>
-              <button title="Finish sketch" onClick={finishSketch}><Check size={15} /></button>
-            </div>
+            <SketchCard mode={tool} vertexCount={sketchPoints.length} onCancel={() => setEditingTool('pan')} onFinish={finishSketch} />
           )}
-          {isDragging && (
-            <div className="drop-overlay">
-              <div className="drop-card"><div className="drop-icon"><Upload size={23} /></div><strong>Drop your spatial data</strong><span>GeoJSON, Shapefile ZIP, KML, CSV or GeoTIFF</span><small>Files are processed locally in your browser</small></div>
-            </div>
-          )}
-          {viewMode === 'map' && <div className="map-scale-readout">{scale}</div>}
-          <div className="bottom-status">
-            <div className="status-coordinate">{!wgsReadout || !projectedReadout ? <><MousePointer2 size={12} /><span>Move pointer over map</span></> : <>
-              <span className="coordinate-label">WGS 84</span><span>{wgsReadout.text}</span>
-              <span className="status-divider" />
-              <span className="coordinate-label">{projectedReadout.label}</span>
-              <span className={projectedReadout.inArea ? '' : 'out-of-area'} title={projectedReadout.inArea ? projectedReadout.code : `Outside the area of use of ${crsLabel(projectedReadout.code)}`}>{projectedReadout.text}{projectedReadout.inArea ? '' : ' (outside area of use)'}</span>
-            </>}</div>
-            <div className="status-right"><span>{viewMode === 'layout' ? `Layout · ${layoutPaper} ${layoutOrientation}` : scale}</span><span className="status-divider" /><button className="status-crs" title="Display coordinate system — open Map Properties" onClick={openMapProperties}>{displayCrsDefinition.code}</button></div>
-          </div>
+          {isDragging && <DropOverlay />}
+          <StatusBar
+            map={mapInstance}
+            viewMode={viewMode}
+            displayCrs={displayCrs}
+            layoutPaper={layoutPaper}
+            layoutOrientation={layoutOrientation}
+            onOpenMapProperties={openMapProperties}
+          />
         </section>
 
         {!workspaceLayout.rightPaneOpen ? (
@@ -2056,22 +2008,20 @@ function App() {
       )}
 
       {pendingRemovalLayer && (
-        <div ref={removeFadeRef} className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) cancelRemoveLayer() }}>
-          <section className="modal confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Remove layer" onKeyDown={(event) => { if (event.key === 'Escape') cancelRemoveLayer(); else trapTabKey(event) }}>
-            <header className="modal-header"><div><Trash2 size={15} /><strong>Remove “<bdi>{pendingRemovalLayer.name}</bdi>”?</strong></div></header>
-            <div className="confirm-body">
-              <p>The layer and its {pendingRemovalLayer.data.features.length.toLocaleString()} feature{pendingRemovalLayer.data.features.length === 1 ? '' : 's'} will be removed from this project.</p>
-              <p className="modal-note">This cannot be undone. Export the layer first if you want to keep a copy.{editSnapshots[pendingRemovalLayer.id] ? ' Its unsaved edits will be lost.' : ''}</p>
-            </div>
-            <footer className="modal-footer">
-              <span />
-              <div className="dialog-buttons">
-                <button className="phase-secondary-button" autoFocus onClick={cancelRemoveLayer}>Cancel</button>
-                <button className="phase-primary-button danger-confirm" onClick={confirmRemoveLayer}>Remove layer</button>
-              </div>
-            </footer>
-          </section>
-        </div>
+        <ConfirmDialog
+          backdropRef={removeFadeRef}
+          label="Remove layer"
+          icon={<Trash2 size={15} />}
+          title={<>Remove “<bdi>{pendingRemovalLayer.name}</bdi>”?</>}
+          confirmLabel="Remove layer"
+          danger
+          dismissOnBackdrop
+          onCancel={cancelRemoveLayer}
+          onConfirm={confirmRemoveLayer}
+        >
+          <p>The layer and its {pendingRemovalLayer.data.features.length.toLocaleString()} feature{pendingRemovalLayer.data.features.length === 1 ? '' : 's'} will be removed from this project.</p>
+          <p className="modal-note">This cannot be undone. Export the layer first if you want to keep a copy.{editSnapshots[pendingRemovalLayer.id] ? ' Its unsaved edits will be lost.' : ''}</p>
+        </ConfirmDialog>
       )}
 
       {bookmarkAnchor && (
@@ -2093,22 +2043,18 @@ function App() {
       )}
 
       {pendingProject && (
-        <div ref={projectFadeRef} className="modal-backdrop">
-          <section className="modal confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Open project" onKeyDown={(event) => { if (event.key === 'Escape') setPendingProject(null); else trapTabKey(event) }}>
-            <header className="modal-header"><div><FolderOpen size={15} /><strong>Open “<bdi>{pendingProject.name}</bdi>”?</strong></div></header>
-            <div className="confirm-body">
-              <p>Opening this project replaces the current workspace: {layers.length} layer{layers.length === 1 ? '' : 's'}, the layout, panel positions and bookmarks will be discarded.</p>
-              <p className="modal-note">Use Save Project first if you want to keep the current work. The project contains {pendingProject.layers.length} layer{pendingProject.layers.length === 1 ? '' : 's'}{pendingProject.savedAt ? ` and was saved on ${new Date(pendingProject.savedAt).toLocaleString()}` : ''}.</p>
-            </div>
-            <footer className="modal-footer">
-              <span />
-              <div className="dialog-buttons">
-                <button className="phase-secondary-button" autoFocus onClick={() => setPendingProject(null)}>Cancel</button>
-                <button className="phase-primary-button" onClick={() => applyProject(pendingProject)}>Replace workspace</button>
-              </div>
-            </footer>
-          </section>
-        </div>
+        <ConfirmDialog
+          backdropRef={projectFadeRef}
+          label="Open project"
+          icon={<FolderOpen size={15} />}
+          title={<>Open “<bdi>{pendingProject.name}</bdi>”?</>}
+          confirmLabel="Replace workspace"
+          onCancel={() => setPendingProject(null)}
+          onConfirm={() => applyProject(pendingProject)}
+        >
+          <p>Opening this project replaces the current workspace: {layers.length} layer{layers.length === 1 ? '' : 's'}, the layout, panel positions and bookmarks will be discarded.</p>
+          <p className="modal-note">Use Save Project first if you want to keep the current work. The project contains {pendingProject.layers.length} layer{pendingProject.layers.length === 1 ? '' : 's'}{pendingProject.savedAt ? ` and was saved on ${new Date(pendingProject.savedAt).toLocaleString()}` : ''}.</p>
+        </ConfirmDialog>
       )}
 
       {mapPropertiesOpen && (
