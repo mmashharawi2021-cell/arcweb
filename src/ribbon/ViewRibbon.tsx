@@ -2,6 +2,7 @@ import {
   Box, Focus, LayoutTemplate, Layers3, Map as MapIcon, Moon, PanelRight, Sun, Table2,
 } from 'lucide-react'
 import type { WorkspacePreset } from '../workspaceLayout'
+import { addRibbonTooltips } from './ribbonTooltips'
 
 export type ViewMode = '2d' | '3d' | 'layout'
 export type ViewPane = 'contents' | 'side' | 'table'
@@ -31,7 +32,8 @@ const PRESETS: { id: WorkspacePreset; label: string; title: string }[] = [
 export function ViewRibbon(props: ViewRibbonProps) {
   const { contentsOpen, sidePaneOpen, tableOpen, tableAvailable, preset, mode, fullCanvas, theme } = props
   const active = (on: boolean) => `ribbon-action ${on ? 'tool-selected' : ''}`
-  return (
+  // Decorate here: the App-level decorator does not see inside this component's output.
+  return addRibbonTooltips(
     <>
       <div className="phase-ribbon-actions">
         <button className={active(contentsOpen)} title="Show or hide the Contents pane" onClick={() => props.onTogglePane('contents')}><Layers3 size={17} /><span>Contents</span></button>
@@ -59,6 +61,6 @@ export function ViewRibbon(props: ViewRibbonProps) {
         <button className="ribbon-action" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} onClick={props.onToggleTheme}>{theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}<span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span></button>
         <div className="group-caption">Display</div>
       </div>
-    </>
+    </>,
   )
 }
