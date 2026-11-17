@@ -77,13 +77,17 @@ function usePopover(onClosed?: () => void) {
     setOpen(false)
     if (restoreFocus) closedRef.current?.()
   }
-  const onPopoverKeyDown = (event: ReactKeyboardEvent) => {
-    if (event.key !== 'Escape') return
+  /**
+   * Escape handler for the wrapper (trigger and popover): while open, Escape closes the popover
+   * and stops there, even if focus is still on the trigger; while closed it passes through.
+   */
+  const onWrapperKeyDown = (event: ReactKeyboardEvent) => {
+    if (event.key !== 'Escape' || !open) return
     event.preventDefault()
     event.stopPropagation()
     close(true)
   }
-  return { open, setOpen, close, wrapperRef, onPopoverKeyDown }
+  return { open, setOpen, close, wrapperRef, onWrapperKeyDown }
 }
 
 /** Moves focus between enabled items of a menu or list with the arrow keys. */
@@ -114,7 +118,7 @@ interface RibbonMenuButtonProps extends RibbonButtonProps {
 export function RibbonMenuButton({ items, split = false, ...button }: RibbonMenuButtonProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
-  const { open, setOpen, close, wrapperRef, onPopoverKeyDown } = usePopover(() => triggerRef.current?.focus())
+  const { open, setOpen, close, wrapperRef, onWrapperKeyDown } = usePopover(() => triggerRef.current?.focus())
 
   // Focus the first enabled item when the menu opens.
   useEffect(() => {
@@ -139,7 +143,7 @@ export function RibbonMenuButton({ items, split = false, ...button }: RibbonMenu
   }
 
   return (
-    <div ref={wrapperRef} className={`ribbon-menu ribbon-menu-${button.size}${split ? ' is-split' : ''}`}>
+    <div ref={wrapperRef} className={`ribbon-menu ribbon-menu-${button.size}${split ? ' is-split' : ''}`} onKeyDown={onWrapperKeyDown}>
       {split ? (
         <>
           <button type="button" className={`ribbon-button ribbon-button-${button.size}`} data-command={button.id} aria-label={button.label}
@@ -158,7 +162,7 @@ export function RibbonMenuButton({ items, split = false, ...button }: RibbonMenu
       )}
       {open && (
         <div ref={menuRef} role="menu" aria-label={button.label} className="ribbon-popover ribbon-dropdown"
-          onKeyDown={(event) => { onPopoverKeyDown(event); moveFocus(event, '[role="menuitem"]') }}>
+          onKeyDown={(event) => moveFocus(event, '[role="menuitem"]')}>
           {items.map(({ id, label, icon: Icon, disabled, onSelect }) => (
             <button key={id} type="button" role="menuitem" className="ribbon-dropdown-item" disabled={disabled}
               onClick={() => { close(true); onSelect() }}>
@@ -191,14 +195,14 @@ interface RibbonGalleryProps {
 export function RibbonGallery({ id, label, icon, items, onSelect }: RibbonGalleryProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const { open, setOpen, close, wrapperRef, onPopoverKeyDown } = usePopover(() => triggerRef.current?.focus())
+  const { open, setOpen, close, wrapperRef, onWrapperKeyDown } = usePopover(() => triggerRef.current?.focus())
   useEffect(() => {
     if (!open) return
     const list = listRef.current
     ;(list?.querySelector<HTMLElement>('[aria-selected="true"]') ?? list?.querySelector<HTMLElement>('[role="option"]'))?.focus()
   }, [open])
   return (
-    <div ref={wrapperRef} className="ribbon-menu ribbon-menu-large">
+    <div ref={wrapperRef} className="ribbon-menu ribbon-menu-large" onKeyDown={onWrapperKeyDown}>
       <button ref={triggerRef} type="button" className="ribbon-button ribbon-button-large" data-command={id} aria-label={label}
         aria-haspopup="listbox" aria-expanded={open} data-ribbon-tooltip={label}
         onKeyDown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true) } }}
@@ -208,7 +212,7 @@ export function RibbonGallery({ id, label, icon, items, onSelect }: RibbonGaller
       </button>
       {open && (
         <div ref={listRef} role="listbox" aria-label={label} className="ribbon-popover ribbon-gallery"
-          onKeyDown={(event) => { onPopoverKeyDown(event); moveFocus(event, '[role="option"]') }}>
+          onKeyDown={(event) => moveFocus(event, '[role="option"]')}>
           {items.map((item) => (
             <button key={item.id} type="button" role="option" aria-selected={Boolean(item.selected)} className="ribbon-gallery-item"
               onClick={() => { close(true); onSelect(item.id) }}>
@@ -234,7 +238,12 @@ interface RibbonGroupProps {
 
 export function RibbonGroup({ label, icon, collapsed = false, onLauncher, children }: RibbonGroupProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
-  const { open, setOpen, wrapperRef, onPopoverKeyDown } = usePopover(() => triggerRef.current?.focus())
+  const popoverRef = useRef<HTMLDivElement>(null)
+  const { open, setOpen, wrapperRef, onWrapperKeyDown } = usePopover(() => triggerRef.current?.focus())
+  // Opening a collapsed group moves focus to its first command, as a menu does.
+  useEffect(() => {
+    if (open) popoverRef.current?.querySelector<HTMLElement>('button:not(:disabled), input, select, [tabindex]:not([tabindex="-1"])')?.focus()
+  }, [open])
   const caption = (
     <div className="ribbon-group-caption">
       {label}
@@ -255,14 +264,16 @@ export function RibbonGroup({ label, icon, collapsed = false, onLauncher, childr
   }
   const Icon = icon ?? ChevronDown
   return (
-    <div ref={wrapperRef} className="ribbon-group is-collapsed" role="group" aria-label={label} data-collapsed="true">
-      <button ref={triggerRef} type="button" className="ribbon-button ribbon-button-large" aria-haspopup="true" aria-expanded={open}
-        data-ribbon-tooltip={label} onClick={() => setOpen(!open)}>
+    <div ref={wrapperRef} className="ribbon-group is-collapsed" role="group" aria-label={label} data-collapsed="true" onKeyDown={onWrapperKeyDown}>
+      <button ref={triggerRef} type="button" className="ribbon-button ribbon-button-large" aria-expanded={open}
+        data-ribbon-tooltip={label}
+        onKeyDown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true) } }}
+        onClick={() => setOpen(!open)}>
         <ButtonFace icon={Icon} label={label} size="large" />
         <ChevronDown size={10} aria-hidden="true" className="ribbon-menu-caret" />
       </button>
       {open && (
-        <div className="ribbon-popover ribbon-group-popover" onKeyDown={onPopoverKeyDown}>
+        <div ref={popoverRef} className="ribbon-popover ribbon-group-popover" role="group" aria-label={`${label} commands`}>
           <div className="ribbon-group-body">{children}</div>
           {caption}
         </div>

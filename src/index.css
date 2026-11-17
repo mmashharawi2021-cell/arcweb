@@ -217,7 +217,7 @@ button, input, select { font: inherit; }
    resolve each field's direction from its first strong character, like dir="auto". */
 input:not([type]), input[type="text"], input[type="search"], textarea { unicode-bidi: plaintext; }
 button { color: inherit; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 ::selection { background: rgba(var(--accent-rgb), 0.28); }
 
 /* Respect the user's motion preference: disable all non-essential animation. */

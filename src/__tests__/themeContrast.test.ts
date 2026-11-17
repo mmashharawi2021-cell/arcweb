@@ -49,3 +49,28 @@ describe('theme contrast', () => {
     expect(b).toBeGreaterThan(g)
   })
 })
+
+describe('focus indicators', () => {
+  const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
+  const rules = [...`${css}\n${appCss}`.matchAll(/([^{}]*:focus-visible[^{}]*)\{([^}]*)\}/g)].map((match) => ({ selector: match[1].trim(), body: match[2] }))
+
+  it('draws coloured focus outlines with --accent-text (3:1 against panels)', () => {
+    for (const { selector, body } of rules) {
+      const colour = body.match(/outline:\s*\d+px\s+solid\s+var\((--[\w-]+)\)/)
+      if (colour) expect(colour[1], selector).toBe('--accent-text')
+    }
+    for (const theme of ['dark', 'light'] as const) {
+      for (const background of ['--panel', '--panel-raised', '--bg']) {
+        expect(contrast(themes[theme]['--accent-text'], themes[theme][background]), `${theme} focus on ${background}`).toBeGreaterThanOrEqual(3)
+      }
+    }
+  })
+
+  it('gives ribbon menu and gallery items a visible focus outline', () => {
+    for (const item of ['.ribbon-dropdown-item', '.ribbon-gallery-item']) {
+      const focused = rules.filter(({ selector }) => selector.includes(`${item}:focus-visible`))
+      expect(focused.length, item).toBeGreaterThan(0)
+      expect(focused.some(({ body }) => /outline:\s*2px\s+solid\s+var\(--accent-text\)/.test(body)), item).toBe(true)
+    }
+  })
+})

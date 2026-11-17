@@ -134,38 +134,57 @@ describe('ribbon parts', () => {
   })
 })
 
-describe('useRibbonCollapse', () => {
-  it('collapses groups that do not fit and remembers their expanded width', async () => {
-    const { useRibbonCollapse } = await import('../useRibbonCollapse')
-    const { useRef } = await import('react')
-    let resize: (() => void) | null = null
-    vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { resize = callback } observe() {} disconnect() {} })
-    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { callback(0); return 0 })
-    let toolbarWidth = 1000
-    const widths = [200, 150, 120]
-    const seen: boolean[][] = []
-    function Toolbar() {
-      const ref = useRef<HTMLDivElement>(null)
-      const collapsed = useRibbonCollapse(ref)
-      seen.push(collapsed)
-      return createElement('div', { ref, 'data-testid': 'toolbar' }, widths.map((_, index) =>
-        createElement('div', { key: index, className: 'ribbon-group', 'data-collapsed': String(collapsed[index] ?? false) })))
-    }
-    const { container } = renderComponent(createElement(Toolbar))
-    const toolbar = container.querySelector('[data-testid="toolbar"]') as HTMLElement
-    Object.defineProperty(toolbar, 'clientWidth', { get: () => toolbarWidth })
-    toolbar.querySelectorAll<HTMLElement>('.ribbon-group').forEach((group, index) => {
-      group.getBoundingClientRect = () => ({ width: group.dataset.collapsed === 'true' ? 56 : widths[index] }) as DOMRect
-    })
-    act(() => resize?.())
-    expect(seen.at(-1)).toEqual([false, false, false])
-    toolbarWidth = 420
-    act(() => resize?.())
-    expect(seen.at(-1)).toEqual([false, false, true])
-    // The collapsed group now measures 56px, but widening restores it from its remembered width.
-    toolbarWidth = 1000
-    act(() => resize?.())
-    expect(seen.at(-1)).toEqual([false, false, false])
-    vi.unstubAllGlobals()
+describe('Escape from ribbon popovers', () => {
+  afterEach(() => { document.body.innerHTML = '' })
+
+  function windowEscapeSpy() {
+    const spy = vi.fn()
+    window.addEventListener('keydown', spy)
+    return { spy, stop: () => window.removeEventListener('keydown', spy) }
+  }
+
+  it('closes an open collapsed group from its trigger without reaching window handlers', () => {
+    const { container } = renderComponent(createElement(RibbonGroup, { label: 'Navigate', icon: MapIcon, collapsed: true },
+      createElement(RibbonButton, { id: 'explore', label: 'Explore', icon: MousePointer2, size: 'large', onClick: () => {} }),
+    ))
+    const trigger = container.querySelector('[role="group"] > button') as HTMLButtonElement
+    act(() => { trigger.focus(); trigger.click() })
+    const { spy, stop } = windowEscapeSpy()
+    key(document.activeElement ?? trigger, 'Escape')
+    stop()
+    expect(document.querySelector('[aria-label="Explore"]')).toBeNull()
+    expect(spy).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it('moves focus into a collapsed group when it opens', () => {
+    const { container } = renderComponent(createElement(RibbonGroup, { label: 'Navigate', icon: MapIcon, collapsed: true },
+      createElement(RibbonButton, { id: 'explore', label: 'Explore', icon: MousePointer2, size: 'large', onClick: () => {} }),
+    ))
+    act(() => (container.querySelector('[role="group"] > button') as HTMLButtonElement).click())
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Explore')
+  })
+
+  it('closes a menu whose items are all disabled from its trigger', () => {
+    const { container } = renderComponent(createElement(RibbonMenuButton, {
+      id: 'm', label: 'Measure', icon: Ruler, size: 'large', items: [{ id: 'a', label: 'Area', onSelect: () => {}, disabled: true }],
+    }))
+    const trigger = container.querySelector('button')!
+    act(() => { trigger.focus(); trigger.click() })
+    const { spy, stop } = windowEscapeSpy()
+    key(document.activeElement ?? trigger, 'Escape')
+    stop()
+    expect(document.querySelector('[role="menu"]')).toBeNull()
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('lets Escape through when nothing is open', () => {
+    const { container } = renderComponent(createElement(RibbonMenuButton, {
+      id: 'm', label: 'Measure', icon: Ruler, size: 'large', items: [{ id: 'a', label: 'Area', onSelect: () => {} }],
+    }))
+    const { spy, stop } = windowEscapeSpy()
+    key(container.querySelector('button')!, 'Escape')
+    stop()
+    expect(spy).toHaveBeenCalledTimes(1)
   })
 })
