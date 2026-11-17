@@ -1361,3 +1361,21 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
 .ribbon-groups > .ribbon-group:first-child { padding-left: 0; }
 .ribbon-stack { display: flex; flex-direction: column; justify-content: flex-start; gap: 0; padding-top: 1px; }
 .ribbon-stack .ribbon-button-small { justify-content: flex-start; }
+
+/* ── Go To XY (src/map/GoToXY.tsx) ─────────────────────────────────────────────────────── */
+.go-to-xy {
+  position: absolute; z-index: 6; top: 52px; left: 12px; width: 260px; padding: 8px 10px 10px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--text);
+  box-shadow: 0 6px 18px rgba(var(--shadow-rgb), .28);
+}
+.go-to-xy header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.go-to-xy header button { margin-left: auto; }
+.go-to-xy form { display: grid; gap: 8px; }
+.go-to-xy label { display: grid; gap: 3px; color: var(--text-secondary); font-size: 11px; }
+.go-to-xy input { height: 26px; padding: 0 7px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel-raised); color: var(--text); font: inherit; }
+.go-to-xy input[aria-invalid="true"] { border-color: var(--danger); }
+.go-to-xy-error { margin: 0; color: var(--danger); font-size: 11px; }
+.go-to-xy-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.map-flash { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--accent-text); animation: map-flash 1.6s ease-out forwards; pointer-events: none; }
+@keyframes map-flash { 0% { transform: scale(.4); opacity: 1; } 70% { opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .map-flash { animation: none; } }

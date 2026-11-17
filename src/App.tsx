@@ -68,6 +68,8 @@ import { useSketchTools } from './editing/useSketchTools'
 import { useMapInstance, type MapEvents } from './map/useMapInstance'
 import { useMapSync } from './map/useMapSync'
 import { useExtentHistory } from './map/useExtentHistory'
+import GoToXY, { type GoToAction } from './map/GoToXY'
+import { flashLocation } from './map/flashLocation'
 import { useMapClick, type IdentifyState } from './map/useMapClick'
 import { startUiSettingsSync } from './ui/uiSettingsSync'
 import './App.css'
@@ -115,6 +117,7 @@ function App() {
   const [selectionDialog, setSelectionDialog] = useState<'attributes' | 'location' | null>(null)
   const [bookmarkAnchor, setBookmarkAnchor] = useState<{ left: number; top: number } | null>(null)
   const [backstage, setBackstage] = useState<BackstageSection | null>(null)
+  const [goToXYOpen, setGoToXYOpen] = useState(false)
   const toastTimerRef = useRef<number | null>(null)
   const toolExecutionIdRef = useRef(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -756,6 +759,15 @@ function App() {
     else notify('No features found at this location.', 'warning')
   }, [notify, showIdentify])
 
+  const goToXY = useCallback((lngLat: [number, number], action: GoToAction) => {
+    const map = mapRef.current
+    if (!map) return
+    map.easeTo({ center: lngLat, duration: 600 })
+    if (action === 'flash') flashLocation(map, lngLat)
+    if (action === 'marker') addQuickMarker(lngLat)
+  }, [addQuickMarker])
+  const closeGoToXY = useCallback(() => setGoToXYOpen(false), [])
+
   const centerMapAt = useCallback((lngLat: [number, number]) => {
     mapRef.current?.easeTo({ center: lngLat, duration: 450 })
   }, [])
@@ -970,6 +982,7 @@ function App() {
             onClearSelection={clearSelection}
             onToggleMeasure={toggleMeasureTool}
             onOpenMapProperties={openMapProperties}
+            onGoToXY={() => setGoToXYOpen(true)}
           />
         ) : activeTab === 'Insert' ? (
           <InsertRibbon onAddData={openFilePicker} />
@@ -1056,6 +1069,7 @@ function App() {
           if (event.dataTransfer.files.length) void addFiles(event.dataTransfer.files)
         }}>
           <div className="map-host" ref={mapHostRef} />
+          {goToXYOpen && <GoToXY onGo={goToXY} onClose={closeGoToXY} />}
           {workspaceLayout.fullCanvas && <button className="full-canvas-exit" onClick={toggleFullCanvas}><X size={14} />Restore workspace</button>}
           {importingFile && <ImportProgress file={importingFile} onCancel={cancelImport} />}
           {toolExecutionProgress && <ToolProgress progress={toolExecutionProgress} />}
