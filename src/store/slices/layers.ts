@@ -101,6 +101,7 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
   restoreLayers: (layers) => {
     const normalized = layers.map((layer) => {
       const featureIds = new Set<string | number>()
+      let idsChanged = false
       const features = layer.data.features.map((feature, index) => {
         const originalId = feature.id ?? `${layer.id}:${index}`
         let uniqueId = originalId
@@ -110,6 +111,8 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
           suffix += 1
         }
         featureIds.add(uniqueId)
+        if (feature.id === uniqueId) return feature
+        idsChanged = true
         return { ...feature, id: uniqueId }
       })
       const strokeDash: StrokeDash = layer.strokeDash === 'dashed' || layer.strokeDash === 'dotted' ? layer.strokeDash : 'solid'
@@ -126,7 +129,7 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
         pointShape,
         labelStyle: normalizeLabelStyle(layer.labelStyle, layer),
         sourceCrs: layer.sourceCrs ?? 'EPSG:4326',
-        data: { ...layer.data, features },
+        data: idsChanged ? { ...layer.data, features } : layer.data,
       }
     })
     set({ layers: normalized, selectedLayerId: normalized[0]?.id ?? null, selectedFeature: null, selections: {}, editSnapshots: {}, undoStack: [], redoStack: [] })

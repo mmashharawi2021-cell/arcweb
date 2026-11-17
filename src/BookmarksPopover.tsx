@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Bookmark as BookmarkIcon, BookmarkPlus, Trash2 } from 'lucide-react'
 import type { Bookmark } from './store'
+import { useFadeExit } from './ui/useFadeExit'
 
 interface BookmarksPopoverProps {
   bookmarks: Bookmark[]
@@ -15,6 +16,7 @@ interface BookmarksPopoverProps {
 /** Spatial bookmarks: named camera extents to jump between study areas. */
 export default function BookmarksPopover({ bookmarks, anchor, onAdd, onGo, onRemove, onClose }: BookmarksPopoverProps) {
   const [name, setName] = useState('')
+  const fadeRef = useFadeExit<HTMLDivElement>()
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
@@ -32,7 +34,7 @@ export default function BookmarksPopover({ bookmarks, anchor, onAdd, onGo, onRem
   }
 
   return (
-    <div className="bookmarks-popover" role="dialog" aria-label="Bookmarks" style={{ left: anchor.left, top: anchor.top }} onPointerDown={(event) => event.stopPropagation()}>
+    <div ref={fadeRef} className="bookmarks-popover" role="dialog" aria-label="Bookmarks" style={{ left: anchor.left, top: anchor.top }} onPointerDown={(event) => event.stopPropagation()}>
       <div className="bookmarks-title"><BookmarkIcon size={13} /><strong>Bookmarks</strong><span>{bookmarks.length}</span></div>
       <div className="bookmarks-new">
         <input autoFocus value={name} placeholder="Name this view, e.g. Study area A" aria-label="Bookmark name" onChange={(event) => setName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') submit() }} />

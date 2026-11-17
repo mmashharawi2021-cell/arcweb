@@ -41,13 +41,39 @@ function properties(layer: MapLayer) {
   return layer.data.features.map((feature) => feature.properties ?? {})
 }
 
+const fieldCatalogs = new WeakMap<MapLayer['data'], { fields: string[]; numericFields: string[] }>()
+export function seedFieldCatalog(data: MapLayer['data'], catalog: { fields: string[]; numericFields: string[] }) {
+  fieldCatalogs.set(data, { fields: [...catalog.fields], numericFields: [...catalog.numericFields] })
+}
+
+function fieldCatalog(layer: MapLayer) {
+  const cached = fieldCatalogs.get(layer.data)
+  if (cached) return cached
+  const catalog = buildFieldCatalog(layer.data)
+  fieldCatalogs.set(layer.data, catalog)
+  return catalog
+}
+
+export function buildFieldCatalog(data: MapLayer['data']) {
+  const fields = new Set<string>()
+  const numeric = new Set<string>()
+  for (const feature of data.features) {
+    for (const [field, value] of Object.entries(feature.properties ?? {})) {
+      fields.add(field)
+      if (value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))) numeric.add(field)
+    }
+  }
+  const ordered = [...fields].sort((a, b) => a.localeCompare(b))
+  const catalog = { fields: ordered, numericFields: ordered.filter((field) => numeric.has(field)) }
+  return catalog
+}
+
 export function getFeatureFields(layer: MapLayer): string[] {
-  return [...new Set(properties(layer).flatMap((record) => Object.keys(record)))].sort((a, b) => a.localeCompare(b))
+  return [...fieldCatalog(layer).fields]
 }
 
 export function getNumericFields(layer: MapLayer): string[] {
-  return getFeatureFields(layer).filter((field) =>
-    properties(layer).some((record) => record[field] !== null && record[field] !== undefined && record[field] !== '' && Number.isFinite(Number(record[field]))))
+  return [...fieldCatalog(layer).numericFields]
 }
 
 export function getUniqueValueClasses(layer: MapLayer, field: string, renderer?: RendererConfig): LegendClass[] {

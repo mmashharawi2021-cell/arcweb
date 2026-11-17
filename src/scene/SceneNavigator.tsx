@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { Box, ChevronDown, ChevronUp, Compass, Mountain, Orbit, Plane, RotateCcw } from 'lucide-react'
+import { useInView } from '../ui/useInView'
 import type { MapLayer, SceneSettings } from '../store'
 import { isRasterLayer } from '../ribbon/contextualTabs'
 import { getNumericFields } from '../symbology'
@@ -31,6 +32,10 @@ export default function SceneNavigator({ map, settings, terrain, layers, selecte
   const [pitch, setPitch] = useState(() => Math.round(map.getPitch()))
   const [bearing, setBearing] = useState(() => Math.round(map.getBearing()))
   const [orbiting, setOrbiting] = useState(false)
+  // Scroll-in reveal for the navigator sections (compositor-only transform/opacity).
+  const [cameraRef, cameraVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [terrainRef, terrainVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [extrusionRef, extrusionVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
 
   useEffect(() => {
     const sync = () => {
@@ -83,7 +88,12 @@ export default function SceneNavigator({ map, settings, terrain, layers, selecte
       </button>
       {open && (
         <div className="scene-navigator-body">
-          <div className="scene-section-title">Camera</div>
+          <div
+            className={`scene-section-title ${cameraVisible ? 'is-visible' : ''}`}
+            ref={cameraRef}
+          >
+            Camera
+          </div>
           <label className="scene-slider">
             <span>Pitch</span>
             <input type="range" min={0} max={maxPitch} value={pitch} aria-label="Camera pitch" onChange={(event) => { setOrbiting(false); map.setPitch(Number(event.target.value)) }} />
@@ -103,7 +113,12 @@ export default function SceneNavigator({ map, settings, terrain, layers, selecte
             <button title={selectedLayer ? `Fly to ${selectedLayer.name}` : 'Select a layer to fly to it'} disabled={!selectedLayer || selectedLayer.geometry === 'Unknown'} onClick={() => { setOrbiting(false); if (selectedLayer) onFlyToLayer(selectedLayer) }}><Plane size={12} /></button>
           </div>
 
-          <div className="scene-section-title"><Mountain size={11} />Terrain</div>
+          <div
+            className={`scene-section-title ${terrainVisible ? 'is-visible' : ''}`}
+            ref={terrainRef}
+          >
+            <Mountain size={11} />Terrain
+          </div>
           <select
             aria-label="Terrain source"
             value={settings.terrain === 'layer' ? `layer:${settings.terrainLayerId ?? ''}` : settings.terrain}
@@ -132,7 +147,12 @@ export default function SceneNavigator({ map, settings, terrain, layers, selecte
           {terrain.range && <p className="scene-note">Elevation {terrain.range[0].toFixed(1)} – {terrain.range[1].toFixed(1)} m</p>}
           {settings.terrain === 'world' && <p className="scene-note">Global elevation tiles load from the internet, like the basemaps.</p>}
 
-          <div className="scene-section-title"><Box size={11} />Extrusion</div>
+          <div
+            className={`scene-section-title ${extrusionVisible ? 'is-visible' : ''}`}
+            ref={extrusionRef}
+          >
+            <Box size={11} />Extrusion
+          </div>
           {extrudable ? (
             <>
               <select
@@ -172,3 +192,4 @@ export default function SceneNavigator({ map, settings, terrain, layers, selecte
     </section>
   )
 }
+

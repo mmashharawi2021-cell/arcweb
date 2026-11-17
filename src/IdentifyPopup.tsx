@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import type { Feature } from 'geojson'
 import { ChevronLeft, ChevronRight, LocateFixed, SquareStack, Table2, X } from 'lucide-react'
 import type { MapLayer } from './store'
+import { useFadeExit } from './ui/useFadeExit'
 
 export interface IdentifyHit {
   layer: MapLayer
@@ -39,6 +40,7 @@ export default function IdentifyPopup({
   hits, index, position, location, selected, onIndexChange, onZoom, onOpenTable, onToggleSelected, onClose,
 }: IdentifyPopupProps) {
   const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const fadeRef = useFadeExit<HTMLElement>()
   const hit = hits[index]
   if (!hit) return null
   const properties = hit.feature.properties ?? {}
@@ -63,7 +65,7 @@ export default function IdentifyPopup({
   }
 
   return (
-    <aside className="identify-popup" role="dialog" aria-label={`Pop-up for ${title}`} style={{ left: position.x + offset.x, top: position.y + offset.y }}>
+    <aside ref={fadeRef} className="identify-popup" role="dialog" aria-label={`Pop-up for ${title}`} style={{ left: position.x + offset.x, top: position.y + offset.y }}>
       <header onPointerDown={beginDrag} title="Drag to move">
         <span className={`geometry-icon geometry-${hit.layer.geometry.toLowerCase()}`}><span className="identify-dot" /></span>
         <div><strong dir="auto" title={title}>{title}</strong><small dir="auto" title={hit.layer.name}>{hit.layer.name}</small></div>

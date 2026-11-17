@@ -87,6 +87,14 @@
   --drop-card-border: rgba(82, 209, 179, .32);
   --selection-row: rgba(64, 196, 255, .13);
   --selection-row-mark: #40c4ff;
+  /* Motion design system: compositor-only (transform/opacity) durations and easings. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-press: 150ms;
+  --dur-hover: 150ms;
+  --dur-fast: 200ms;
+  --dur-panel: 350ms;
+  --dur-modal: 300ms;
   /* Contextual ribbon tabs: Warm Sunset Peach for layer context, Blue Powder for editing. */
   --ctx-layer: #f4a261;
   --ctx-layer-text: #f6b483;
@@ -202,3 +210,17 @@ input:not([type]), input[type="text"], input[type="search"], textarea { unicode-
 button { color: inherit; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 ::selection { background: rgba(var(--accent-rgb), 0.28); }
+
+/* Respect the user's motion preference: disable all non-essential animation. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    animation-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

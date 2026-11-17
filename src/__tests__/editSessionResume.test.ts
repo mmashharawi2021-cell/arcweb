@@ -20,6 +20,24 @@ function reloadWith(current: FeatureCollection, snapshots: Record<string, Featur
 describe('resuming an edit session after a reload (audit regression)', () => {
   beforeEach(() => useArcWebStore.getState().clearSession())
 
+  it('retains immutable collection identity when stored feature IDs are already valid', () => {
+    const layer = createMapLayer('Wells', collection(1))
+    useArcWebStore.getState().restoreLayers([layer])
+    expect(useArcWebStore.getState().layers[0].data).toBe(layer.data)
+  })
+
+  it('replaces collection identity when repairing missing/duplicate IDs without changing input', () => {
+    const layer = createMapLayer('Wells', collection(1))
+    layer.data = { ...layer.data, features: [layer.data.features[0], { ...layer.data.features[0] }, { ...layer.data.features[0], id: undefined }] }
+    const original = structuredClone(layer.data)
+    useArcWebStore.getState().restoreLayers([layer])
+    const restored = useArcWebStore.getState().layers[0].data
+    expect(restored).not.toBe(layer.data)
+    expect(new Set(restored.features.map(feature => feature.id)).size).toBe(3)
+    expect(restored.features.every(feature => feature.id !== undefined)).toBe(true)
+    expect(layer.data).toEqual(original)
+  })
+
   it('keeps unsaved edits discardable instead of silently committing them', () => {
     const state = reloadWith(collection(2), { L1: collection(1) }, 'L1')
     expect(hasPendingEdits(state.layers, state.editSnapshots)).toBe(true)

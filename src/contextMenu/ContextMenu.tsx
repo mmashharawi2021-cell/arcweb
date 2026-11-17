@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { clampMenuPosition, stepMenuFocus, type MenuEntry, type Point } from './menuModel'
+import { useFadeExit } from '../ui/useFadeExit'
 
 interface ContextMenuProps {
   /** Pointer position in viewport (client) coordinates. */
@@ -19,6 +20,7 @@ interface ContextMenuProps {
  */
 export default function ContextMenu({ anchor, entries, label, onSelect, onClose }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
+  const fadeRef = useFadeExit(menuRef)
   const [position, setPosition] = useState<Point | null>(null)
   const [focusIndex, setFocusIndex] = useState(() => stepMenuFocus(entries, -1, 1))
 
@@ -82,7 +84,7 @@ export default function ContextMenu({ anchor, entries, label, onSelect, onClose 
 
   return (
     <div
-      ref={menuRef}
+      ref={fadeRef}
       className="context-menu"
       role="menu"
       aria-label={label}

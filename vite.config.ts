@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
+import { createHash } from 'node:crypto'
 
 /**
  * Vendor chunks. Vite 8 bundles with Rolldown, where `output.codeSplitting.groups`
@@ -20,7 +21,30 @@ const vendorChunks = [
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  server: { host: '127.0.0.1', port: 5173, strictPort: true },
+  preview: { host: '127.0.0.1', port: 4173, strictPort: true },
+  plugins: [react(), tailwindcss(), {
+    name: 'arcweb-offline-shell',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      const files = [...new Set(['index.html', ...Object.keys(bundle).filter(name => /\.(?:html|js|mjs|css|svg|woff2?)$/.test(name))])]
+      const version = createHash('sha256').update(files.sort().join('|')).digest('hex').slice(0, 16)
+      this.emitFile({ type: 'asset', fileName: 'sw.js', source: `
+const CACHE = 'arcweb-app-${version}';
+const FILES = ${JSON.stringify([...files, 'favicon.svg'])};
+self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(file => new URL(file, self.registration.scope).href))).then(() => self.skipWaiting())));
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
+  const relative = event.request.url.slice(self.registration.scope.length).split('?')[0];
+  if (event.request.mode !== 'navigate' && !FILES.includes(relative)) return;
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(() => caches.open(CACHE).then(cache => cache.match(new URL('index.html', self.registration.scope).href))));
+  } else event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+});
+` })
+    },
+  }],
   build: {
     // MapLibre GL is a single ~1 MB library that cannot be split further; every other
     // chunk stays well below Vite's default 500 kB advisory limit.

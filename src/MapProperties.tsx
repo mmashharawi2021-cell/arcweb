@@ -7,6 +7,7 @@ import {
 import { trapTabKey, useRestoreFocus } from './a11y/modalFocus'
 import { getCollectionBounds } from './geo'
 import type { MapLayer } from './store'
+import { useFadeExit } from './ui/useFadeExit'
 
 export interface MapViewInfo {
   center: [number, number]
@@ -42,6 +43,7 @@ function projectedExtent(layer: MapLayer, code: string): string {
 
 export default function MapProperties({ name, layers, displayCrs, view, onChangeDisplayCrs, onClose }: MapPropertiesProps) {
   const [tab, setTab] = useState<Tab>('crs')
+  const fadeRef = useFadeExit<HTMLDivElement>()
   const [query, setQuery] = useState('')
   useRestoreFocus()
   const current = requireCrs(displayCrs)
@@ -63,7 +65,7 @@ export default function MapProperties({ name, layers, displayCrs, view, onChange
   const centerOutside = view ? !isInsideAreaOfUse(current, view.center[0], view.center[1]) : false
 
   return (
-    <div className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <div ref={fadeRef} className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <section className="modal map-properties" role="dialog" aria-modal="true" aria-label="Map Properties" onKeyDown={trapTabKey}>
         <header className="modal-header">
           <div><Settings2 size={15} /><strong>Map Properties</strong><span>{name}</span></div>

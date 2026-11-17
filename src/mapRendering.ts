@@ -3,18 +3,41 @@ import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
 import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { FeatureId, FeatureSelection, MapLayer, RendererConfig } from './store'
 import { labelTextExpression } from './symbology'
+import { prepareMapSourceData, type MapSourceData } from './mapSourceData'
 
 const sourceDataSnapshots = new WeakMap<MapLibreMap, Map<string, FeatureCollection>>()
 const renderFeatureIdProperty = '__arcweb_feature_id'
 
-function getRenderableData(data: FeatureCollection): FeatureCollection {
-  return {
-    ...data,
-    features: data.features.filter((feature) => feature.geometry !== null).map((feature) => ({
-      ...feature,
-      properties: { ...(feature.properties ?? {}), [renderFeatureIdProperty]: feature.id ?? '' },
-    })),
+const sourceResources = new WeakMap<MapLibreMap, {
+  current: Map<string, { original: FeatureCollection; prepared: MapSourceData }>
+  retired: Map<MapSourceData, string>
+}>()
+
+function sourceData(map: MapLibreMap, sourceId: string, data: FeatureCollection) {
+  let resources = sourceResources.get(map)
+  if (!resources) {
+    resources = { current: new Map(), retired: new Map() }
+    sourceResources.set(map, resources)
+    const owned = resources
+    map.once('remove', () => {
+      for (const item of owned.current.values()) item.prepared.dispose()
+      for (const item of owned.retired.keys()) item.dispose()
+      owned.current.clear()
+      owned.retired.clear()
+    })
   }
+  const previous = resources.current.get(sourceId)
+  if (previous?.original === data) return previous.prepared.data
+  const prepared = prepareMapSourceData(data)
+  resources.current.set(sourceId, { original: data, prepared })
+  if (previous) {
+    const retired = previous.prepared
+    // Keep old URLs alive until queued worker loads finish, including rapid edits.
+    resources.retired.set(retired, sourceId)
+    const owned = resources
+    map.once('idle', () => { retired.dispose(); owned.retired.delete(retired) })
+  }
+  return prepared.data
 }
 
 function hasRenderableGeometry(layer: MapLayer): boolean {
@@ -189,7 +212,7 @@ function addLayerSourcesAndStyles(map: MapLibreMap, layer: MapLayer, sceneView: 
   const ids = getLayerIds(layer.id)
   map.addSource(ids.source, {
     type: 'geojson',
-    data: getRenderableData(layer.data),
+    data: sourceData(map, ids.source, layer.data),
     promoteId: renderFeatureIdProperty,
   })
   map.addLayer({
@@ -342,6 +365,16 @@ export function syncMapLayers(map: MapLibreMap, layers: MapLayer[], sceneView = 
   const snapshots = sourceDataSnapshots.get(map) ?? new Map<string, FeatureCollection>()
   sourceDataSnapshots.set(map, snapshots)
   const activeIds = new Set(layers.filter(hasRenderableGeometry).map((layer) => getLayerIds(layer.id).source))
+  // setStyle can already have removed these sources; ownership must be swept
+  // independently of the current MapLibre style to release removed layer data.
+  const resources = sourceResources.get(map)
+  for (const [sourceId, resource] of resources?.current ?? []) {
+    if (!activeIds.has(sourceId)) { resource.prepared.dispose(); resources?.current.delete(sourceId) }
+  }
+  for (const [resource, sourceId] of resources?.retired ?? []) {
+    if (!activeIds.has(sourceId)) { resource.dispose(); resources?.retired.delete(resource) }
+  }
+  for (const sourceId of snapshots.keys()) if (!activeIds.has(sourceId)) snapshots.delete(sourceId)
 
   for (const styleLayer of map.getStyle().layers ?? []) {
     if (styleLayer.id.startsWith('aw-layer-') && !layers.some((layer) => Object.values(getLayerIds(layer.id)).includes(styleLayer.id))) {
@@ -369,7 +402,7 @@ export function syncMapLayers(map: MapLibreMap, layers: MapLayer[], sceneView = 
       snapshots.set(ids.source, layer.data)
     } else {
       if (snapshots.get(ids.source) !== layer.data) {
-        ;(map.getSource(ids.source) as GeoJSONSource).setData(getRenderableData(layer.data))
+        ;(map.getSource(ids.source) as GeoJSONSource).setData(sourceData(map, ids.source, layer.data))
         snapshots.set(ids.source, layer.data)
       }
       if (!map.getLayer(ids.fill) || !map.getLayer(ids.line) || !map.getLayer(ids.point) || (hasPointFeatures(layer) && !map.getLayer(ids.pointMarker))) {

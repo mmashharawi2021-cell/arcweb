@@ -12,6 +12,7 @@ import {
 } from './layoutStore'
 import { PAPER_SIZES } from './paper'
 import { LAYOUT_TEMPLATES, type LayoutTemplateId } from './templates'
+import { useInView } from '../ui/useInView'
 
 /** Clickable list of dynamic-text tokens; clicking one appends it to the field being edited. */
 function TokenHelp({ onInsert }: { onInsert: (token: string) => void }) {
@@ -177,6 +178,13 @@ export default function LayoutPanel({ viewMode, exporting, onSetViewMode, onInse
   const canUndoTemplate = useLayoutStore((state) => state.previousElements !== null)
   const sheet = pageSize(paper, orientation)
   const exportPlan = effectiveExportDpi(sheet.width, sheet.height, dpi)
+  // Scroll-in reveal for layout panel sections (compositor-only transform/opacity).
+  const [viewSwitchRef, viewSwitchVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [pageSetupRef, pageSetupVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [templateListRef, templateListVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [templateActionsRef, templateActionsVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [drawToolsRef, drawToolsVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
+  const [toolHintRef, toolHintVisible] = useInView<HTMLDivElement>({ threshold: 0.2 })
 
   return (
     <div className="phase-panel layout-panel">
@@ -185,13 +193,19 @@ export default function LayoutPanel({ viewMode, exporting, onSetViewMode, onInse
         <div><strong>Print layout</strong><span>Compose a map sheet for export</span></div>
       </header>
       <div className="phase-panel-body">
-        <div className="layout-view-switch">
+        <div
+          className={`layout-view-switch arcweb-reveal ${viewSwitchVisible ? 'is-visible' : ''}`}
+          ref={viewSwitchRef}
+        >
           <button className={viewMode === 'map' ? 'active' : ''} onClick={() => onSetViewMode('map')}><MapIcon size={13} />Map view</button>
           <button className={viewMode === 'layout' ? 'active' : ''} onClick={() => onSetViewMode('layout')}><LayoutTemplate size={13} />Layout view</button>
         </div>
 
         <div className="phase-section-title layout-section">Page setup</div>
-        <div className="layout-field-grid">
+        <div
+          className={`layout-field-grid arcweb-reveal ${pageSetupVisible ? 'is-visible' : ''}`}
+          ref={pageSetupRef}
+        >
           <label className="layout-number-field"><span>Paper</span>
             <select value={paper} onChange={(event) => useLayoutStore.getState().setPage(event.target.value as PaperSize, orientation)}>
               {PAPER_SIZES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
@@ -206,7 +220,12 @@ export default function LayoutPanel({ viewMode, exporting, onSetViewMode, onInse
         </div>
 
         <div className="phase-section-title layout-section">Template</div>
-        <div className="layout-template-list" role="radiogroup" aria-label="Layout templates">
+        <div
+          className={`layout-template-list arcweb-reveal ${templateListVisible ? 'is-visible' : ''}`}
+          ref={templateListRef}
+          role="radiogroup"
+          aria-label="Layout templates"
+        >
           {LAYOUT_TEMPLATES.map((item) => (
             <button key={item.id} role="radio" aria-checked={template === item.id} className={template === item.id ? 'active' : ''} title={item.description} onClick={() => setTemplate(item.id)}>
               <span className={`layout-template-thumb thumb-${item.id}`} aria-hidden="true"><i /><i /><i /></span>
@@ -214,13 +233,19 @@ export default function LayoutPanel({ viewMode, exporting, onSetViewMode, onInse
             </button>
           ))}
         </div>
-        <div className="layout-template-actions">
+        <div
+          className={`layout-template-actions arcweb-reveal ${templateActionsVisible ? 'is-visible' : ''}`}
+          ref={templateActionsRef}
+        >
           <button className="phase-secondary-button" title="Replace the sheet with this template (you can undo once)" onClick={() => useLayoutStore.getState().applyTemplate(template)}><LayoutTemplate size={13} />Apply template</button>
           {canUndoTemplate && <button className="phase-secondary-button" title="Bring back the elements from before the last template" onClick={() => useLayoutStore.getState().undoTemplate()}><Undo2 size={13} />Undo</button>}
         </div>
 
         <div className="phase-section-title layout-section">Insert map elements</div>
-        <div className="draw-tool-grid">
+        <div
+          className={`draw-tool-grid arcweb-reveal ${drawToolsVisible ? 'is-visible' : ''}`}
+          ref={drawToolsRef}
+        >
           {insertableElements.map(({ type, icon: Icon }) => (
             <button key={type} onClick={() => onInsert(type)} title={type === 'map' && hasMapFrame ? 'Select the existing map frame' : `Insert ${elementLabels[type].toLowerCase()}`}>
               <Icon size={15} />{elementLabels[type]}
@@ -231,7 +256,10 @@ export default function LayoutPanel({ viewMode, exporting, onSetViewMode, onInse
         <div className="phase-panel-separator" />
         {selected && viewMode === 'layout'
           ? <ElementProperties key={selected.id} element={selected} />
-          : <div className="tool-hint"><LayoutTemplate size={13} /><span>{viewMode === 'layout' ? 'Click an element on the sheet to edit it. Drag to move, use the handles to resize, arrow keys to nudge, Delete to remove. Hold Alt to disable 1 mm snapping.' : 'Switch to Layout view to arrange the map frame, title, legend, north arrow and scale bar on the page.'}</span></div>}
+          : <div
+            className={`tool-hint arcweb-reveal ${toolHintVisible ? 'is-visible' : ''}`}
+            ref={toolHintRef}
+          ><LayoutTemplate size={13} /><span>{viewMode === 'layout' ? 'Click an element on the sheet to edit it. Drag to move, use the handles to resize, arrow keys to nudge, Delete to remove. Hold Alt to disable 1 mm snapping.' : 'Switch to Layout view to arrange the map frame, title, legend, north arrow and scale bar on the page.'}</span></div>}
 
         <div className="phase-panel-separator" />
         <div className="phase-section-title">Export layout</div>

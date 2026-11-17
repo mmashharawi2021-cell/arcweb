@@ -10,17 +10,20 @@ export type WorkerReply<R> =
   | { kind: 'progress'; current: number; total: number; message: string }
   | { kind: 'result'; value: R }
   | { kind: 'error'; message: string }
+  | { kind: 'chunk'; value: unknown }
 
 export interface RunInWorkerOptions {
   signal?: AbortSignal
   onProgress?: (progress: { current: number; total: number; message: string }) => void
+  /** Optional backpressured transport; acknowledged only after the consumer accepts it. */
+  onChunk?: (value: unknown) => void
 }
 
 const cancelled = () => new DOMException('Cancelled by user.', 'AbortError')
 
 /** Runs one request in a fresh worker; the worker is always terminated when the call settles. */
 export function runInWorker<Q, R>(createWorker: () => WorkerLike, request: Q, options: RunInWorkerOptions = {}): Promise<R> {
-  const { signal, onProgress } = options
+  const { signal, onProgress, onChunk } = options
   if (signal?.aborted) return Promise.reject(cancelled())
   return new Promise<R>((resolve, reject) => {
     const worker = createWorker()
@@ -44,7 +47,12 @@ export function runInWorker<Q, R>(createWorker: () => WorkerLike, request: Q, op
       // Worker data is untyped: validate the discriminant, then narrow with casts below.
       const reply: unknown = event.data
       const kind = typeof reply === 'object' && reply !== null ? (reply as { kind?: unknown }).kind : undefined
-      if (kind === 'progress') {
+      if (kind === 'chunk' && onChunk) {
+        try {
+          onChunk((reply as { value: unknown }).value)
+          if (!settled) worker.postMessage({ kind: 'ack' })
+        } catch (error) { settle(() => reject(error instanceof Error ? error : new Error(String(error)))) }
+      } else if (kind === 'progress') {
         const progress = reply as Extract<WorkerReply<R>, { kind: 'progress' }>
         onProgress?.({ current: progress.current, total: progress.total, message: progress.message })
       } else if (kind === 'result') settle(() => resolve((reply as Extract<WorkerReply<R>, { kind: 'result' }>).value))

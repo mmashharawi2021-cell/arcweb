@@ -2,8 +2,8 @@ import { Children, cloneElement, isValidElement, useCallback, useEffect, useMemo
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactElement, ReactNode } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
-import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
-import { coordinateReadout, crsLabel, getCrs, requireCrs, scaleDenominator, utmCodeFor, WGS84 } from './crs'
+import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
+import { coordinateReadout, crsLabel, requireCrs, scaleDenominator, utmCodeFor, WGS84 } from './crs'
 import {
   AreaChart, ArrowDown, ArrowUp, Check, ChevronDown, Circle, CloudUpload, Compass,
   Database, Eye, EyeOff, FilePlus2, Focus, FolderOpen, Layers3, LocateFixed, Map as MapIcon,
@@ -11,7 +11,6 @@ import {
   Sun, Sparkles, Table2, Trash2, Triangle, Upload, X, FileImage, FileText, Globe2, LayoutTemplate, Box, Move,
   Bookmark as BookmarkIcon, Eraser, ListFilter, Save, ScanSearch, SquareDashedMousePointer,
 } from 'lucide-react'
-import { del, get, set } from 'idb-keyval'
 import type { Feature, FeatureCollection, Geometry, Position } from 'geojson'
 import AttributeTable from './AttributeTable'
 import DockablePanel from './DockablePanel'
@@ -20,9 +19,19 @@ import { calculateField } from './fieldCalculator'
 import { createMapLayer, getCollectionBounds, readGeospatialFile } from './geo'
 import { rasterToFeatureCollection } from './rasterEngine'
 import { runInWorker, type WorkerLike } from './workers/runInWorker'
+import { useProjectLibrary } from './storage/useProjectLibrary'
+import type { WorkspaceSnapshot } from './storage/projectRepository'
+import ProjectLibraryDialog from './storage/ProjectLibraryDialog'
+import { putAsset } from './storage/assets'
+import { offlineStyle, registerOfflineProtocol, type OfflineBasemap } from './storage/offlineBasemap'
+import { useFadeExit } from './ui/useFadeExit'
+import { useContentFade } from './ui/useContentFade'
+import { selectToolInputLayers } from './workers/toolInputs'
 import type { ToolRequest } from './workers/toolProtocol'
 import { needsMainThread } from './workers/importHandler'
-import type { ImportRequest, ImportResult } from './workers/importProtocol'
+import type { ImportResult } from './workers/importProtocol'
+import { importInWorker } from './workers/importTransport'
+import { seedMapSourceBlob } from './mapSourceData'
 import { exportLayer, exportMapCanvas } from './exportData'
 import { EditPanel, SharePanel } from './PhasePanels'
 import MapProperties, { type MapViewInfo } from './MapProperties'
@@ -30,7 +39,7 @@ import { exportLayoutSheet, type LayoutExportFormat } from './layout/exportLayou
 import { insertableElements } from './layout/catalog'
 import LayoutPanel from './layout/LayoutPanel'
 import LayoutView from './layout/LayoutView'
-import { elementLabels, pageSize, useLayoutStore, type LayoutDocument, type LayoutElementType } from './layout/layoutStore'
+import { elementLabels, pageSize, useLayoutStore, type LayoutElementType } from './layout/layoutStore'
 import {
   ensureMapOverlays, geometryBounds, getLayerIds, getRenderedFeatureLayerIds,
   setMeasureOverlay, setSelectionOverlay, setSketchOverlay, syncMapLayers,
@@ -56,11 +65,11 @@ import { EditSessionRibbon, FeatureLayerRibbon, RasterLayerRibbon } from './ribb
 import BookmarksPopover from './BookmarksPopover'
 import IdentifyPopup, { type IdentifyHit } from './IdentifyPopup'
 import {
-  buildProject, isProjectFile, parseAnalysisHistory, parseProject, parseSceneSettings, parseTableViews, projectFileName, type ArcWebProject,
+  buildProject, isProjectFile, parseProject, projectFileName, type ArcWebProject,
 } from './project'
 import { applyWorkspacePreset, normalizeWorkspaceLayout } from './workspaceLayout'
 import type { PanelFrame, WorkspacePanelId, WorkspacePreset } from './workspaceLayout'
-import { getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses } from './symbology'
+import { getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses, seedFieldCatalog } from './symbology'
 import { trapTabKey } from './a11y/modalFocus'
 import { SelectByAttributesDialog, SelectByLocationDialog } from './selection/SelectionDialogs'
 import ToolboxPanel from './toolboxes/ToolboxPanel'
@@ -72,22 +81,10 @@ import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
+registerOfflineProtocol()
 
-const STORAGE_KEY = 'arcweb-session-v1'
-/** Pre-edit snapshots of layers with unsaved edits, so a reload resumes the edit session instead of silently committing it. */
-const EDIT_SESSION_KEY = 'arcweb-edit-session-v1'
-const SETTINGS_KEY = 'arcweb-settings-v1'
 const WORKSPACE_LAYOUT_STORAGE_KEY = 'arcweb-workspace-layout-v1'
 
-interface SavedSettings {
-  displayCrs?: string
-  layout?: LayoutDocument
-  bookmarks?: Bookmark[]
-  projectName?: string
-  sceneSettings?: unknown
-  analysisHistory?: unknown
-  tableViews?: unknown
-}
 
 /** Features identified by the last Explore click and where to float their pop-up. */
 interface IdentifyState {
@@ -353,7 +350,6 @@ function App() {
   const mapHostRef = useRef<HTMLDivElement>(null)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const layoutPageRef = useRef<HTMLDivElement>(null)
-  const settingsHydratedRef = useRef(false)
   const workspaceHydratedRef = useRef(false)
   const skipWorkspacePersistRef = useRef(false)
   const projectInputRef = useRef<HTMLInputElement>(null)
@@ -362,15 +358,22 @@ function App() {
   const [selectionDialog, setSelectionDialog] = useState<'attributes' | 'location' | null>(null)
   const [bookmarkAnchor, setBookmarkAnchor] = useState<{ left: number; top: number } | null>(null)
   const [pendingProject, setPendingProject] = useState<ArcWebProject | null>(null)
-  const hydratedRef = useRef(false)
+  const [libraryOpen, setLibraryOpen] = useState(false)
+  const [offlineBasemap, setOfflineBasemap] = useState<OfflineBasemap>()
+  const offlineBasemapRef = useRef<OfflineBasemap | undefined>(undefined)
+  const sourceAssetsRef = useRef<string[]>([])
   const toastTimerRef = useRef<number | null>(null)
   const toolExecutionIdRef = useRef(0)
-  const previousBasemapRef = useRef<BasemapId>('osm')
+  const previousBasemapRef = useRef<string | null>(null)
+  const [projectStorageReady, setProjectStorageReady] = useState(false)
   const measurePointsRef = useRef<[number, number][]>([])
   const sketchPointsRef = useRef<[number, number][]>([])
   const movingVertexRef = useRef<{ layerId: string; featureId: string | number; path: number[] } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' | 'warning' } | null>(null)
+  const toastFadeRef = useFadeExit<HTMLDivElement>()
+  const removeFadeRef = useFadeExit<HTMLDivElement>()
+  const projectFadeRef = useFadeExit<HTMLDivElement>()
   const [cursor, setCursor] = useState<[number, number] | null>(null)
   const [measurePoints, setMeasurePoints] = useState<[number, number][]>([])
   const [sketchPoints, setSketchPoints] = useState<[number, number][]>([])
@@ -402,13 +405,13 @@ function App() {
   const basemap = useArcWebStore((state) => state.basemap)
   const theme = useArcWebStore((state) => state.theme)
   const activeTab = useArcWebStore((state) => state.activeTab)
+  const contentFadeRef = useContentFade(activeTab)
   const tool = useArcWebStore((state) => state.tool)
   const displayCrs = useArcWebStore((state) => state.displayCrs)
   const viewMode = useArcWebStore((state) => state.viewMode)
   const mapPropertiesOpen = useArcWebStore((state) => state.mapPropertiesOpen)
   const layoutPaper = useLayoutStore((state) => state.paper)
   const layoutOrientation = useLayoutStore((state) => state.orientation)
-  const layoutElements = useLayoutStore((state) => state.elements)
   const tableHeight = workspaceLayout.panels.attributeTable.frame.height
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId) ?? null
   const selectedFeatureIsEditable = Boolean(
@@ -526,44 +529,6 @@ function App() {
   }, [theme])
 
   useEffect(() => {
-    let active = true
-    void Promise.all([get<MapLayer[]>(STORAGE_KEY), get<Record<string, FeatureCollection>>(EDIT_SESSION_KEY)]).then(([saved, snapshots]) => {
-      if (!active) return
-      if (saved?.length) {
-        const state = useArcWebStore.getState()
-        state.restoreLayers(saved)
-        if (snapshots && typeof snapshots === 'object') {
-          state.restoreEditSnapshots(snapshots)
-          const resumed = Object.keys(useArcWebStore.getState().editSnapshots)
-            .map((layerId) => useArcWebStore.getState().layers.find((layer) => layer.id === layerId)?.name)
-            .filter((name): name is string => Boolean(name)).map((name) => isolate(name))
-          if (resumed.length) notify(`Resumed your edit session: unsaved edits in ${resumed.join(', ')}. Save or Discard them from the Edit Tools tab.`, 'warning')
-        }
-        adoptRibbonContext()
-      }
-      hydratedRef.current = true
-    }).catch((error: unknown) => {
-      if (active) {
-        hydratedRef.current = true
-        notify(`Could not restore the saved workspace: ${error instanceof Error ? error.message : 'IndexedDB error'}`, 'error')
-      }
-    })
-    return () => { active = false }
-  }, [notify, adoptRibbonContext])
-
-  useEffect(() => {
-    if (!hydratedRef.current) return
-    void set(STORAGE_KEY, layers).catch((error: unknown) => {
-      notify(`Could not save this workspace locally: ${error instanceof Error ? error.message : 'IndexedDB error'}`, 'error')
-    })
-  }, [layers, notify])
-
-  useEffect(() => {
-    if (!hydratedRef.current) return
-    void set(EDIT_SESSION_KEY, editSnapshots).catch(() => undefined)
-  }, [editSnapshots])
-
-  useEffect(() => {
     let restored = false
     try {
       const saved = window.localStorage.getItem(WORKSPACE_LAYOUT_STORAGE_KEY)
@@ -598,41 +563,6 @@ function App() {
       useArcWebStore.getState().setViewMode('layout')
     }
   }, [workspaceLayout.preset])
-
-  // Map settings (display coordinate system and print layout) persist separately from the layer data.
-  useEffect(() => {
-    let active = true
-    void get<SavedSettings>(SETTINGS_KEY).then((saved) => {
-      if (!active) return
-      if (saved?.displayCrs && getCrs(saved.displayCrs)) useArcWebStore.getState().setDisplayCrs(saved.displayCrs)
-      if (saved?.layout) useLayoutStore.getState().restore(saved.layout)
-      if (Array.isArray(saved?.bookmarks)) useArcWebStore.getState().setBookmarks(saved.bookmarks)
-      if (saved?.projectName) useArcWebStore.getState().setProjectName(saved.projectName)
-      // Validated like a project file, since browser storage can hold data from an older ArcWeb.
-      const state = useArcWebStore.getState()
-      if (saved?.sceneSettings) state.setSceneSettings(parseSceneSettings(saved.sceneSettings))
-      if (saved?.analysisHistory) state.setAnalysisHistory(parseAnalysisHistory(saved.analysisHistory))
-      if (saved?.tableViews) state.setTableViews(parseTableViews(saved.tableViews, new Set(Object.keys(saved.tableViews as object))))
-    }).catch(() => undefined).finally(() => {
-      if (active) settingsHydratedRef.current = true
-    })
-    return () => { active = false }
-  }, [])
-
-  useEffect(() => {
-    if (!settingsHydratedRef.current) return
-    const settings: SavedSettings = {
-      displayCrs,
-      layout: { paper: layoutPaper, orientation: layoutOrientation, elements: layoutElements },
-      bookmarks,
-      projectName,
-      sceneSettings,
-      analysisHistory,
-      tableViews,
-    }
-    void set(SETTINGS_KEY, settings).catch(() => undefined)
-  }, [displayCrs, layoutPaper, layoutOrientation, layoutElements, bookmarks, projectName, sceneSettings, analysisHistory, tableViews])
-
 
   const updateMeasure = useCallback((map: MapLibreMap, points: [number, number][], mode: 'distance' | 'area' | 'pan') => {
     const features: Feature<Geometry>[] = points.map((coordinates) => ({
@@ -823,7 +753,7 @@ function App() {
     mapContainerRef.current = container
     const map = new maplibregl.Map({
       container,
-      style: baseStyle('osm'),
+      style: { version: 8, sources: {}, layers: [{ id: 'initial-background', type: 'background', paint: { 'background-color': '#19242b' } }] },
       center: [-98, 39],
       zoom: 3.15,
       attributionControl: false,
@@ -910,20 +840,26 @@ function App() {
     const workspace = workspaceRef.current
     const map = mapRef.current
     if (!workspace || !map || !mapLoaded) return
-    const resizeMap = () => { window.requestAnimationFrame(() => map.resize()) }
+    let frame: number | null = null
+    const resizeMap = () => {
+      if (frame !== null) return
+      frame = window.requestAnimationFrame(() => { frame = null; map.resize() })
+    }
+    const cancelResize = () => { if (frame !== null) window.cancelAnimationFrame(frame) }
     if (typeof ResizeObserver === 'undefined') {
       window.addEventListener('resize', resizeMap)
-      return () => window.removeEventListener('resize', resizeMap)
+      return () => { window.removeEventListener('resize', resizeMap); cancelResize() }
     }
     const observer = new ResizeObserver(resizeMap)
     observer.observe(workspace)
-    return () => observer.disconnect()
+    return () => { observer.disconnect(); cancelResize() }
   }, [mapLoaded])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapLoaded || previousBasemapRef.current === basemap) return
-    previousBasemapRef.current = basemap
+    const key = offlineBasemap?.assetId ?? basemap
+    if (!map || !mapLoaded || !projectStorageReady || previousBasemapRef.current === key) return
+    previousBasemapRef.current = key
     const onStyleReady = () => {
       window.requestAnimationFrame(() => {
         if (!map.isStyleLoaded()) {
@@ -938,8 +874,8 @@ function App() {
       })
     }
     map.once('style.load', onStyleReady)
-    map.setStyle(baseStyle(basemap))
-  }, [basemap, mapLoaded, updateMeasure, updateSketch])
+    map.setStyle(offlineBasemap ? offlineStyle(offlineBasemap) : baseStyle(basemap))
+  }, [basemap, offlineBasemap, projectStorageReady, mapLoaded, updateMeasure, updateSketch])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1010,7 +946,7 @@ function App() {
   }, [tool, mapLoaded, updateMeasure, updateSketch])
 
   /** Replaces the whole workspace with the contents of a project file. */
-  const applyProject = useCallback((project: ArcWebProject) => {
+  const restoreProject = useCallback((project: ArcWebProject, announce = true) => {
     const state = useArcWebStore.getState()
     state.restoreLayers(project.layers)
     state.setBasemap(project.map.basemap)
@@ -1040,8 +976,50 @@ function App() {
     setPendingProject(null)
     const camera = project.map.camera
     if (camera) mapRef.current?.jumpTo(camera)
-    notify(`Opened project “${isolate(project.name)}” — ${project.layers.length} layer${project.layers.length === 1 ? '' : 's'}, ${project.layout.elements.length} layout elements, ${project.map.bookmarks.length} bookmark${project.map.bookmarks.length === 1 ? '' : 's'}.`)
+    if (announce) notify(`Opened project “${isolate(project.name)}” — ${project.layers.length} layer${project.layers.length === 1 ? '' : 's'}, ${project.layout.elements.length} layout elements, ${project.map.bookmarks.length} bookmark${project.map.bookmarks.length === 1 ? '' : 's'}.`)
   }, [notify, adoptRibbonContext])
+
+  const captureWorkspace = useCallback((): WorkspaceSnapshot => {
+    const state = useArcWebStore.getState(), layout = useLayoutStore.getState(), map = mapRef.current
+    return { project: buildProject({
+      name: state.projectName.trim() || 'Untitled map', basemap: state.basemap, displayCrs: state.displayCrs,
+      camera: map ? { center: [map.getCenter().lng, map.getCenter().lat], zoom: map.getZoom(), bearing: map.getBearing(), pitch: map.getPitch() } : null,
+      bookmarks: state.bookmarks, layers: state.layers,
+      layout: { paper: layout.paper, orientation: layout.orientation, elements: layout.elements },
+      workspaceLayout: state.workspaceLayout, scene: state.sceneSettings, analysisHistory: state.analysisHistory, tableViews: state.tableViews,
+    }), editSnapshots: state.editSnapshots, assetIds: sourceAssetsRef.current, offlineBasemap: offlineBasemapRef.current }
+  }, [])
+  const restoreWorkspace = useCallback((snapshot: WorkspaceSnapshot) => {
+    sourceAssetsRef.current = snapshot.assetIds ?? []
+    offlineBasemapRef.current = snapshot.offlineBasemap
+    setOfflineBasemap(snapshot.offlineBasemap)
+    restoreProject(snapshot.project, false)
+    useArcWebStore.getState().restoreEditSnapshots(snapshot.editSnapshots)
+    adoptRibbonContext()
+    setProjectStorageReady(true)
+  }, [restoreProject, adoptRibbonContext])
+  const library = useProjectLibrary(captureWorkspace, restoreWorkspace)
+  const getOfflineAreaBounds = useCallback((): [number, number, number, number] | null => {
+    const bounds = mapRef.current?.getBounds()
+    return bounds ? [bounds.getWest(), Math.max(-85.0511287798066, bounds.getSouth()), bounds.getEast(), Math.min(85.0511287798066, bounds.getNorth())] : null
+  }, [])
+  const scheduleLibrary = library.schedule
+  const createLibraryProject = library.create
+  const selectOfflineBasemap = useCallback((basemap: OfflineBasemap | undefined) => {
+    offlineBasemapRef.current = basemap
+    setOfflineBasemap(basemap)
+    if (basemap && !sourceAssetsRef.current.includes(basemap.assetId)) sourceAssetsRef.current = [...sourceAssetsRef.current, basemap.assetId]
+    scheduleLibrary()
+  }, [scheduleLibrary])
+  useEffect(() => {
+    if (!mapInstance) return
+    mapInstance.on('moveend', library.schedule)
+    return () => { mapInstance.off('moveend', library.schedule) }
+  }, [mapInstance, library.schedule])
+  const applyProject = useCallback(async (project: ArcWebProject) => {
+    try { await createLibraryProject({ project, editSnapshots: {} }); notify(`Opened project “${isolate(project.name)}”. Previous work remains in Projects.`) }
+    catch (error) { notify(error instanceof Error ? error.message : 'Could not save the current workspace before opening the project.', 'error') }
+  }, [createLibraryProject, notify])
 
   const loadProjectFile = useCallback(async (file: File) => {
     try {
@@ -1049,7 +1027,7 @@ function App() {
       const project = parseProject(await file.text(), { paper: layout.paper, orientation: layout.orientation, elements: layout.elements })
       // Opening a project discards the current workspace, so ask first when there is something to lose.
       if (useArcWebStore.getState().layers.length) setPendingProject(project)
-      else applyProject(project)
+      else await applyProject(project)
     } catch (error) {
       notify(`Could not open ${isolate(file.name)}: ${error instanceof Error ? error.message : 'Unreadable project file.'}`, 'error')
     }
@@ -1108,13 +1086,18 @@ function App() {
         }
         const loaded: ImportResult = needsMainThread(file.name)
           ? { kind: 'vector', layers: await readGeospatialFile(file) }
-          : await runInWorker<ImportRequest, ImportResult>(
+          : await importInWorker(
             // Worker's handlers take a full MessageEvent; WorkerLike only needs the fields the helper reads.
             () => new Worker(new URL('./workers/import.worker.ts', import.meta.url), { type: 'module' }) as WorkerLike,
             { file },
-            { signal: controller.signal },
+            controller.signal,
           )
+        // Separate result deserialization from the React/store commit so input can run between them.
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0))
         if (controller.signal.aborted) throw new DOMException('Cancelled by user.', 'AbortError')
+        const sourceId = await putAsset(file, file.name)
+        if (controller.signal.aborted) throw new DOMException('Cancelled by user.', 'AbortError')
+        sourceAssetsRef.current = [...sourceAssetsRef.current, sourceId]
         if (loaded.kind === 'raster') {
           const raster = loaded.grid
           const data = rasterToFeatureCollection(raster)
@@ -1126,7 +1109,11 @@ function App() {
         }
         const imported = loaded.layers
         const warnings = imported.flatMap((item) => item.warnings.map((warning) => `${isolate(item.name)}: ${warning}`))
-        const added = imported.map(({ name, data, sourceCrs }) => createMapLayer(name, data, sourceCrs))
+        const added = imported.map(({ name, data, sourceCrs, preparedLayer }) => preparedLayer ?? createMapLayer(name, data, sourceCrs))
+        imported.forEach((item, index) => {
+          if (item.renderBlob) seedMapSourceBlob(added[index].data, item.renderBlob)
+          if (item.fieldCatalog) seedFieldCatalog(added[index].data, item.fieldCatalog)
+        })
         added.forEach((layer) => useArcWebStore.getState().addLayer(layer))
         const result = `Added ${added.length} layer${added.length === 1 ? '' : 's'} from ${isolate(file.name)}`
         notify(warnings.length ? `${result}. ${warnings.join(' ')}` : result, warnings.length ? 'warning' : 'success')
@@ -1290,7 +1277,8 @@ function App() {
       const state = useArcWebStore.getState()
       const startData = new Map<string, unknown>(state.layers.map((layer) => [layer.id, layer.data]))
       // Tools see only the selected features of layers that have a selection, like ArcGIS Pro.
-      const scope = options.selectedOnly ? scopeLayersToSelection(state.layers, state.selections) : { layers: state.layers, scoped: new Map() }
+      const inputs = toolDefinition.runsOnMainThread ? state.layers : selectToolInputLayers(toolDefinition, state.layers, parameters)
+      const scope = options.selectedOnly ? scopeLayersToSelection(inputs, state.selections) : { layers: inputs, scoped: new Map() }
       const onProgress = (progress: { current: number; total: number; message: string }) => {
         if (toolExecutionIdRef.current === executionId) setToolExecutionProgress({ name: toolDefinition.name, ...progress })
       }
@@ -1512,11 +1500,11 @@ function App() {
 
   const clearSession = async () => {
     try {
-      await del(STORAGE_KEY)
-      useArcWebStore.getState().clearSession()
+      const snapshot = captureWorkspace()
+      await library.create({ project: { ...snapshot.project, name: 'Untitled map', layers: [], analysisHistory: [], tableViews: {}, map: { ...snapshot.project.map, bookmarks: [] }, layout: { ...snapshot.project.layout, elements: [] } }, editSnapshots: {} })
       clearMeasurements()
       setIdentify(null)
-      notify('Workspace cleared. Your basemap and theme are unchanged.')
+      notify('New workspace ready. Previous work remains in Projects.')
     } catch (error) {
       notify(`Could not clear the saved workspace: ${error instanceof Error ? error.message : 'IndexedDB error'}`, 'error')
     }
@@ -1822,7 +1810,7 @@ function App() {
   const area = polygonArea(measurePoints)
 
   return (
-    <main className={`arc-app preset-${workspaceLayout.preset} ${workspaceLayout.fullCanvas ? 'full-canvas' : ''}`}>
+    <main ref={contentFadeRef} inert={library.state === 'loading'} aria-busy={library.state === 'loading'} className={`arc-app preset-${workspaceLayout.preset} ${workspaceLayout.fullCanvas ? 'full-canvas' : ''}`}>
       <header className="app-header">
         <div className="brand-group">
           <div className="brand-mark"><MapIcon size={18} strokeWidth={2.3} /></div>
@@ -1834,9 +1822,10 @@ function App() {
               onBlur={(event) => { if (!event.target.value.trim()) useArcWebStore.getState().setProjectName('Untitled map') }}
               onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur() }} />
           </label>
-          <div className="save-state"><span className="save-dot" />Saved locally</div>
+          <div className="save-state" data-save-state={library.state} role="status" title={library.error || 'Project library on this device'}><span className="save-dot" />{library.state === 'saved' ? 'Saved locally' : library.state === 'saving' ? 'Saving…' : library.state === 'loading' ? 'Loading…' : 'Save failed'}</div>
         </div>
         <div className="header-actions">
+          <button className="header-button" title="Projects, recovery, backups and offline maps" onClick={() => setLibraryOpen(true)}><Database size={14} />Projects</button>
           <button className="header-button" title="Open an .arcweb.json project file" onClick={() => projectInputRef.current?.click()}><FolderOpen size={14} />Open Project</button>
           <button className="header-button primary" title="Save the whole workspace (layers, symbology, coordinate system, layout, bookmarks) as an .arcweb.json file" onClick={saveProject}><Save size={14} />Save Project</button>
           <input ref={projectInputRef} className="visually-hidden" type="file" tabIndex={-1} aria-label="Choose an ArcWeb project file" accept=".json,.arcweb.json,application/json" onChange={(event) => {
@@ -1930,7 +1919,7 @@ function App() {
             <div className="tool-group basemap-group">
               <div className="basemap-options">
                 {basemaps.map((item) => (
-                  <button key={item.id} className={`basemap-button ${basemap === item.id ? 'chosen' : ''}`} onClick={() => useArcWebStore.getState().setBasemap(item.id)} title={`${item.name} basemap`}>
+                  <button key={item.id} className={`basemap-button ${!offlineBasemap && basemap === item.id ? 'chosen' : ''}`} onClick={() => { selectOfflineBasemap(undefined); useArcWebStore.getState().setBasemap(item.id) }} title={`${item.name} basemap`}>
                     <span className={`basemap-preview ${item.preview}`} />
                     <span>{item.name}</span>
                   </button>
@@ -2169,7 +2158,7 @@ function App() {
               <button role="tab" aria-selected={viewMode === 'map' && sceneView} className={viewMode === 'map' && sceneView ? 'active' : ''} onClick={() => { setSceneView(true); useArcWebStore.getState().setViewMode('map') }}><Box size={13} /> 3D Scene</button>
               <button role="tab" aria-selected={viewMode === 'layout'} className={viewMode === 'layout' ? 'active' : ''} onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode('layout') }}><LayoutTemplate size={13} /> Layout</button>
             </div>
-            {viewMode === 'map' && <span className="map-coordinate-badge"><span className="live-dot" />{sceneView ? '3D Scene · right-drag to rotate' : basemaps.find((item) => item.id === basemap)?.name}</span>}
+            {viewMode === 'map' && <span className="map-coordinate-badge"><span className="live-dot" />{sceneView ? '3D Scene · right-drag to rotate' : offlineBasemap?.name ?? basemaps.find((item) => item.id === basemap)?.name}</span>}
           </div>
           {viewMode === 'map' && sceneView && mapInstance && (
             <SceneNavigator
@@ -2384,7 +2373,7 @@ function App() {
       )}
 
       {pendingRemovalLayer && (
-        <div className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) cancelRemoveLayer() }}>
+        <div ref={removeFadeRef} className="modal-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) cancelRemoveLayer() }}>
           <section className="modal confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Remove layer" onKeyDown={(event) => { if (event.key === 'Escape') cancelRemoveLayer(); else trapTabKey(event) }}>
             <header className="modal-header"><div><Trash2 size={15} /><strong>Remove “<bdi>{pendingRemovalLayer.name}</bdi>”?</strong></div></header>
             <div className="confirm-body">
@@ -2421,7 +2410,7 @@ function App() {
       )}
 
       {pendingProject && (
-        <div className="modal-backdrop">
+        <div ref={projectFadeRef} className="modal-backdrop">
           <section className="modal confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Open project" onKeyDown={(event) => { if (event.key === 'Escape') setPendingProject(null); else trapTabKey(event) }}>
             <header className="modal-header"><div><FolderOpen size={15} /><strong>Open “<bdi>{pendingProject.name}</bdi>”?</strong></div></header>
             <div className="confirm-body">
@@ -2450,7 +2439,11 @@ function App() {
         />
       )}
 
-      {toast && <div className={`toast toast-${toast.kind}`} role="status"><span className="toast-indicator">{toast.kind === 'error' ? <X size={13} /> : <Check size={13} />}</span><span>{toast.message}</span><button title="Dismiss" onClick={() => setToast(null)}><X size={14} /></button></div>}
+      {libraryOpen && <ProjectLibraryDialog projectId={library.projectId} capture={captureWorkspace}
+        onOpen={library.open} onCreate={library.create} onFlush={library.flush} onRecover={library.recover}
+        onOffline={selectOfflineBasemap} getBounds={getOfflineAreaBounds} onClose={() => setLibraryOpen(false)} />}
+
+      {toast && <div ref={toastFadeRef} className={`toast toast-${toast.kind}`} role="status"><span className="toast-indicator">{toast.kind === 'error' ? <X size={13} /> : <Check size={13} />}</span><span>{toast.message}</span><button title="Dismiss" onClick={() => setToast(null)}><X size={14} /></button></div>}
     </main>
   )
 }

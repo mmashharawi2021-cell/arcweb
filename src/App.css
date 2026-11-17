@@ -90,7 +90,7 @@
 .contextual-tab {
   flex-direction: column; justify-content: center; gap: 0; padding: 0 14px; margin-left: 6px;
   background: var(--ctx-dim); border-top: 2px solid var(--ctx); color: var(--ctx-text);
-  animation: contextual-tab-in .7s ease-out;
+  animation: contextual-tab-in var(--dur-fast) var(--ease-out);
 }
 .contextual-tab + .contextual-tab { margin-left: 1px; }
 .contextual-tab-group { font-size: 7px; line-height: 9px; letter-spacing: .6px; text-transform: uppercase; font-weight: 700; opacity: .85; white-space: nowrap; }
@@ -99,9 +99,8 @@
 .contextual-tab.active { color: var(--ctx-text); background: var(--panel-raised); }
 .contextual-tab.active::after { background: var(--panel-raised); height: 2px; bottom: -1px; left: 0; right: 0; }
 @keyframes contextual-tab-in {
-  0% { box-shadow: inset 0 0 0 999px var(--ctx-dim), 0 0 0 0 var(--ctx); }
-  35% { box-shadow: inset 0 0 0 999px var(--ctx-dim), 0 0 0 3px var(--ctx); }
-  100% { box-shadow: inset 0 0 0 999px transparent, 0 0 0 0 transparent; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .contextual-tab { animation: none; } }
 .ribbon-toolbar.contextual-toolbar { box-shadow: inset 0 2px 0 var(--ctx-layer); }
@@ -257,8 +256,8 @@
   flex: 1; padding: 3px 0; text-align: left; border: 0; background: none;
   color: var(--text); cursor: pointer; font-size: 10px;
 }
-.layer-actions { display: flex; opacity: 0; transition: opacity .12s; }
-.layer-row:hover .layer-actions, .layer-row.selected .layer-actions { opacity: 1; }
+.layer-actions { display: flex; opacity: 0; transition: opacity var(--dur-hover) var(--ease-out); }
+.layer-row:hover .layer-actions, .layer-row.selected .layer-actions, .layer-row:focus-within .layer-actions { opacity: 1; }
 .layer-actions button { width: 17px; }
 .layer-actions button:disabled { opacity: .25; cursor: default; }
 .layer-opacity { gap: 6px; padding: 0 9px 8px 31px; color: var(--muted); font-size: 9px; }
@@ -453,14 +452,56 @@ input[type="range"] { accent-color: var(--accent); cursor: pointer; }
   color: var(--text); background: var(--panel-raised); box-shadow: 0 5px 16px rgba(var(--shadow-rgb),.28);
   font-size: 9px; font-weight: 450; line-height: 1.35; text-align: left; white-space: normal;
   opacity: 0; pointer-events: none; transform: translate(-50%, -2px);
-  transition: opacity .12s .55s, transform .12s .55s;
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
 }
 .ribbon-toolbar button[data-ribbon-tooltip]:hover::after,
 .ribbon-toolbar button[data-ribbon-tooltip]:focus-visible::after {
   opacity: 1; transform: translate(-50%, 0);
+  transition-delay: 350ms;
+}
+
+/* Shared fade language. No map/table-row animation on data updates. */
+button:not(:disabled):not([aria-disabled="true"]) {
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+button:not(:disabled):not([aria-disabled="true"]):active { opacity: .72; }
+@media (hover: hover) {
+  button:not(:disabled):not([aria-disabled="true"]):hover { opacity: .84; }
+  button:not(:disabled):not([aria-disabled="true"]):active { opacity: .72; }
+}
+.phase-panel, .ribbon-toolbar .tool-group, .modal-body > div {
+  animation: arcweb-fade-in 300ms var(--ease-out);
+}
+/* Exit copies are decorative: no input, focus, announcements or repeated entry motion. */
+.arcweb-exit-ghost, .arcweb-exit-ghost * {
+  pointer-events: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arcweb-exit-ghost { display: none !important; }
 }
 .ribbon-toolbar button[data-ribbon-tooltip]:disabled:hover::after { opacity: 0; }
 .sketch-card { min-width: 260px; }
+
+.project-library { width: min(920px, 100%); }
+.project-library .modal-body { overflow: auto; display: block; }
+.project-library h3 { margin: 20px 0 9px; font-size: 12px; }
+.project-library p { font-size: 11px; line-height: 1.6; }
+.library-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.library-projects { display: grid; gap: 8px; margin-top: 15px; }
+.library-project-card { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 7px; }
+.library-project-card > div { min-width: 0; flex: 1; }
+.library-project-card strong { display: block; overflow-wrap: anywhere; }
+.library-project-card small { display: block; margin-top: 5px; color: var(--muted); }
+.library-error { color: var(--danger); }
+.offline-area-download { margin-top: 14px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+.offline-area-download summary { cursor: pointer; font-weight: 600; }
+.offline-area-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 10px; }
+.offline-area-fields label { display: grid; gap: 5px; font-size: 10px; }
+.offline-area-fields input, .offline-area-fields select { min-width: 0; width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--text); }
+.save-state[data-save-state="error"] .save-dot { background: var(--danger); }
+.save-state[data-save-state="saving"] .save-dot, .save-state[data-save-state="loading"] .save-dot { background: var(--warning); }
 
 .attribute-table {
   position: relative; z-index: 3; min-height: 170px; max-height: min(560px, 45vh); flex: 0 0 auto;
@@ -623,7 +664,7 @@ input[type="range"] { accent-color: var(--accent); cursor: pointer; }
 .import-progress-track { position: absolute; right: 12px; bottom: 5px; left: 12px; height: 2px; overflow: hidden; border-radius: 2px; background: var(--line); }
 .import-progress-track > span { width: 35%; height: 100%; display: block; border-radius: inherit; background: var(--accent); animation: arcweb-progress 1.25s ease-in-out infinite; }
 .tool-progress-track { position: absolute; right: 12px; bottom: 5px; left: 12px; height: 2px; overflow: hidden; border-radius: 2px; background: var(--line); }
-.tool-progress-track > span { height: 100%; display: block; border-radius: inherit; background: var(--accent); transition: width .15s ease-out; }
+.tool-progress-track > span { height: 100%; display: block; border-radius: inherit; background: var(--accent); }
 @keyframes arcweb-spin { to { transform: rotate(360deg); } }
 @keyframes arcweb-progress { 0% { transform: translateX(-110%); } 100% { transform: translateX(320%); } }
 
@@ -698,7 +739,7 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
   max-height: calc(100vh - 16px); overflow-y: auto; scrollbar-width: thin;
   display: flex; flex-direction: column; padding: 4px; border: 1px solid var(--line); border-radius: 7px;
   background: var(--panel-raised); box-shadow: 0 10px 32px rgba(var(--shadow-rgb), .32), 0 0 0 1px rgba(var(--shadow-rgb), .06);
-  animation: context-menu-in .09s ease-out;
+  animation: context-menu-in var(--dur-modal) var(--ease-out);
 }
 .context-menu:focus { outline: none; }
 @keyframes context-menu-in { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
@@ -1138,3 +1179,110 @@ label.project-title { cursor: text; }
 
 /* Search boxes draw their border on the wrapper and hide the input's outline, so show focus there. */
 .layer-search:focus-within, .toolbox-search:focus-within, .table-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+
+/* ── Motion & micro-interactions ────────────────────────────────────────────
+   All animation is compositor-only (transform / opacity); nothing here
+   triggers layout. Entry keyframes run on mount, so no open/close JS state or
+   DOM changes are required. Honors prefers-reduced-motion (index.css).
+   ──────────────────────────────────────────────────────────────────────── */
+
+@keyframes arcweb-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes arcweb-scale-in {
+  from { opacity: 0; transform: scale(0.98) translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes arcweb-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes arcweb-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Scroll reveal: driven by src/ui/useInView (IntersectionObserver, unobserves
+   after reveal — no persistent scroll listener). */
+.arcweb-reveal {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--dur-panel) var(--ease-out), transform var(--dur-panel) var(--ease-out);
+}
+.arcweb-reveal.is-visible, .arcweb-reveal:focus-within {
+  opacity: 1;
+  transform: none;
+}
+
+/* Entry animations (run on mount). */
+.modal-backdrop { animation: arcweb-fade-in var(--dur-modal) var(--ease-out) both; }
+.modal { animation: arcweb-scale-in var(--dur-modal) var(--ease-out) both; }
+.identify-popup, .bookmarks-popover { animation: arcweb-slide-down var(--dur-modal) var(--ease-out) both; }
+.toast { animation: arcweb-slide-up var(--dur-panel) var(--ease-out) both; }
+
+/* Button micro-interactions: subtle lift on hover, tactile press on click. */
+.phase-primary-button,
+.phase-secondary-button,
+.phase-danger-button {
+  transition: transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+.phase-primary-button:hover:not(:disabled) { transform: translateY(-2px); }
+.phase-secondary-button:hover:not(:disabled) { transform: translateY(-2px); }
+.phase-danger-button:hover:not(:disabled) { transform: translateY(-2px); }
+.phase-primary-button:active:not(:disabled),
+.phase-secondary-button:active:not(:disabled),
+.phase-danger-button:active:not(:disabled) { transform: scale(0.98); }
+
+.header-icon, .subtle-icon {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.header-icon:hover:not(:disabled), .subtle-icon:hover:not(:disabled) { transform: translateY(-1px); }
+.header-icon:active:not(:disabled), .subtle-icon:active:not(:disabled) { transform: scale(0.98); }
+
+.clear-session { transition: transform var(--dur-press) var(--ease-out); }
+.clear-session:hover { transform: translateY(-1px); }
+.clear-session:active { transform: scale(0.98); }
+
+.export-choice-list button, .layout-export-card {
+  transition: transform var(--dur-hover) var(--ease-out);
+}
+.export-choice-list button:hover:not(:disabled), .layout-export-card:hover:not(:disabled) { transform: translateY(-1px); }
+.export-choice-list button:active:not(:disabled), .layout-export-card:active:not(:disabled) { transform: scale(0.98); }
+
+.ribbon-tab { transition: transform var(--dur-press) var(--ease-out); }
+.ribbon-tab:hover:not(:disabled) { transform: translateY(-1px); }
+.ribbon-tab:active:not(:disabled) { transform: scale(0.98); }
+.ribbon-action { transition: transform var(--dur-press) var(--ease-out); }
+.ribbon-action:hover:not(:disabled) { transform: translateY(-1px); }
+.ribbon-action:active:not(:disabled) { transform: scale(0.98); }
+
+.layout-toggle-row button, .layout-view-switch button, .layout-north-styles button {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.layout-toggle-row button:active:not(:disabled),
+.layout-view-switch button:active:not(:disabled),
+.layout-north-styles button:active:not(:disabled) { transform: scale(0.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop, .modal, .identify-popup, .bookmarks-popover, .toast {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .arcweb-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .phase-primary-button, .phase-secondary-button, .phase-danger-button,
+  .header-icon, .subtle-icon, .clear-session, .ribbon-tab, .ribbon-action,
+  .export-choice-list button, .layout-export-card,
+  .layout-toggle-row button, .layout-view-switch button, .layout-north-styles button {
+    transition: none !important;
+    transform: none !important;
+  }
+}

@@ -13,6 +13,31 @@ class FakeWorker implements WorkerLike {
 }
 
 describe('runInWorker', () => {
+  it('acknowledges chunks only after successful handling and stops on a callback error', async () => {
+    const worker = new FakeWorker()
+    const seen: unknown[] = []
+    const promise = runInWorker(() => worker, 'req', { onChunk: chunk => {
+      expect(worker.posted).toHaveLength(seen.length + 1)
+      if (chunk === 'bad') throw new Error('Invalid batch')
+      seen.push(chunk)
+    } })
+    worker.emit({ kind: 'chunk', value: 'valid' })
+    worker.emit({ kind: 'chunk', value: 'bad' })
+    await expect(promise).rejects.toThrow('Invalid batch')
+    expect(worker.posted).toEqual(['req', { kind: 'ack' }])
+    expect(seen).toEqual(['valid'])
+    expect(worker.terminated).toBe(1)
+  })
+
+  it('does not acknowledge a chunk when handling it aborts the request', async () => {
+    const worker = new FakeWorker()
+    const controller = new AbortController()
+    const promise = runInWorker(() => worker, 'req', { signal: controller.signal, onChunk: () => controller.abort() })
+    worker.emit({ kind: 'chunk', value: 'batch' })
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
+    expect(worker.posted).toEqual(['req'])
+    expect(worker.terminated).toBe(1)
+  })
   it('resolves with the result and terminates the worker', async () => {
     const worker = new FakeWorker()
     const promise = runInWorker<string, number>(() => worker, 'req')

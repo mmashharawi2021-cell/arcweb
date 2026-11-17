@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createMapLayer } from '../geo'
 import { buildProject, parseProject } from '../project'
-import { buildGraduatedRenderer, buildUniqueRenderer, calculateClassBreaks, getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses, labelTextExpression } from '../symbology'
+import { buildGraduatedRenderer, buildUniqueRenderer, calculateClassBreaks, getFeatureFields, getNumericFields, getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses, labelTextExpression, seedFieldCatalog } from '../symbology'
 import { defaultWorkspaceLayout } from '../workspaceLayout'
 import type { LayoutDocument } from '../layout/layoutStore'
 
@@ -16,6 +16,35 @@ const collection = {
 }
 
 describe('shared symbology classification', () => {
+  it('copies worker field catalogs and refreshes them when immutable layer data changes', () => {
+    const layer = createMapLayer('Places', structuredClone(collection))
+    const catalog = { fields: getFeatureFields(layer), numericFields: getNumericFields(layer) }
+    seedFieldCatalog(layer.data, catalog)
+    catalog.fields.length = 0
+    catalog.numericFields.push('caller-only')
+    expect(getFeatureFields(layer)).toContain('kind')
+    expect(getNumericFields(layer)).toEqual(['POP', 'value'])
+    const replaced = { ...layer, data: { ...layer.data, features: layer.data.features.map(feature => ({
+      ...feature, properties: { replacement: 42 },
+    })) } }
+    expect(getFeatureFields(replaced)).toEqual(['replacement'])
+    expect(getNumericFields(replaced)).toEqual(['replacement'])
+  })
+  it('refreshes field catalogs after data replacement and keeps returned lists independently editable', () => {
+    const layer = createMapLayer('Places', collection)
+    const fields = getFeatureFields(layer)
+    fields.push('caller-only')
+    const numeric = getNumericFields(layer)
+    numeric.length = 0
+    expect(getFeatureFields(layer)).not.toContain('caller-only')
+    expect(getNumericFields(layer)).toEqual(['POP', 'value'])
+    const replaced = { ...layer, data: { ...layer.data, features: layer.data.features.map((feature) => ({
+      ...feature, properties: { renamed: feature.properties?.value },
+    })) } }
+    expect(getFeatureFields(replaced)).toEqual(['renamed'])
+    expect(getNumericFields(replaced)).toEqual(['renamed'])
+  })
+
   it('calculates equal-interval, quantile, and Jenks breaks', () => {
     expect(calculateClassBreaks([0, 10], 'equal-interval', 5)).toEqual([2, 4, 6, 8])
     expect(calculateClassBreaks([1, 2, 3, 4, 5, 6, 7, 8, 9], 'quantile', 3)).toEqual([3.6666666666666665, 6.333333333333333])

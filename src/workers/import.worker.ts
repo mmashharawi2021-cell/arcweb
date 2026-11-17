@@ -1,15 +1,16 @@
 import { handleImportRequest } from './importHandler'
-import type { ImportRequest, ImportResult } from './importProtocol'
+import type { ImportRequest, ImportWireResult } from './importProtocol'
 import type { WorkerReply } from './runInWorker'
+import { streamImportResult } from './importTransport'
 
 // The project tsconfig uses the DOM lib, so type the worker global structurally instead of via the WebWorker lib.
 const scope = self as unknown as {
-  onmessage: ((event: { data: ImportRequest }) => void) | null
-  postMessage(message: WorkerReply<ImportResult>): void
+  onmessage: ((event: { data: ImportRequest | { kind: 'ack' } }) => void) | null
+  postMessage(message: WorkerReply<ImportWireResult>): void
 }
 
 /** Posting can throw (e.g. a value that cannot be structured-cloned); report that instead of hanging the caller. */
-const post = (message: WorkerReply<ImportResult>) => {
+const post = (message: WorkerReply<ImportWireResult>) => {
   try {
     scope.postMessage(message)
   } catch (error) {
@@ -17,9 +18,15 @@ const post = (message: WorkerReply<ImportResult>) => {
   }
 }
 
+let acknowledge: (() => void) | null = null
+let started = false
 scope.onmessage = (event) => {
-  handleImportRequest(event.data).then(
-    (value) => post({ kind: 'result', value }),
-    (error: unknown) => post({ kind: 'error', message: error instanceof Error ? error.message : 'Unknown file error' }),
-  )
+  if ('kind' in event.data && event.data.kind === 'ack') { const pending = acknowledge; acknowledge = null; pending?.(); return }
+  if (!('file' in event.data) || started) { post({ kind: 'error', message: 'Unexpected import worker request.' }); return }
+  started = true
+  void handleImportRequest(event.data).then(result => streamImportResult(result, chunk => new Promise<void>((resolve, reject) => {
+    acknowledge = resolve
+    try { scope.postMessage({ kind: 'chunk', value: chunk }) }
+    catch (error) { acknowledge = null; reject(error) }
+  }))).then(value => post({ kind: 'result', value })).catch((error: unknown) => post({ kind: 'error', message: error instanceof Error ? error.message : 'Unknown file error' }))
 }
