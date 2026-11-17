@@ -12,8 +12,7 @@ import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import AttributeTable from './AttributeTable'
 import DockablePanel from './DockablePanel'
 import { SymbologyPanel } from './SymbologyPanel'
-import { calculateField } from './fieldCalculator'
-import { createMapLayer, getCollectionBounds } from './geo'
+import { getCollectionBounds } from './geo'
 import { runInWorker, type WorkerLike } from './workers/runInWorker'
 import ProjectLibraryDialog from './storage/ProjectLibraryDialog'
 import { offlineStyle, registerOfflineProtocol } from './storage/offlineBasemap'
@@ -29,19 +28,15 @@ import LayoutPanel from './layout/LayoutPanel'
 import LayoutView from './layout/LayoutView'
 import { pageSize, useLayoutStore, type LayoutElementType } from './layout/layoutStore'
 import {
-  ensureMapOverlays, geometryBounds, getRenderedFeatureLayerIds,
-  setMeasureOverlay, setSelectionOverlay, setSketchOverlay, syncMapLayers,
+  ensureMapOverlays, geometryBounds, getRenderedFeatureLayerIds, setSelectionOverlay, syncMapLayers,
 } from './mapRendering'
 import {
-  useArcWebStore, type AnalysisRecord, type Bookmark, type ContextualTab, type FeatureId, type FeatureSelection, type MapLayer,
-  type SelectionMethod, type TableView, type ToolMode,
+  useArcWebStore, type AnalysisRecord, type Bookmark, type ContextualTab, type FeatureId, type FeatureSelection, type MapLayer, type SelectionMethod, type TableView,
 } from './store'
-import { setFeatureAttribute } from './table/tableQuery'
 import SceneNavigator from './scene/SceneNavigator'
 import { applySceneTerrain, type TerrainState } from './scene/terrain'
 import {
-  CONTEXTUAL_TAB_META, CONTEXTUAL_TABS, CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isContextualTab,
-  isEditingTool, isRasterLayer, reconcileRibbonTabs,
+  CONTEXTUAL_TAB_META, CONTEXTUAL_TABS, CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isContextualTab, isRasterLayer, reconcileRibbonTabs,
 } from './ribbon/contextualTabs'
 import ContextMenu from './contextMenu/ContextMenu'
 import {
@@ -60,10 +55,7 @@ import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './tool
 import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from './toolboxes/selectionScope'
 import { describeToolRun } from './toolboxes/history'
 import { basemaps, baseStyle } from './basemaps'
-import {
-  createSketchFeature, nearestVertexPath, queryFeaturesAt,
-  replaceCoordinate, snapCoordinate,
-} from './mapGeometry'
+import { nearestVertexPath, queryFeaturesAt, replaceCoordinate, snapCoordinate } from './mapGeometry'
 import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
 import { AnalysisRibbon, EditRibbon, InsertRibbon, LayoutRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
@@ -72,6 +64,8 @@ import { DropOverlay, ImportProgress, MeasurementCard, SketchCard, ToolProgress 
 import ConfirmDialog from './ui/ConfirmDialog'
 import { useProjectIO } from './useProjectIO'
 import { useFileImport } from './useFileImport'
+import { useFeatureEdits } from './editing/useFeatureEdits'
+import { useSketchTools } from './editing/useSketchTools'
 import './App.css'
 import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
@@ -130,16 +124,11 @@ function App() {
   const toastTimerRef = useRef<number | null>(null)
   const toolExecutionIdRef = useRef(0)
   const previousBasemapRef = useRef<string | null>(null)
-  const measurePointsRef = useRef<[number, number][]>([])
-  const sketchPointsRef = useRef<[number, number][]>([])
-  const movingVertexRef = useRef<{ layerId: string; featureId: string | number; path: number[] } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' | 'warning' } | null>(null)
   const toastFadeRef = useFadeExit<HTMLDivElement>()
   const removeFadeRef = useFadeExit<HTMLDivElement>()
   const projectFadeRef = useFadeExit<HTMLDivElement>()
-  const [measurePoints, setMeasurePoints] = useState<[number, number][]>([])
-  const [sketchPoints, setSketchPoints] = useState<[number, number][]>([])
   const [mapLoaded, setMapLoaded] = useState(false)
   const [sceneView, setSceneView] = useState(false)
   const sceneViewRef = useRef(false)
@@ -227,6 +216,14 @@ function App() {
     applyProject, loadProjectFile, saveProject, startNewWorkspace,
   } = useProjectIO({ mapRef, mapInstance, notify, adoptRibbonContext, onWorkspaceReplaced: resetWorkspaceView })
   const { importingFile, addFiles, cancelImport } = useFileImport({ notify, loadProjectFile, addSourceAsset })
+  const {
+    appendFeature, deleteFeature, addCustomField, removeCustomField, calculateLayerField, createEditableLayer,
+    deleteSelectedFeature, editTargetIds, deleteSelectedFeatures, undoEdit, redoEdit, editCell,
+  } = useFeatureEdits(notify)
+  const {
+    measurePoints, sketchPoints, movingVertexRef, addMeasurePoint, addSketchPoint, redrawOverlays, finishSketch,
+    setEditingTool, toggleMeasureTool, clearMeasurements, saveEdits, discardEdits,
+  } = useSketchTools({ mapRef, mapLoaded, notify, appendFeature })
 
   const updatePanelFrame = useCallback((panelId: WorkspacePanelId, frame: PanelFrame) => {
     const state = useArcWebStore.getState()
@@ -334,79 +331,6 @@ function App() {
     }
   }, [workspaceLayout.preset])
 
-  const updateMeasure = useCallback((map: MapLibreMap, points: [number, number][], mode: 'distance' | 'area' | 'pan') => {
-    const features: Feature<Geometry>[] = points.map((coordinates) => ({
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'Point', coordinates },
-    }))
-    if (points.length > 1) {
-      features.push({
-        type: 'Feature',
-        properties: {},
-        geometry: mode === 'area' && points.length > 2
-          ? { type: 'Polygon', coordinates: [[...points, points[0]]] }
-          : { type: 'LineString', coordinates: points },
-      })
-    }
-    setMeasureOverlay(map, features)
-  }, [])
-
-  const updateSketch = useCallback((map: MapLibreMap, points: [number, number][], mode: ToolMode) => {
-    const features: Feature<Geometry>[] = points.map((coordinates) => ({
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'Point', coordinates },
-    }))
-    if (points.length > 1) {
-      features.push({
-        type: 'Feature',
-        properties: {},
-        geometry: mode === 'draw-polygon' && points.length > 2
-          ? { type: 'Polygon', coordinates: [[...points, points[0]]] }
-          : { type: 'LineString', coordinates: points },
-      })
-    }
-    setSketchOverlay(map, features)
-  }, [])
-
-  const appendFeature = useCallback((layer: MapLayer, geometry: Geometry) => {
-    const feature = createSketchFeature(layer, geometry)
-    const data: FeatureCollection = { ...layer.data, features: [...layer.data.features, feature] }
-    useArcWebStore.getState().commitEdit(layer.id, data, `Add ${geometry.type.toLowerCase()} feature`)
-    useArcWebStore.getState().setSelectedFeature({ layerId: layer.id, featureId: feature.id })
-    useArcWebStore.getState().setTableOpen(true)
-    notify(`Added a ${geometry.type} feature to ${isolate(layer.name)}.`)
-  }, [notify])
-
-  const finishSketch = useCallback(() => {
-    const state = useArcWebStore.getState()
-    const layer = state.layers.find((item) => item.id === state.selectedLayerId)
-    const coordinates = sketchPointsRef.current.filter((coordinate, index, list) =>
-      index === 0 || coordinate[0] !== list[index - 1][0] || coordinate[1] !== list[index - 1][1])
-    if (!layer || (state.tool !== 'draw-line' && state.tool !== 'draw-polygon')) {
-      if (state.tool === 'draw-line' || state.tool === 'draw-polygon') notify('Select a target layer before drawing.')
-      return
-    }
-    if (state.tool === 'draw-line' && coordinates.length < 2) {
-      notify('A line needs at least two vertices.', 'warning')
-      return
-    }
-    if (state.tool === 'draw-polygon' && coordinates.length < 3) {
-      notify('A polygon needs at least three vertices.', 'warning')
-      return
-    }
-    if (state.tool === 'draw-line') {
-      appendFeature(layer, { type: 'LineString', coordinates })
-    } else {
-      appendFeature(layer, { type: 'Polygon', coordinates: [[...coordinates, coordinates[0]]] })
-    }
-    sketchPointsRef.current = []
-    setSketchPoints([])
-    if (mapRef.current) updateSketch(mapRef.current, [], 'pan')
-    state.setTool('pan')
-  }, [appendFeature, notify, updateSketch])
-
   /** Selects the first hit and opens the Identify pop-up next to a viewport point. */
   const showIdentify = useCallback((hits: FeatureSelection[], client: { x: number; y: number }, lngLat: [number, number]) => {
     const state = useArcWebStore.getState()
@@ -429,10 +353,7 @@ function App() {
     const state = useArcWebStore.getState()
     const activeTool = state.tool
     if (activeTool === 'distance' || activeTool === 'area') {
-      const next = [...measurePointsRef.current, [event.lngLat.lng, event.lngLat.lat] as [number, number]]
-      measurePointsRef.current = next
-      setMeasurePoints(next)
-      updateMeasure(map, next, activeTool)
+      addMeasurePoint(map, [event.lngLat.lng, event.lngLat.lat], activeTool)
       return
     }
     if (activeTool === 'draw-point' || activeTool === 'draw-line' || activeTool === 'draw-polygon') {
@@ -451,10 +372,7 @@ function App() {
         appendFeature(layer, { type: 'Point', coordinates: coordinate })
         return
       }
-      const next = [...sketchPointsRef.current, coordinate]
-      sketchPointsRef.current = next
-      setSketchPoints(next)
-      updateSketch(map, next, activeTool)
+      addSketchPoint(map, coordinate, activeTool)
       return
     }
     if (activeTool === 'move-vertex') {
@@ -510,7 +428,7 @@ function App() {
       return
     }
     showIdentify(hits, { x: event.originalEvent.clientX, y: event.originalEvent.clientY }, [event.lngLat.lng, event.lngLat.lat])
-  }, [appendFeature, notify, showIdentify, updateMeasure, updateSketch])
+  }, [appendFeature, notify, showIdentify, addMeasurePoint, addSketchPoint, movingVertexRef])
 
   useEffect(() => {
     const host = mapHostRef.current
@@ -630,13 +548,12 @@ function App() {
         ensureMapOverlays(map)
         syncMapLayers(map, useArcWebStore.getState().layers, sceneViewRef.current)
         setSelectionOverlay(map, useArcWebStore.getState().layers, useArcWebStore.getState().selectedFeature, useArcWebStore.getState().selections)
-        updateMeasure(map, measurePointsRef.current, useArcWebStore.getState().tool === 'area' ? 'area' : 'distance')
-        updateSketch(map, sketchPointsRef.current, useArcWebStore.getState().tool)
+        redrawOverlays(map)
       })
     }
     map.once('style.load', onStyleReady)
     map.setStyle(offlineBasemap ? offlineStyle(offlineBasemap) : baseStyle(basemap))
-  }, [basemap, offlineBasemap, projectStorageReady, mapLoaded, updateMeasure, updateSketch])
+  }, [basemap, offlineBasemap, projectStorageReady, mapLoaded, redrawOverlays])
 
   useEffect(() => {
     const map = mapRef.current
@@ -688,23 +605,6 @@ function App() {
     return () => { cancelled = true }
   }, [sceneSettings, layers, sceneView, viewMode, mapLoaded, basemap])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapLoaded) return
-    if (tool !== 'move-vertex') movingVertexRef.current = null
-    if (tool === 'pan') {
-      map.doubleClickZoom.enable()
-      updateMeasure(map, [], 'pan')
-      updateSketch(map, [], 'pan')
-      map.getCanvas().style.cursor = 'grab'
-      return
-    }
-    if (tool === 'draw-line' || tool === 'draw-polygon' || tool === 'area' || tool === 'distance') map.doubleClickZoom.disable()
-    else map.doubleClickZoom.enable()
-    map.getCanvas().style.cursor = 'crosshair'
-    if (tool === 'distance' || tool === 'area') updateMeasure(map, measurePointsRef.current, tool)
-    if (tool === 'draw-line' || tool === 'draw-polygon') updateSketch(map, sketchPointsRef.current, tool)
-  }, [tool, mapLoaded, updateMeasure, updateSketch])
 
 
   // Layout view shows the live map inside the map frame; map view puts it back in the workspace.
@@ -771,74 +671,6 @@ function App() {
       map.flyTo({ center: [bounds[0], bounds[1]], zoom: 15, duration: 650 })
     } else {
       map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]], { padding: 55, maxZoom: 16, duration: 650 })
-    }
-  }, [notify])
-
-  const deleteFeature = useCallback((layer: MapLayer, featureId: string | number) => {
-    const data: FeatureCollection = {
-      ...layer.data,
-      features: layer.data.features.filter((feature) => feature.id !== featureId),
-    }
-    useArcWebStore.getState().commitEdit(layer.id, data, 'Delete feature')
-    if (useArcWebStore.getState().selectedFeature?.featureId === featureId) {
-      useArcWebStore.getState().setSelectedFeature(null)
-    }
-    notify('Feature deleted.')
-  }, [notify])
-
-  const addCustomField = useCallback((layer: MapLayer, name: string) => {
-    const field = name.trim()
-    if (!field) {
-      notify('Enter a field name.', 'warning')
-      return
-    }
-    if (layer.data.features.some((feature) => Object.hasOwn(feature.properties ?? {}, field))) {
-      notify(`A field named "${isolate(field)}" already exists.`, 'warning')
-      return
-    }
-    const data: FeatureCollection = {
-      ...layer.data,
-      features: layer.data.features.map((feature) => ({
-        ...feature,
-        properties: { ...(feature.properties ?? {}), [field]: '' },
-      })),
-    }
-    useArcWebStore.getState().updateLayer(layer.id, { data, customFields: [...(layer.customFields ?? []), field] })
-    notify(`Added field "${isolate(field)}".`)
-  }, [notify])
-
-  const removeCustomField = useCallback((layer: MapLayer, field: string) => {
-    const data: FeatureCollection = {
-      ...layer.data,
-      features: layer.data.features.map((feature) => {
-        const properties = { ...(feature.properties ?? {}) }
-        delete properties[field]
-        return { ...feature, properties }
-      }),
-    }
-    const fieldAliases = { ...(layer.fieldAliases ?? {}) }
-    delete fieldAliases[field]
-    useArcWebStore.getState().updateLayer(layer.id, {
-      data,
-      customFields: (layer.customFields ?? []).filter((name) => name !== field),
-      fieldAliases,
-      labelField: layer.labelField === field ? '' : layer.labelField,
-    })
-    notify(`Deleted field "${isolate(field)}".`)
-  }, [notify])
-
-  const calculateLayerField = useCallback((layer: MapLayer, name: string, expression: string) => {
-    try {
-      const data = calculateField(layer.data, name, expression)
-      const field = name.trim()
-      const existing = layer.data.features.some((feature) => Object.hasOwn(feature.properties ?? {}, field))
-      useArcWebStore.getState().updateLayer(layer.id, {
-        data,
-        customFields: existing ? layer.customFields ?? [] : [...(layer.customFields ?? []), field],
-      })
-      notify(`Calculated "${isolate(field)}" for ${data.features.length.toLocaleString()} features.`)
-    } catch (error) {
-      notify(`Field calculation failed: ${error instanceof Error ? error.message : 'Invalid expression.'}`, 'error')
     }
   }, [notify])
 
@@ -920,114 +752,6 @@ function App() {
     }
   }, [notify])
 
-  const createEditableLayer = useCallback((name: string, geometry: 'Point' | 'Line' | 'Polygon', fields: string[]) => {
-    const layerName = name.trim()
-    if (!layerName) {
-      notify('Enter a name for the new layer.', 'warning')
-      return
-    }
-    const layer = createMapLayer(layerName, { type: 'FeatureCollection', features: [] })
-    layer.geometry = geometry
-    layer.customFields = fields
-    useArcWebStore.getState().addLayer(layer)
-    useArcWebStore.getState().setTableOpen(true)
-    notify(`Created editable ${geometry.toLowerCase()} layer "${isolate(name)}".`)
-  }, [notify])
-
-  const setEditingTool = useCallback((nextTool: ToolMode) => {
-    sketchPointsRef.current = []
-    measurePointsRef.current = []
-    movingVertexRef.current = null
-    setSketchPoints([])
-    setMeasurePoints([])
-    const state = useArcWebStore.getState()
-    // Picking an editing tool opens (or joins) the edit session for the target layer.
-    if (isEditingTool(nextTool) && state.selectedLayerId) state.beginEdit(state.selectedLayerId)
-    state.setTool(nextTool)
-    if (mapRef.current) {
-      updateMeasure(mapRef.current, [], 'pan')
-      updateSketch(mapRef.current, [], 'pan')
-    }
-  }, [updateMeasure, updateSketch])
-
-  const deleteSelectedFeature = useCallback(() => {
-    const state = useArcWebStore.getState()
-    const selection = state.selectedFeature
-    const layer = selection && state.layers.find((item) => item.id === selection.layerId)
-    if (layer && selection) deleteFeature(layer, selection.featureId)
-    useArcWebStore.getState().setSelectedFeature(null)
-  }, [deleteFeature])
-
-  /** Feature IDs the Delete command acts on: the layer's selection set plus the identified feature. */
-  const editTargetIds = useMemo(() => {
-    if (!selectedLayerId) return []
-    const ids = new Set<FeatureId>(selections[selectedLayerId] ?? [])
-    if (selectedFeature?.layerId === selectedLayerId) ids.add(selectedFeature.featureId)
-    return [...ids]
-  }, [selectedLayerId, selections, selectedFeature])
-
-  const deleteSelectedFeatures = useCallback(() => {
-    const state = useArcWebStore.getState()
-    const layer = state.layers.find((item) => item.id === state.selectedLayerId)
-    if (!layer || !editTargetIds.length) return
-    const doomed = new Set<FeatureId>(editTargetIds)
-    const features = layer.data.features.filter((feature) => feature.id === undefined || !doomed.has(feature.id))
-    const removed = layer.data.features.length - features.length
-    state.commitEdit(layer.id, { ...layer.data, features }, `Delete ${removed} feature${removed === 1 ? '' : 's'}`)
-    state.setSelection(layer.id, [])
-    state.setSelectedFeature(null)
-    notify(`Deleted ${removed} feature${removed === 1 ? '' : 's'} from ${isolate(layer.name)}. Save or discard from the Edit Tools tab.`)
-  }, [editTargetIds, notify])
-
-  const undoEdit = useCallback(() => {
-    const label = useArcWebStore.getState().undo()
-    if (label) notify(`Undid: ${label}.`)
-    else notify('Nothing to undo — the layer changed outside the edit session since the last edit.', 'warning')
-  }, [notify])
-
-  const redoEdit = useCallback(() => {
-    const label = useArcWebStore.getState().redo()
-    if (label) notify(`Redid: ${label}.`)
-    else notify('Nothing to redo.', 'warning')
-  }, [notify])
-
-  // Ctrl+Z / Ctrl+Y (and Ctrl+Shift+Z) for the edit session, except while typing in a field.
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.ctrlKey || event.metaKey) || event.altKey) return
-      const target = event.target as HTMLElement | null
-      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return
-      const key = event.key.toLowerCase()
-      const state = useArcWebStore.getState()
-      if (key === 'z' && !event.shiftKey && state.undoStack.length) {
-        event.preventDefault()
-        undoEdit()
-      } else if ((key === 'y' || (key === 'z' && event.shiftKey)) && state.redoStack.length) {
-        event.preventDefault()
-        redoEdit()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [undoEdit, redoEdit])
-
-  const editCell = useCallback((layerId: string, featureId: FeatureId, field: string, value: unknown) => {
-    const layer = useArcWebStore.getState().layers.find((item) => item.id === layerId)
-    if (!layer) return
-    useArcWebStore.getState().commitEdit(layerId, { ...layer.data, features: setFeatureAttribute(layer.data.features, featureId, field, value) }, `Edit ${field}`)
-  }, [])
-
-  const saveEdits = useCallback(() => {
-    setEditingTool('pan')
-    useArcWebStore.getState().saveEdits()
-    notify('Edits saved.')
-  }, [notify, setEditingTool])
-
-  const discardEdits = useCallback(() => {
-    setEditingTool('pan')
-    useArcWebStore.getState().discardEdits()
-    notify('Edits discarded; features restored.', 'warning')
-  }, [notify, setEditingTool])
 
   const handleTableResize = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -1071,19 +795,6 @@ function App() {
     }
   }, [notify])
 
-  const toggleTool = (nextTool: 'distance' | 'area') => {
-    const state = useArcWebStore.getState()
-    state.setTool(state.tool === nextTool ? 'pan' : nextTool)
-    measurePointsRef.current = []
-    setMeasurePoints([])
-    if (mapRef.current) updateMeasure(mapRef.current, [], nextTool)
-  }
-
-  const clearMeasurements = () => {
-    measurePointsRef.current = []
-    setMeasurePoints([])
-    if (mapRef.current) updateMeasure(mapRef.current, [], tool === 'area' || tool === 'distance' ? tool : 'pan')
-  }
 
   const clearSession = async () => {
     try {
@@ -1525,7 +1236,7 @@ function App() {
             onSelectByLocation={() => setSelectionDialog('location')}
             onZoomToSelected={zoomToSelected}
             onClearSelection={clearSelection}
-            onToggleMeasure={toggleTool}
+            onToggleMeasure={toggleMeasureTool}
             onToggleTable={() => useArcWebStore.getState().setTableOpen(!tableOpen)}
             onOpenMapProperties={openMapProperties}
             onShowView={showView}
