@@ -1,17 +1,17 @@
-import { Children, cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactElement, ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import * as maplibregl from 'maplibre-gl'
-import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
 import { coordinateReadout, crsLabel, requireCrs, scaleDenominator, utmCodeFor, WGS84 } from './crs'
 import {
-  AreaChart, ArrowDown, ArrowUp, Check, ChevronDown, Circle, CloudUpload, Compass,
+  AreaChart, ArrowDown, ArrowUp, Check, ChevronDown, CloudUpload, Compass,
   Database, Eye, EyeOff, FilePlus2, Focus, FolderOpen, Layers3, LocateFixed, Map as MapIcon,
-  Moon, Minus, MousePointer2, MoveRight, PanelRightClose, Plus, Ruler, Search, Settings2,
-  Sun, Sparkles, Table2, Trash2, Triangle, Upload, X, FileImage, FileText, Globe2, LayoutTemplate, Box, Move,
+  Moon, Minus, MousePointer2, PanelRightClose, Plus, Ruler, Search, Settings2,
+  Sun, Sparkles, Table2, Trash2, Upload, X, FileImage, FileText, Globe2, LayoutTemplate, Box, Move,
   Bookmark as BookmarkIcon, Eraser, ListFilter, Save, ScanSearch, SquareDashedMousePointer,
 } from 'lucide-react'
-import type { Feature, FeatureCollection, Geometry, Position } from 'geojson'
+import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import AttributeTable from './AttributeTable'
 import DockablePanel from './DockablePanel'
 import { SymbologyPanel } from './SymbologyPanel'
@@ -41,11 +41,11 @@ import LayoutPanel from './layout/LayoutPanel'
 import LayoutView from './layout/LayoutView'
 import { elementLabels, pageSize, useLayoutStore, type LayoutElementType } from './layout/layoutStore'
 import {
-  ensureMapOverlays, geometryBounds, getLayerIds, getRenderedFeatureLayerIds,
+  ensureMapOverlays, geometryBounds, getRenderedFeatureLayerIds,
   setMeasureOverlay, setSelectionOverlay, setSketchOverlay, syncMapLayers,
 } from './mapRendering'
 import {
-  useArcWebStore, type AnalysisRecord, type BasemapId, type Bookmark, type ContextualTab, type FeatureId, type FeatureSelection, type MapLayer,
+  useArcWebStore, type AnalysisRecord, type Bookmark, type ContextualTab, type FeatureId, type FeatureSelection, type MapLayer,
   type SelectionMethod, type TableView, type ToolMode,
 } from './store'
 import { setFeatureAttribute } from './table/tableQuery'
@@ -69,13 +69,21 @@ import {
 } from './project'
 import { applyWorkspacePreset, normalizeWorkspaceLayout } from './workspaceLayout'
 import type { PanelFrame, WorkspacePanelId, WorkspacePreset } from './workspaceLayout'
-import { getGraduatedClasses, getGraduatedClassCounts, getUniqueValueClasses, seedFieldCatalog } from './symbology'
+import { seedFieldCatalog } from './symbology'
 import { trapTabKey } from './a11y/modalFocus'
 import { SelectByAttributesDialog, SelectByLocationDialog } from './selection/SelectionDialogs'
 import ToolboxPanel from './toolboxes/ToolboxPanel'
 import type { ToolboxParameters, ToolboxTool, ToolExecutionResult } from './toolboxes/types'
 import { mergeScopedData, scopeLayersToSelection, selectedFeatureCount } from './toolboxes/selectionScope'
 import { describeToolRun } from './toolboxes/history'
+import { basemaps, baseStyle } from './basemaps'
+import {
+  createSketchFeature, distanceBetween, formatDistance, nearestVertexPath, polygonArea, queryFeaturesAt,
+  replaceCoordinate, snapCoordinate,
+} from './mapGeometry'
+import { styleRasterCells } from './rasterStyle'
+import { ContentsRendererLegend, LayerIcon } from './contents/ContentsLegend'
+import { addRibbonTooltips } from './ribbon/ribbonTooltips'
 import './App.css'
 import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
@@ -116,233 +124,6 @@ type ContextMenuState =
   | { kind: 'map-root'; x: number; y: number }
   | { kind: 'layer'; layerId: string; x: number; y: number }
   | { kind: 'canvas'; x: number; y: number; point: { x: number; y: number }; lngLat: [number, number]; canIdentify: boolean }
-
-const basemaps: { id: BasemapId; name: string; note: string; preview: string }[] = [
-  { id: 'osm', name: 'OpenStreetMap', note: 'Streets', preview: 'map-preview-osm' },
-  { id: 'satellite', name: 'World Imagery', note: 'Satellite', preview: 'map-preview-satellite' },
-  { id: 'dark', name: 'Dark Matter', note: 'Carto', preview: 'map-preview-dark' },
-  { id: 'light', name: 'Positron Light', note: 'Carto', preview: 'map-preview-light' },
-]
-
-function baseStyle(id: BasemapId): StyleSpecification | string {
-  if (id === 'dark') return 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
-  if (id === 'light') return 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
-  const configs = {
-    osm: {
-      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '&copy; OpenStreetMap contributors',
-    },
-    satellite: {
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Tiles &copy; Esri',
-    },
-  } satisfies Record<'osm' | 'satellite', { url: string; attribution: string }>
-  const selected = configs[id]
-  return {
-    version: 8,
-    sources: {
-      'arcweb-basemap': {
-        type: 'raster',
-        tiles: [selected.url],
-        tileSize: 256,
-        attribution: selected.attribution,
-      },
-    },
-    layers: [{ id: 'arcweb-basemap', type: 'raster', source: 'arcweb-basemap' }],
-  }
-}
-
-function formatDistance(meters: number) {
-  return meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${Math.round(meters)} m`
-}
-
-function distanceBetween(a: [number, number], b: [number, number]) {
-  const radians = (degrees: number) => degrees * Math.PI / 180
-  const [lat1, lat2] = [radians(a[1]), radians(b[1])]
-  const deltaLat = lat2 - lat1
-  const deltaLon = radians(b[0] - a[0])
-  const h = Math.sin(deltaLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2
-  return 6371008.8 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
-}
-
-function polygonArea(points: [number, number][]) {
-  if (points.length < 3) return 0
-  const radius = 6371008.8
-  let total = 0
-  for (let index = 0; index < points.length; index += 1) {
-    const current = points[index]
-    const next = points[(index + 1) % points.length]
-    total += (next[0] - current[0]) * Math.PI / 180 *
-      (2 + Math.sin(current[1] * Math.PI / 180) + Math.sin(next[1] * Math.PI / 180))
-  }
-  return Math.abs(total * radius * radius / 2)
-}
-
-function LayerIcon({ geometry }: { geometry: MapLayer['geometry'] }) {
-  if (geometry === 'Point') return <Circle size={15} strokeWidth={2.2} />
-  if (geometry === 'Line') return <MoveRight size={16} strokeWidth={2.2} />
-  if (geometry === 'Polygon') return <Triangle size={15} strokeWidth={2.2} />
-  if (geometry === 'Unknown') return <Table2 size={15} />
-  return <Layers3 size={15} />
-}
-
-function ContentsRendererLegend({ layer }: { layer: MapLayer }) {
-  if (layer.renderer.type === 'single') return null
-  const graduatedCounts = layer.renderer.type === 'graduated' ? getGraduatedClassCounts(layer, layer.renderer) : []
-  const classes = layer.renderer.type === 'unique'
-    ? getUniqueValueClasses(layer, layer.renderer.field, layer.renderer)
-    : getGraduatedClasses(layer.renderer).map((item, index) => ({
-      ...item,
-      count: graduatedCounts[index],
-    }))
-  return (
-    <div className="contents-class-list">
-      {classes.map((item) => <div className="contents-class-row" key={item.value} title={item.label}>
-        <span className={`contents-class-swatch geometry-${layer.geometry.toLowerCase()} shape-${layer.pointShape}`} style={{ backgroundColor: item.color, borderColor: layer.geometry === 'Point' ? layer.strokeColor : item.color, opacity: layer.opacity * layer.fillOpacity }} />
-        <span className="contents-class-label">{item.label}</span>
-        <span className="contents-class-count">{item.count.toLocaleString()}</span>
-      </div>)}
-    </div>
-  )
-}
-
-function ribbonText(node: ReactNode): string {
-  return Children.toArray(node).map((child) => {
-    if (typeof child === 'string' || typeof child === 'number') return String(child)
-    if (isValidElement(child)) return ribbonText((child.props as { children?: ReactNode }).children)
-    return ''
-  }).join(' ').replace(/\s+/g, ' ').trim()
-}
-
-function addRibbonTooltips(node: ReactNode): ReactNode {
-  return Children.map(node, (child) => {
-    if (!isValidElement(child)) return child
-    const props = child.props as { title?: string; 'aria-label'?: string; children?: ReactNode }
-    const children = addRibbonTooltips(props.children)
-    if (child.type === 'button') {
-      const label = props.title?.trim() || props['aria-label']?.trim() || ribbonText(props.children)
-      if (!label) return cloneElement(child as ReactElement<{ children?: ReactNode }>, undefined, children)
-      return cloneElement(child as ReactElement<Record<string, unknown>>, {
-        title: undefined,
-        'data-ribbon-tooltip': label,
-        'aria-label': props['aria-label'] ?? label,
-      }, children)
-    }
-    return cloneElement(child as ReactElement<{ children?: ReactNode }>, undefined, children)
-  })
-}
-
-function getPositions(value: unknown, path: number[] = [], result: { coordinate: Position; path: number[] }[] = []) {
-  if (!Array.isArray(value)) return result
-  if (value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') {
-    result.push({ coordinate: value as Position, path })
-    return result
-  }
-  value.forEach((child, index) => getPositions(child, [...path, index], result))
-  return result
-}
-
-function snapCoordinate(
-  map: MapLibreMap,
-  event: maplibregl.MapMouseEvent,
-  layers: MapLayer[],
-  exclude?: FeatureSelection | null,
-): [number, number] {
-  const renderedLayers = getRenderedFeatureLayerIds(map, layers)
-  if (!renderedLayers.length) return [event.lngLat.lng, event.lngLat.lat]
-  const point = event.point
-  const rendered = map.queryRenderedFeatures([
-    [point.x - 10, point.y - 10],
-    [point.x + 10, point.y + 10],
-  ], { layers: renderedLayers })
-  let closest: { coordinate: Position; distance: number } | null = null
-  for (const candidate of rendered) {
-    if (!candidate.geometry) continue
-    const candidateLayer = layers.find((layer) => getLayerIds(layer.id).source === candidate.source)
-    if (exclude && candidateLayer?.id === exclude.layerId && candidate.id === exclude.featureId) continue
-    if (!('coordinates' in candidate.geometry)) continue
-    for (const vertex of getPositions(candidate.geometry.coordinates)) {
-      const projected = map.project([vertex.coordinate[0], vertex.coordinate[1]])
-      const distance = Math.hypot(projected.x - point.x, projected.y - point.y)
-      if (distance <= 10 && (!closest || distance < closest.distance)) closest = { coordinate: vertex.coordinate, distance }
-    }
-  }
-  return closest
-    ? [closest.coordinate[0], closest.coordinate[1]]
-    : [event.lngLat.lng, event.lngLat.lat]
-}
-
-/** Every feature drawn within a few pixels of `point` (the tolerance makes points and thin lines easy to hit). */
-function queryFeaturesAt(map: MapLibreMap, point: { x: number; y: number }, layers: MapLayer[]): FeatureSelection[] {
-  const visibleLayerIds = getRenderedFeatureLayerIds(map, layers)
-  if (!visibleLayerIds.length) return []
-  const rendered = map.queryRenderedFeatures([[point.x - 4, point.y - 4], [point.x + 4, point.y + 4]], { layers: visibleLayerIds })
-  const hits: FeatureSelection[] = []
-  for (const candidate of rendered) {
-    const layer = layers.find((item) => getLayerIds(item.id).source === candidate.source)
-    if (!layer || candidate.id === undefined) continue
-    // A feature drawn across several tiles is reported once per tile.
-    if (!hits.some((hit) => hit.layerId === layer.id && hit.featureId === candidate.id)) {
-      hits.push({ layerId: layer.id, featureId: candidate.id as FeatureId })
-    }
-  }
-  return hits
-}
-
-function nearestVertexPath(map: MapLibreMap, feature: Feature<Geometry>, position: maplibregl.Point) {
-  if (feature.geometry.type === 'GeometryCollection') return null
-  let nearest: { path: number[]; distance: number } | null = null
-  for (const vertex of getPositions(feature.geometry.coordinates)) {
-    const projected = map.project([vertex.coordinate[0], vertex.coordinate[1]])
-    const distance = Math.hypot(projected.x - position.x, projected.y - position.y)
-    if (!nearest || distance < nearest.distance) nearest = { path: vertex.path, distance }
-  }
-  return nearest && nearest.distance <= 18 ? nearest : null
-}
-
-function replaceCoordinate(value: unknown, path: number[], coordinate: [number, number]): unknown {
-  if (!path.length) return coordinate
-  if (!Array.isArray(value)) return value
-  const [index, ...remaining] = path
-  const copy = [...value]
-  copy[index] = replaceCoordinate(copy[index], remaining, coordinate)
-  return copy
-}
-
-function createSketchFeature(layer: MapLayer, geometry: Geometry) {
-  const properties = Object.fromEntries((layer.customFields ?? []).map((field) => [field, '']))
-  return {
-    type: 'Feature' as const,
-    id: `${layer.id}:${crypto.randomUUID()}`,
-    properties,
-    geometry,
-  }
-}
-
-function styleRasterCells(layer: MapLayer): MapLayer {
-  const values = layer.data.features
-    .map((feature) => feature.properties?.value)
-    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
-    .sort((left, right) => left - right)
-  if (!values.length) return layer
-  const breaks: number[] = []
-  for (let index = 1; index < 8; index += 1) {
-    const value = values[Math.floor(index * values.length / 8)]
-    if (value !== undefined && value > (breaks[breaks.length - 1] ?? -Infinity)) breaks.push(value)
-  }
-  const palette = ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#fee090', '#fdae61', '#f46d43', '#a50026']
-  const colors = Array.from({ length: breaks.length + 1 }, (_, index) =>
-    palette[Math.round(index * (palette.length - 1) / Math.max(1, breaks.length))],
-  )
-  return {
-    ...layer,
-    opacity: 1,
-    strokeWidth: 0,
-    fillColor: colors[0] ?? layer.fillColor,
-    strokeColor: colors[0] ?? layer.strokeColor,
-    renderer: { type: 'graduated', field: 'value', method: 'quantile', breaks, colors },
-  }
-}
 
 function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
