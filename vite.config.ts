@@ -33,7 +33,10 @@ export default defineConfig({
 const CACHE = 'arcweb-app-${version}';
 const FILES = ${JSON.stringify([...files, 'favicon.svg'])};
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(file => new URL(file, self.registration.scope).href))).then(() => self.skipWaiting())));
-self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+// Drop superseded application shells; only caches this worker created are touched.
+self.addEventListener('activate', event => event.waitUntil(caches.keys()
+  .then(keys => Promise.all(keys.filter(key => key.startsWith('arcweb-app-') && key !== CACHE).map(key => caches.delete(key))))
+  .then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
   const relative = event.request.url.slice(self.registration.scope.length).split('?')[0];
