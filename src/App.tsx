@@ -67,6 +67,7 @@ import { useFeatureEdits } from './editing/useFeatureEdits'
 import { useSketchTools } from './editing/useSketchTools'
 import { useMapInstance, type MapEvents } from './map/useMapInstance'
 import { useMapSync } from './map/useMapSync'
+import { useExtentHistory } from './map/useExtentHistory'
 import { useMapClick, type IdentifyState } from './map/useMapClick'
 import { startUiSettingsSync } from './ui/uiSettingsSync'
 import './App.css'
@@ -155,6 +156,7 @@ function App() {
   const layoutOrientation = useLayoutStore((state) => state.orientation)
   const mapEventsRef = useRef<MapEvents | null>(null)
   const { mapInstance, mapLoaded } = useMapInstance({ mapRef, mapHostRef, workspaceRef, sceneViewRef, eventsRef: mapEventsRef, viewMode, mapFrameHost })
+  const extentHistory = useExtentHistory(mapInstance)
   const tableHeight = workspaceLayout.panels.attributeTable.frame.height
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId) ?? null
   const selectedFeatureIsEditable = Boolean(
@@ -949,15 +951,15 @@ function App() {
             hasSelection={hasSelection}
             selectedCount={selectedCount}
             bookmarks={bookmarks}
-            canGoBack={false}
-            canGoForward={false}
+            canGoBack={extentHistory.canGoBack}
+            canGoForward={extentHistory.canGoForward}
             onSelectBasemap={(id) => { selectOfflineBasemap(undefined); useArcWebStore.getState().setBasemap(id) }}
             onExplore={() => setEditingTool('pan')}
             onZoomIn={() => mapRef.current?.zoomIn({ duration: 250 })}
             onZoomOut={() => mapRef.current?.zoomOut({ duration: 250 })}
             onFullExtent={zoomToAll}
-            onBack={() => {}}
-            onForward={() => {}}
+            onBack={extentHistory.goBack}
+            onForward={extentHistory.goForward}
             onGoToBookmark={(id) => { const bookmark = bookmarks.find((item) => item.id === id); if (bookmark) goToBookmark(bookmark) }}
             onManageBookmarks={openBookmarksPanel}
             onAddData={openFilePicker}
