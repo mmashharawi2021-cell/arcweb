@@ -11,29 +11,10 @@
   font-size: 12px;
 }
 
-.app-header {
-  height: 48px;
-  flex: 0 0 48px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px 0 18px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
-  z-index: 4;
-}
-
-.brand-group, .header-actions, .project-title, .save-state, .clear-session,
-.header-icon, .dock-heading > div, .dock-heading, .pane-subtitle, .contents-footer,
-.footer-center, .app-footer > div, .coordinate-reference, .status-coordinate,
-.status-right, .layer-main, .layer-opacity, .section-title, .color-control,
-.color-input, .range-control > span, .select-wrap, .selected-layer-card,
-.layer-info > div, .symbology-footer, .properties-status, .toast, .toast-indicator {
+.save-state, .dock-heading > div, .dock-heading, .pane-subtitle, .contents-footer, .footer-center, .app-footer > div, .coordinate-reference, .status-coordinate, .status-right, .layer-main, .layer-opacity, .section-title, .color-control, .color-input, .range-control > span, .select-wrap, .selected-layer-card, .layer-info > div, .symbology-footer, .properties-status, .toast, .toast-indicator {
   display: flex;
   align-items: center;
 }
-
-.brand-group { min-width: 0; gap: 11px; height: 100%; }
 .brand-mark {
   width: 28px;
   height: 28px;
@@ -44,34 +25,15 @@
   border-radius: var(--radius);
   box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.18);
 }
-.brand-name { color: var(--text); font-weight: 720; font-size: 15px; letter-spacing: -.5px; }
-.brand-name span { color: var(--accent-text); }
-.header-divider, .header-separator { height: 20px; width: 1px; background: var(--line); margin: 0 3px; }
-.project-title { gap: 8px; color: var(--text-secondary); font-size: 11px; }
-.project-title strong { font-weight: 560; color: var(--text); font-size: 12px; }
-.project-title svg { color: var(--muted); }
 .save-state { gap: 6px; margin-left: 12px; color: var(--muted); font-size: 10px; white-space: nowrap; }
 .save-dot, .status-dot, .properties-status > span, .footer-app-dot, .live-dot {
   width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: var(--accent);
 }
-.header-actions { gap: 11px; height: 100%; }
-.workspace-layout-control { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 9px; white-space: nowrap; }
-.workspace-layout-control select { height: 27px; padding: 0 7px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--text-secondary); background: var(--panel-raised); font-size: 9px; cursor: pointer; }
-.workspace-layout-control select:focus { border-color: var(--accent); }
-.header-icon, .subtle-icon {
+.subtle-icon {
   border: 0; background: transparent; padding: 6px; color: var(--text-secondary);
   cursor: pointer; border-radius: var(--radius);
 }
-.header-icon:hover, .subtle-icon:hover { background: var(--panel-hover); color: var(--text); }
-.clear-session {
-  gap: 6px; background: transparent; border: 1px solid var(--line); border-radius: var(--radius);
-  color: var(--text-secondary); padding: 6px 9px; font-size: 10px; cursor: pointer;
-}
-.clear-session:hover { color: var(--danger-hover); border-color: rgba(var(--danger-hover-rgb), .4); }
-.avatar {
-  width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--avatar-bg); border: 1px solid var(--avatar-border); color: var(--avatar-ink); font-size: 8px; font-weight: 700;
-}
+.subtle-icon:hover { background: var(--panel-hover); color: var(--text); }
 
 .ribbon-tabs {
   height: 35px; flex: 0 0 35px; display: flex; align-items: stretch; gap: 1px;
@@ -690,7 +652,7 @@ button:not(:disabled):not([aria-disabled="true"]):active { opacity: .72; }
 
 .workspace.analysis-focus .toolbox-dock { width: 390px; }
 .preset-cartography .contents-window { display: none; }
-.full-canvas > .app-header,
+.full-canvas > .title-bar,
 .full-canvas > .ribbon-tabs,
 .full-canvas > .ribbon-toolbar,
 .full-canvas > .app-footer { display: none; }
@@ -917,14 +879,9 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
 .layout-panel .draw-tool-grid button svg { color: var(--accent-text); }
 
 /* ---------- Phase 4: selection, identify pop-up, bookmarks, project files ---------- */
-label.project-title { cursor: text; }
 .project-name { width: 168px; height: 24px; padding: 0 6px; border: 1px solid transparent; border-radius: var(--radius); outline: none; color: var(--text); background: transparent; font-size: 12px; font-weight: 560; text-overflow: ellipsis; }
 .project-name:hover { border-color: var(--line); }
 .project-name:focus { border-color: var(--accent); background: var(--bg); }
-.header-button { height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--text-secondary); background: transparent; font-size: 10px; white-space: nowrap; cursor: pointer; }
-.header-button:hover { color: var(--accent-text); border-color: rgba(var(--accent-rgb),.45); background: var(--accent-dim); }
-.header-button.primary { color: var(--accent-ink); border-color: var(--accent); background: var(--accent); font-weight: 650; }
-.header-button.primary:hover { color: var(--accent-ink); filter: brightness(1.08); background: var(--accent); }
 
 .map-ribbon .ribbon-action { min-width: 54px; padding: 0 4px; white-space: nowrap; }
 .map-ribbon .group-caption { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1026,7 +983,6 @@ label.project-title { cursor: text; }
 .attribute-table-row.in-selection.selected { background: var(--accent-dim); box-shadow: inset 3px 0 var(--accent); }
 
 @media (max-width: 1320px) {
-  .header-button { padding: 0 8px; }
   .project-name { width: 130px; }
   .map-ribbon .ribbon-action { min-width: 46px; font-size: 8px; }
   .ribbon-toolbar { gap: 8px; }
@@ -1239,15 +1195,11 @@ label.project-title { cursor: text; }
 .phase-secondary-button:active:not(:disabled),
 .phase-danger-button:active:not(:disabled) { transform: scale(0.98); }
 
-.header-icon, .subtle-icon {
+.subtle-icon {
   transition: transform var(--dur-press) var(--ease-out);
 }
-.header-icon:hover:not(:disabled), .subtle-icon:hover:not(:disabled) { transform: translateY(-1px); }
-.header-icon:active:not(:disabled), .subtle-icon:active:not(:disabled) { transform: scale(0.98); }
-
-.clear-session { transition: transform var(--dur-press) var(--ease-out); }
-.clear-session:hover { transform: translateY(-1px); }
-.clear-session:active { transform: scale(0.98); }
+.subtle-icon:hover:not(:disabled) { transform: translateY(-1px); }
+.subtle-icon:active:not(:disabled) { transform: scale(0.98); }
 
 .export-choice-list button, .layout-export-card {
   transition: transform var(--dur-hover) var(--ease-out);
@@ -1280,10 +1232,7 @@ label.project-title { cursor: text; }
     transform: none !important;
     transition: none !important;
   }
-  .phase-primary-button, .phase-secondary-button, .phase-danger-button,
-  .header-icon, .subtle-icon, .clear-session, .ribbon-tab, .ribbon-action,
-  .export-choice-list button, .layout-export-card,
-  .layout-toggle-row button, .layout-view-switch button, .layout-north-styles button {
+  .phase-primary-button, .phase-secondary-button, .phase-danger-button, .subtle-icon, .ribbon-tab, .ribbon-action, .export-choice-list button, .layout-export-card, .layout-toggle-row button, .layout-view-switch button, .layout-north-styles button {
     transition: none !important;
     transform: none !important;
   }
@@ -1386,3 +1335,22 @@ label.project-title { cursor: text; }
 .backstage-options fieldset label { display: flex; align-items: center; gap: 6px; color: var(--text); }
 .backstage-options select { height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel-raised); color: var(--text); font: inherit; }
 .backstage-about ul { columns: 2; padding-left: 18px; color: var(--text-secondary); }
+
+/* ── Title bar and Quick Access Toolbar (src/shell/TitleBar.tsx) ─────────────────────────── */
+.title-bar {
+  position: relative; z-index: 4; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  height: 34px; flex: 0 0 34px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.title-bar-start, .title-bar-end { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.title-bar-end { justify-content: flex-end; }
+.title-bar .brand-mark { width: 22px; height: 22px; }
+.quick-access { display: flex; align-items: center; gap: 1px; padding-left: 8px; border-left: 1px solid var(--line); }
+.quick-access-button {
+  display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 24px; padding: 0;
+  border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); cursor: pointer;
+}
+.quick-access-button:hover:not(:disabled) { background: var(--panel-hover); border-color: var(--line); color: var(--text); }
+.quick-access-button:disabled { opacity: .4; cursor: default; }
+.title-bar-title { display: flex; align-items: baseline; gap: 6px; min-width: 0; font-size: 12px; }
+.title-bar-title .project-name { width: auto; min-width: 6ch; max-width: 36ch; field-sizing: content; text-align: center; }
+.title-bar-app { color: var(--muted); white-space: nowrap; }

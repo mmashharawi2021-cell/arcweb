@@ -5,7 +5,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
 import { coordinateReadout, requireCrs } from './crs'
 import {
-  Check, Compass, Focus, FolderOpen, Map as MapIcon, Moon, PanelRightClose, Settings2, Sun, Trash2, X, LayoutTemplate, Box, Save,
+  Check, Compass, Focus, FolderOpen, Map as MapIcon, PanelRightClose, Settings2, Trash2, X, LayoutTemplate, Box,
 } from 'lucide-react'
 import type { Feature } from 'geojson'
 import AttributeTable from './AttributeTable'
@@ -14,6 +14,8 @@ import { SymbologyPanel } from './SymbologyPanel'
 import { getCollectionBounds } from './geo'
 import { runInWorker, type WorkerLike } from './workers/runInWorker'
 import Backstage, { type BackstageSection } from './project/Backstage'
+import TitleBar from './shell/TitleBar'
+import { useAppShortcuts } from './shell/useAppShortcuts'
 import type { UiSettings } from './ui/uiSettings'
 import { registerOfflineProtocol } from './storage/offlineBasemap'
 import { useFadeExit } from './ui/useFadeExit'
@@ -528,6 +530,16 @@ function App() {
   }
 
   const closeBackstage = useCallback(() => setBackstage(null), [])
+  const openProjectPage = useCallback(() => setBackstage('open'), [])
+  const renameProject = useCallback((name: string) => useArcWebStore.getState().setProjectName(name), [])
+  /** Quick Access Save / Ctrl+S: projects save automatically; this commits pending changes now. */
+  const flushLibrary = library.flush
+  const saveNow = useCallback(() => {
+    flushLibrary()
+      .then(() => notify('Project saved on this device.'))
+      .catch((error: unknown) => notify(`Could not save: ${error instanceof Error ? error.message : 'IndexedDB error'}`, 'error'))
+  }, [flushLibrary, notify])
+  useAppShortcuts({ save: saveNow, open: openProjectPage })
   /** Save As › Save a copy in Projects: like Pro, the copy becomes the open project. */
   const saveProjectCopy = async () => {
     try {
@@ -847,44 +859,18 @@ function App() {
 
   return (
     <main ref={contentFadeRef} inert={library.state === 'loading'} aria-busy={library.state === 'loading'} className={`arc-app preset-${workspaceLayout.preset} ${workspaceLayout.fullCanvas ? 'full-canvas' : ''}`}>
-      <header className="app-header">
-        <div className="brand-group">
-          <div className="brand-mark"><MapIcon size={18} strokeWidth={2.3} /></div>
-          <span className="brand-name">Arc<span>Web</span></span>
-          <div className="header-divider" />
-          <label className="project-title" title="Project name — used for the saved file name"><span>Project</span>
-            <input className="project-name" aria-label="Project name" value={projectName} spellCheck={false} maxLength={80}
-              onChange={(event) => useArcWebStore.getState().setProjectName(event.target.value)}
-              onBlur={(event) => { if (!event.target.value.trim()) useArcWebStore.getState().setProjectName('Untitled map') }}
-              onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur() }} />
-          </label>
-          <div className="save-state" data-save-state={library.state} role="status" title={library.error || 'Project library on this device'}><span className="save-dot" />{library.state === 'saved' ? 'Saved locally' : library.state === 'saving' ? 'Saving…' : library.state === 'loading' ? 'Loading…' : 'Save failed'}</div>
-        </div>
-        <div className="header-actions">
-          <button className="header-button primary" title="Save the whole workspace (layers, symbology, coordinate system, layout, bookmarks) as an .arcweb.json file" onClick={saveProject}><Save size={14} />Save Project</button>
-          <input ref={projectInputRef} className="visually-hidden" type="file" tabIndex={-1} aria-label="Choose an ArcWeb project file" accept=".json,.arcweb.json,application/json" onChange={(event) => {
-            const file = event.currentTarget.files?.[0]
-            if (file) void loadProjectFile(file)
-            event.currentTarget.value = ''
-          }} />
-          <label className="workspace-layout-control"><span>Workspace</span>
-            <select aria-label="Workspace layout preset" value={workspaceLayout.preset} onChange={(event) => {
-              const value = event.target.value
-              if (value === 'standard' || value === 'analysis' || value === 'cartography') selectWorkspacePreset(value)
-            }}>
-              <option value="standard">Standard Layout</option>
-              <option value="analysis">Analysis Focus</option>
-              <option value="cartography">Cartography Focus</option>
-            </select>
-          </label>
-          <button className="header-button" title="Hide panels and ribbons for a full-canvas map view" onClick={toggleFullCanvas}><Focus size={14} />Full canvas</button>
-          <span className="header-separator" />
-          <button className="header-icon" title="Toggle theme" onClick={() => useArcWebStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark')}>
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <div className="avatar">AW</div>
-        </div>
-      </header>
+      <TitleBar
+        projectName={projectName}
+        onRename={renameProject}
+        saveState={library.state}
+        saveError={library.error}
+        quickAccess={{ onSave: saveNow, onUndo: undoEdit, onRedo: redoEdit, onOpen: openProjectPage, canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }}
+      />
+      <input ref={projectInputRef} className="visually-hidden" type="file" tabIndex={-1} aria-label="Choose an ArcWeb project file" accept=".json,.arcweb.json,application/json" onChange={(event) => {
+        const file = event.currentTarget.files?.[0]
+        if (file) void loadProjectFile(file)
+        event.currentTarget.value = ''
+      }} />
 
       <nav className="ribbon-tabs" aria-label="Ribbon tabs">
         <button className="ribbon-tab project-tab" aria-haspopup="dialog" aria-expanded={backstage !== null} onClick={() => setBackstage('new')}>Project</button>
