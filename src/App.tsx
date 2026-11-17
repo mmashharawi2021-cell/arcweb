@@ -5,11 +5,10 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
 import { coordinateReadout, crsLabel, requireCrs, scaleDenominator, utmCodeFor, WGS84 } from './crs'
 import {
-  AreaChart, ArrowDown, ArrowUp, Check, ChevronDown, CloudUpload, Compass,
-  Database, Eye, EyeOff, FilePlus2, Focus, FolderOpen, Layers3, LocateFixed, Map as MapIcon,
-  Moon, Minus, MousePointer2, PanelRightClose, Plus, Ruler, Search, Settings2,
-  Sun, Sparkles, Table2, Trash2, Upload, X, FileImage, FileText, Globe2, LayoutTemplate, Box, Move,
-  Bookmark as BookmarkIcon, Eraser, ListFilter, Save, ScanSearch, SquareDashedMousePointer,
+  AreaChart, Check, CloudUpload, Compass, Database, FilePlus2, Focus, FolderOpen, Map as MapIcon, Moon, Minus,
+  MousePointer2, PanelRightClose, Plus, Ruler, Settings2, Sun, Sparkles, Table2, Trash2, Upload, X, FileImage,
+  FileText, Globe2, LayoutTemplate, Box, Bookmark as BookmarkIcon, Eraser, ListFilter, Save, ScanSearch,
+  SquareDashedMousePointer,
 } from 'lucide-react'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import AttributeTable from './AttributeTable'
@@ -82,7 +81,7 @@ import {
   replaceCoordinate, snapCoordinate,
 } from './mapGeometry'
 import { styleRasterCells } from './rasterStyle'
-import { ContentsRendererLegend, LayerIcon } from './contents/ContentsLegend'
+import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
 import './App.css'
 import { isolate } from './bidi'
@@ -163,7 +162,6 @@ function App() {
   const sceneViewRef = useRef(false)
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null)
   const [zoom, setZoom] = useState(3.15)
-  const [layerSearch, setLayerSearch] = useState('')
   const [importingFile, setImportingFile] = useState<{ name: string; index: number; total: number } | null>(null)
   const [toolExecutionProgress, setToolExecutionProgress] = useState<{ name: string; current: number; total: number; message: string } | null>(null)
   const [mapFrameHost, setMapFrameHost] = useState<HTMLDivElement | null>(null)
@@ -200,7 +198,6 @@ function App() {
     selectedFeature?.layerId === selectedLayer.id &&
     selectedLayer.data.features.some((feature) => feature.id === selectedFeature.featureId),
   )
-  const filteredLayers = useMemo(() => layers.filter((layer) => layer.name.toLowerCase().includes(layerSearch.toLowerCase())), [layers, layerSearch])
 
   // Contextual ribbon tabs follow the selected layer type and the edit session.
   const editSnapshots = useArcWebStore((state) => state.editSnapshots)
@@ -1563,6 +1560,10 @@ function App() {
     setContextMenu({ kind: 'layer', layerId, x: fromKeyboard ? rect.left + 24 : event.clientX, y: fromKeyboard ? rect.bottom : event.clientY })
   }, [])
 
+  const toggleContentsFloating = useCallback(() => togglePanelFloating('contents'), [togglePanelFloating])
+  const openFilePicker = useCallback(() => fileInputRef.current?.click(), [])
+  const openMapRootMenu = useCallback((x: number, y: number) => setContextMenu({ kind: 'map-root', x, y }), [])
+
   const selectedCount = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
   const hasSelection = selectedCount > 0 || selectedFeature !== null
   const tableSelectedIds = useMemo(
@@ -1838,72 +1839,21 @@ function App() {
           className="contents-window"
           onFrameChange={updateContentsFrame}
         >
-        <aside className={`dock contents-dock ${workspaceLayout.contentsMinimized ? 'contents-minimized' : ''}`}>
-          <div className="dock-heading">
-            <div><Layers3 size={16} /><strong>Contents</strong><span className="layer-count">{layers.length}</span></div>
-            <div className="dock-heading-actions">
-              <button className="panel-float-toggle" title={workspaceLayout.panels.contents.floating ? 'Dock Contents panel' : 'Float Contents panel'} aria-label={workspaceLayout.panels.contents.floating ? 'Dock Contents panel' : 'Float Contents panel'} onClick={() => togglePanelFloating('contents')}><Move size={13} /><span>{workspaceLayout.panels.contents.floating ? 'Dock' : 'Float'}</span></button>
-              <button className="subtle-icon contents-collapse-toggle" title={workspaceLayout.contentsMinimized ? 'Expand Contents panel' : 'Minimize Contents panel'} aria-label={workspaceLayout.contentsMinimized ? 'Expand Contents panel' : 'Minimize Contents panel'} onClick={() => {
-                const state = useArcWebStore.getState()
-                state.setWorkspaceLayout({ ...state.workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
-              }}><ChevronDown size={14} /></button>
-              <button className="subtle-icon" title="Add data" aria-label="Add data" onClick={() => fileInputRef.current?.click()}><Plus size={16} /></button>
-            </div>
-          </div>
-          <div className="pane-subtitle">Drawing order <span>Top layers draw first</span></div>
-          {layers.length > 0 && <label className="layer-search"><Search size={14} /><input placeholder="Find a layer" value={layerSearch} onChange={(event) => setLayerSearch(event.target.value)} /><span>⌘F</span></label>}
-          <div className="layer-list">
-            <div className={`map-root-row ${selectedLayerId ? '' : 'selected'}`} title="Click to select the map (clears the layer selection); right-click for map options" onClick={() => useArcWebStore.getState().setSelectedLayer(null)} onDoubleClick={openMapProperties} onContextMenu={(event) => {
-              event.preventDefault()
-              setContextMenu({ kind: 'map-root', x: event.clientX, y: event.clientY })
-            }}>
-              <Globe2 size={14} /><strong>Map</strong><span>{displayCrsDefinition.code}</span>
-              <button title="Map properties" onClick={openMapProperties}><Settings2 size={12} /></button>
-            </div>
-            {filteredLayers.map((layer) => {
-              const layerIndex = layers.findIndex((item) => item.id === layer.id)
-              const selected = selectedLayerId === layer.id
-              return (
-                <div key={layer.id} data-layer-id={layer.id} className={`layer-row ${selected ? 'selected' : ''} ${contextMenu?.kind === 'layer' && contextMenu.layerId === layer.id ? 'menu-open' : ''}`} onClick={() => useArcWebStore.getState().setSelectedLayer(layer.id)} onContextMenu={(event) => openLayerMenu(event, layer.id)}>
-                  <div className="layer-main">
-                    <button className={`visibility-button ${layer.visible ? '' : 'hidden-layer'}`} title={layer.visible ? 'Hide layer' : 'Show layer'} onClick={(event) => {
-                      event.stopPropagation()
-                      useArcWebStore.getState().updateLayer(layer.id, { visible: !layer.visible })
-                    }}>{layer.visible ? <Eye size={14} /> : <EyeOff size={14} />}</button>
-                    <span className={`geometry-icon geometry-${layer.geometry.toLowerCase()}`} title={layer.geometry === 'Unknown' ? 'Standalone table' : `${layer.geometry} geometry`}><LayerIcon geometry={layer.geometry} /></span>
-                    <button className="layer-name-button" dir="auto" title={layer.name} onClick={(event) => {
-                      event.stopPropagation()
-                      useArcWebStore.getState().setSelectedLayer(layer.id)
-                    }}>{layer.name}</button>
-                    <div className="layer-actions">
-                      <button title="Move layer up" disabled={layerIndex === 0} onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().moveLayer(layer.id, -1) }}><ArrowUp size={12} /></button>
-                      <button title="Move layer down" disabled={layerIndex === layers.length - 1} onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().moveLayer(layer.id, 1) }}><ArrowDown size={12} /></button>
-                      <button title="Zoom to layer" disabled={layer.geometry === 'Unknown'} onClick={(event) => { event.stopPropagation(); zoomToLayer(layer) }}><LocateFixed size={12} /></button>
-                      <button title="Open attribute table" onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().setSelectedLayer(layer.id); useArcWebStore.getState().setTableOpen(true) }}><Table2 size={12} /></button>
-                      <button title="Remove layer" onClick={(event) => { event.stopPropagation(); setPendingRemoval(layer.id) }}><X size={13} /></button>
-                    </div>
-                  </div>
-                  {selected && (
-                    <div className="layer-opacity" onClick={(event) => event.stopPropagation()}>
-                      <span>Opacity</span><input aria-label={`${layer.name} opacity`} type="range" min="0" max="1" step="0.05" value={layer.opacity} onChange={(event) => useArcWebStore.getState().updateLayer(layer.id, { opacity: Number(event.target.value) })} /><span>{Math.round(layer.opacity * 100)}%</span>
-                    </div>
-                  )}
-                  {selected && <ContentsRendererLegend layer={layer} />}
-                </div>
-              )
-            })}
-            {layers.length === 0 && (
-              <button className="empty-layers" onClick={() => fileInputRef.current?.click()}>
-                <div className="empty-glyph"><Database size={20} /></div>
-                <strong>Your map is ready</strong>
-                <span>Add a dataset to start exploring spatial data.</span>
-                <em><Plus size={13} /> Add data</em>
-              </button>
-            )}
-            {layers.length > 0 && filteredLayers.length === 0 && <div className="no-results">No matching layers found.</div>}
-          </div>
-          <div className="contents-footer"><span><span className="status-dot" />{layers.length ? `${layers.length} layer${layers.length === 1 ? '' : 's'} in map` : 'No layers yet'}</span><button title="Map properties" onClick={openMapProperties}><Settings2 size={14} /></button></div>
-        </aside>
+        <ContentsPanel
+          layers={layers}
+          selectedLayerId={selectedLayerId}
+          menuLayerId={contextMenu?.kind === 'layer' ? contextMenu.layerId : null}
+          crsCode={displayCrsDefinition.code}
+          minimized={workspaceLayout.contentsMinimized}
+          floating={workspaceLayout.panels.contents.floating}
+          onToggleFloat={toggleContentsFloating}
+          onAddData={openFilePicker}
+          onOpenMapProperties={openMapProperties}
+          onMapRootMenu={openMapRootMenu}
+          onLayerMenu={openLayerMenu}
+          onZoomToLayer={zoomToLayer}
+          onRemoveLayer={setPendingRemoval}
+        />
         </DockablePanel>
 
         <section className="map-workspace" ref={workspaceRef} onDragEnter={(event) => { event.preventDefault(); setIsDragging(true) }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => {
