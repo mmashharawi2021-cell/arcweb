@@ -5,10 +5,8 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
 import { coordinateReadout, crsLabel, requireCrs, scaleDenominator, utmCodeFor, WGS84 } from './crs'
 import {
-  AreaChart, Check, CloudUpload, Compass, Database, FilePlus2, Focus, FolderOpen, Map as MapIcon, Moon, Minus,
-  MousePointer2, PanelRightClose, Plus, Ruler, Settings2, Sun, Sparkles, Table2, Trash2, Upload, X, FileImage,
-  FileText, Globe2, LayoutTemplate, Box, Bookmark as BookmarkIcon, Eraser, ListFilter, Save, ScanSearch,
-  SquareDashedMousePointer,
+  AreaChart, Check, Compass, Database, Focus, FolderOpen, Map as MapIcon, Moon, MousePointer2, PanelRightClose,
+  Ruler, Settings2, Sun, Trash2, Upload, X, LayoutTemplate, Box, Save,
 } from 'lucide-react'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import AttributeTable from './AttributeTable'
@@ -35,10 +33,9 @@ import { exportLayer, exportMapCanvas } from './exportData'
 import { EditPanel, SharePanel } from './PhasePanels'
 import MapProperties, { type MapViewInfo } from './MapProperties'
 import { exportLayoutSheet, type LayoutExportFormat } from './layout/exportLayout'
-import { insertableElements } from './layout/catalog'
 import LayoutPanel from './layout/LayoutPanel'
 import LayoutView from './layout/LayoutView'
-import { elementLabels, pageSize, useLayoutStore, type LayoutElementType } from './layout/layoutStore'
+import { pageSize, useLayoutStore, type LayoutElementType } from './layout/layoutStore'
 import {
   ensureMapOverlays, geometryBounds, getRenderedFeatureLayerIds,
   setMeasureOverlay, setSelectionOverlay, setSketchOverlay, syncMapLayers,
@@ -83,6 +80,7 @@ import {
 import { styleRasterCells } from './rasterStyle'
 import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
+import { AnalysisRibbon, EditRibbon, InsertRibbon, LayoutRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
 import './App.css'
 import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
@@ -1562,6 +1560,12 @@ function App() {
 
   const toggleContentsFloating = useCallback(() => togglePanelFloating('contents'), [togglePanelFloating])
   const openFilePicker = useCallback(() => fileInputRef.current?.click(), [])
+  /** Switches between the 2D map, the 3D scene and the print layout. */
+  const showView = useCallback((view: WorkspaceView) => {
+    setSceneView(view === '3d')
+    useArcWebStore.getState().setViewMode(view === 'layout' ? 'layout' : 'map')
+  }, [])
+  const workspaceView: WorkspaceView = viewMode === 'layout' ? 'layout' : sceneView ? '3d' : '2d'
   const openMapRootMenu = useCallback((x: number, y: number) => setContextMenu({ kind: 'map-root', x, y }), [])
 
   const selectedCount = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
@@ -1697,86 +1701,48 @@ function App() {
             onRedo={redoEdit}
           />
         ) : isContextualTab(activeTab) ? null : activeTab === 'Map' ? (
-          <>
-            <div className="tool-group basemap-group">
-              <div className="basemap-options">
-                {basemaps.map((item) => (
-                  <button key={item.id} className={`basemap-button ${!offlineBasemap && basemap === item.id ? 'chosen' : ''}`} onClick={() => { selectOfflineBasemap(undefined); useArcWebStore.getState().setBasemap(item.id) }} title={`${item.name} basemap`}>
-                    <span className={`basemap-preview ${item.preview}`} />
-                    <span>{item.name}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="group-caption">Basemap gallery</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="phase-ribbon-actions map-ribbon">
-              <button className={`ribbon-action ${tool === 'pan' ? 'tool-selected' : ''}`} title="Explore: pan the map and click a feature to open its pop-up (Ctrl+click adds it to the selection)" onClick={() => setEditingTool('pan')}><MousePointer2 size={17} /><span>Explore</span></button>
-              <button className="ribbon-action" title="Zoom in" onClick={() => mapRef.current?.zoomIn({ duration: 250 })}><Plus size={17} /><span>Zoom in</span></button>
-              <button className="ribbon-action" title="Zoom out" onClick={() => mapRef.current?.zoomOut({ duration: 250 })}><Minus size={17} /><span>Zoom out</span></button>
-              <button className="ribbon-action" title="Full extent" onClick={zoomToAll}><Focus size={17} /><span>Full extent</span></button>
-              <button className={`ribbon-action ${bookmarkAnchor ? 'tool-selected' : ''}`} title="Spatial bookmarks" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => {
-                const bounds = event.currentTarget.getBoundingClientRect()
-                setBookmarkAnchor(bookmarkAnchor ? null : { left: bounds.left, top: bounds.bottom + 8 })
-              }}><BookmarkIcon size={17} /><span>Bookmarks</span></button>
-              <div className="group-caption">Navigate</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="phase-ribbon-actions map-ribbon">
-              <button className="ribbon-action" title="Select By Attributes" disabled={!layers.length} onClick={() => setSelectionDialog('attributes')}><ListFilter size={17} /><span>By attributes</span></button>
-              <button className="ribbon-action" title="Select By Location" disabled={!layers.length} onClick={() => setSelectionDialog('location')}><SquareDashedMousePointer size={17} /><span>By location</span></button>
-              <button className="ribbon-action" title="Zoom to selected features" disabled={!hasSelection} onClick={zoomToSelected}><ScanSearch size={17} /><span>Zoom to</span></button>
-              <button className="ribbon-action" title="Clear selection" disabled={!hasSelection} onClick={clearSelection}><Eraser size={17} /><span>Clear</span></button>
-              <div className="group-caption">Selection{selectedCount ? ` · ${selectedCount.toLocaleString('en-US')} selected` : ''}</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="phase-ribbon-actions map-ribbon">
-              <button className={`ribbon-action ${tool === 'distance' ? 'tool-selected' : ''}`} title="Measure distance" onClick={() => toggleTool('distance')}><Ruler size={17} /><span>Distance</span></button>
-              <button className={`ribbon-action ${tool === 'area' ? 'tool-selected' : ''}`} title="Measure area" onClick={() => toggleTool('area')}><AreaChart size={17} /><span>Area</span></button>
-              <div className="group-caption">Measure</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="phase-ribbon-actions map-ribbon">
-              <button className={`ribbon-action ${tableOpen ? 'tool-selected' : ''}`} title="Open attribute table" disabled={!selectedLayer} onClick={() => useArcWebStore.getState().setTableOpen(!tableOpen)}><Table2 size={17} /><span>Table</span></button>
-              <button className="ribbon-action" title="Map properties and coordinate systems" onClick={openMapProperties}><Globe2 size={17} /><span>Properties</span></button>
-              <button className={`ribbon-action ${!sceneView && viewMode === 'map' ? 'tool-selected' : ''}`} title="Switch to 2D Map" onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode('map') }}><MapIcon size={17} /><span>2D Map</span></button>
-              <button className={`ribbon-action ${sceneView && viewMode === 'map' ? 'tool-selected' : ''}`} title="Switch to 3D Scene; right-drag to rotate and tilt" onClick={() => { setSceneView(true); useArcWebStore.getState().setViewMode('map') }}><Box size={17} /><span>3D Scene</span></button>
-              <button className={`ribbon-action ${viewMode === 'layout' ? 'tool-selected' : ''}`} title="Switch to print layout view" onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode(viewMode === 'layout' ? 'map' : 'layout') }}><LayoutTemplate size={17} /><span>Layout</span></button>
-              <div className="group-caption">Map</div>
-            </div>
-          </>
+          <MapRibbon
+            basemap={basemap}
+            offlineBasemapActive={Boolean(offlineBasemap)}
+            tool={tool}
+            hasLayers={layers.length > 0}
+            hasTableLayer={Boolean(selectedLayer)}
+            hasSelection={hasSelection}
+            selectedCount={selectedCount}
+            tableOpen={tableOpen}
+            bookmarksOpen={Boolean(bookmarkAnchor)}
+            view={workspaceView}
+            onSelectBasemap={(id) => { selectOfflineBasemap(undefined); useArcWebStore.getState().setBasemap(id) }}
+            onExplore={() => setEditingTool('pan')}
+            onZoomIn={() => mapRef.current?.zoomIn({ duration: 250 })}
+            onZoomOut={() => mapRef.current?.zoomOut({ duration: 250 })}
+            onFullExtent={zoomToAll}
+            onToggleBookmarks={(event) => {
+              const bounds = event.currentTarget.getBoundingClientRect()
+              setBookmarkAnchor(bookmarkAnchor ? null : { left: bounds.left, top: bounds.bottom + 8 })
+            }}
+            onSelectByAttributes={() => setSelectionDialog('attributes')}
+            onSelectByLocation={() => setSelectionDialog('location')}
+            onZoomToSelected={zoomToSelected}
+            onClearSelection={clearSelection}
+            onToggleMeasure={toggleTool}
+            onToggleTable={() => useArcWebStore.getState().setTableOpen(!tableOpen)}
+            onOpenMapProperties={openMapProperties}
+            onShowView={showView}
+            onToggleLayout={() => showView(viewMode === 'layout' ? '2d' : 'layout')}
+          />
         ) : activeTab === 'Insert' ? (
-          <>
-            <div className="tool-group add-data-group">
-              <button className="add-data-button" onClick={() => fileInputRef.current?.click()}><FilePlus2 size={19} /><span>Add data</span></button>
-              <div className="group-caption">Import local data</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="supported-files"><CloudUpload size={19} /><div><strong>Drop a file onto the map</strong><span>GeoJSON · Shapefile ZIP · KML · CSV · GeoTIFF</span></div></div>
-          </>
+          <InsertRibbon onAddData={openFilePicker} />
         ) : activeTab === 'Analysis' ? (
-          <div className="ribbon-contextual-copy"><Sparkles size={17} /><div><strong>Spatial analysis</strong><span>Choose an operation and input layers in the Geoprocessing pane.</span></div></div>
+          <AnalysisRibbon />
         ) : activeTab === 'Layout' ? (
-          <>
-            <div className="phase-ribbon-actions layout-ribbon">
-              <button className={`ribbon-action ${viewMode === 'map' ? 'tool-selected' : ''}`} onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode('map') }}><MapIcon size={17} /><span>Map view</span></button>
-              <button className={`ribbon-action ${viewMode === 'layout' ? 'tool-selected' : ''}`} onClick={() => { setSceneView(false); useArcWebStore.getState().setViewMode('layout') }}><LayoutTemplate size={17} /><span>Layout view</span></button>
-              <div className="group-caption">View</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="phase-ribbon-actions layout-ribbon">
-              {insertableElements.map(({ type, icon: Icon }) => (
-                <button key={type} className="ribbon-action" title={`Insert ${elementLabels[type].toLowerCase()}`} onClick={() => insertLayoutElement(type)}><Icon size={17} /><span>{elementLabels[type]}</span></button>
-              ))}
-              <div className="group-caption">Insert map elements</div>
-            </div>
-            <div className="ribbon-separator" />
-            <div className="phase-ribbon-actions layout-ribbon">
-              <button className="ribbon-action" disabled={layoutExporting} onClick={() => void exportLayout('png')}><FileImage size={17} /><span>PNG</span></button>
-              <button className="ribbon-action" disabled={layoutExporting} onClick={() => void exportLayout('pdf')}><FileText size={17} /><span>PDF</span></button>
-              <div className="group-caption">Export layout</div>
-            </div>
-          </>
+          <LayoutRibbon
+            viewMode={viewMode}
+            exporting={layoutExporting}
+            onShowView={showView}
+            onInsert={insertLayoutElement}
+            onExport={(format) => void exportLayout(format)}
+          />
         ) : activeTab === 'View' ? (
           <ViewRibbon
             contentsOpen={!workspaceLayout.contentsMinimized}
@@ -1784,7 +1750,7 @@ function App() {
             tableOpen={tableOpen}
             tableAvailable={Boolean(selectedLayer)}
             preset={workspaceLayout.preset}
-            mode={viewMode === 'layout' ? 'layout' : sceneView ? '3d' : '2d'}
+            mode={workspaceView}
             fullCanvas={workspaceLayout.fullCanvas}
             theme={theme}
             onTogglePane={(pane) => {
@@ -1794,34 +1760,20 @@ function App() {
               else state.setWorkspaceLayout({ ...state.workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
             }}
             onPreset={selectWorkspacePreset}
-            onMode={(mode) => {
-              setSceneView(mode === '3d')
-              useArcWebStore.getState().setViewMode(mode === 'layout' ? 'layout' : 'map')
-            }}
+            onMode={showView}
             onToggleFullCanvas={toggleFullCanvas}
             onToggleTheme={() => useArcWebStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark')}
           />
         ) : activeTab === 'Edit' ? (
-          <div className="phase-ribbon-actions">
-            {([
-              ['draw-point', 'Point'],
-              ['draw-line', 'Line'],
-              ['draw-polygon', 'Polygon'],
-              ['move-vertex', 'Move vertex'],
-            ] as const).map(([mode, label]) => (
-              <button key={mode} className={`ribbon-action ${tool === mode ? 'tool-selected' : ''}`} disabled={mode === 'move-vertex' ? !selectedFeatureIsEditable : !selectedLayer} onClick={() => setEditingTool(tool === mode ? 'pan' : mode)}><MousePointer2 size={17} /><span>{label}</span></button>
-            ))}
-            <div className="group-caption">Feature tools · snapping enabled</div>
-          </div>
+          <EditRibbon tool={tool} hasLayer={Boolean(selectedLayer)} selectedFeatureIsEditable={selectedFeatureIsEditable} onSetTool={setEditingTool} />
         ) : (
-          <div className="phase-ribbon-actions">
-            <button className="ribbon-action" disabled={!selectedLayer} onClick={() => selectedLayer && exportSelectedLayer(selectedLayer, 'geojson')}><FilePlus2 size={17} /><span>GeoJSON</span></button>
-            <button className="ribbon-action" disabled={!selectedLayer} onClick={() => selectedLayer && exportSelectedLayer(selectedLayer, 'csv')}><Table2 size={17} /><span>CSV</span></button>
-            <button className="ribbon-action" onClick={() => void exportCurrentMap()}><Upload size={17} /><span>Map PNG</span></button>
-            <button className="ribbon-action" disabled={layoutExporting} title="Export the print layout sheet as a high-resolution PNG" onClick={() => void exportLayout('png')}><FileImage size={17} /><span>Layout PNG</span></button>
-            <button className="ribbon-action" disabled={layoutExporting} title="Export the print layout sheet as a PDF" onClick={() => void exportLayout('pdf')}><FileText size={17} /><span>Layout PDF</span></button>
-            <div className="group-caption">Export locally</div>
-          </div>
+          <ShareRibbon
+            hasLayer={Boolean(selectedLayer)}
+            layoutExporting={layoutExporting}
+            onExportLayer={(format) => { if (selectedLayer) exportSelectedLayer(selectedLayer, format) }}
+            onExportMap={() => void exportCurrentMap()}
+            onExportLayout={(format) => void exportLayout(format)}
+          />
         )}
         <div className="toolbar-spacer" />
         <button className="coordinate-reference" title="Display coordinate system — open Map Properties" onClick={openMapProperties}><Compass size={14} /><span>{displayCrsDefinition.name}</span><span className="crs-code">{displayCrsDefinition.code}</span></button>
