@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand'
 import { isContextualTab, isEditingTool } from '../../ribbon/contextualTabs'
 import { defaultWorkspaceLayout } from '../../workspaceLayout'
 import type { WorkspaceLayoutConfig } from '../../workspaceLayout'
+import { loadUiSettings, type CoordinateFormat, type LengthUnit } from '../../ui/uiSettings'
 import type { AppTab, ArcWebState, BasemapId, Bookmark, ToolMode, ViewMode } from '../types'
 
 export interface WorkspaceSlice {
@@ -10,6 +11,10 @@ export interface WorkspaceSlice {
   tableOpen: boolean
   basemap: BasemapId
   theme: 'dark' | 'light'
+  /** Measure tool units (Backstage › Options). */
+  measureUnits: LengthUnit
+  /** Status-bar coordinate notation (Backstage › Options). */
+  coordinateFormat: CoordinateFormat
   activeTab: AppTab
   /** Tab restored when the active contextual tab disappears. */
   ribbonReturnTab: AppTab
@@ -26,6 +31,8 @@ export interface WorkspaceSlice {
   setTableOpen: (open: boolean) => void
   setBasemap: (basemap: BasemapId) => void
   setTheme: (theme: 'dark' | 'light') => void
+  setMeasureUnits: (units: LengthUnit) => void
+  setCoordinateFormat: (format: CoordinateFormat) => void
   setActiveTab: (tab: AppTab) => void
   setRibbonTabs: (activeTab: AppTab, returnTab: AppTab) => void
   setTool: (tool: ToolMode) => void
@@ -35,44 +42,51 @@ export interface WorkspaceSlice {
   setWorkspaceLayout: (layout: WorkspaceLayoutConfig) => void
 }
 
-export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSlice> = (set) => ({
-  bookmarks: [],
-  projectName: 'Untitled map',
-  tableOpen: false,
-  basemap: 'osm',
-  theme: 'dark',
-  activeTab: 'Map',
-  ribbonReturnTab: 'Map',
-  tool: 'pan',
-  displayCrs: 'EPSG:4326',
-  viewMode: 'map',
-  mapPropertiesOpen: false,
-  workspaceLayout: defaultWorkspaceLayout(),
-  addBookmark: (bookmark) => set((state) => ({ bookmarks: [...state.bookmarks, bookmark] })),
-  removeBookmark: (id) => set((state) => ({ bookmarks: state.bookmarks.filter((bookmark) => bookmark.id !== id) })),
-  setBookmarks: (bookmarks) => set({ bookmarks }),
-  setProjectName: (projectName) => set({ projectName }),
-  setTableOpen: (tableOpen) => set({ tableOpen }),
-  setBasemap: (basemap) => set({ basemap }),
-  setTheme: (theme) => set({ theme }),
-  setActiveTab: (activeTab) => set((state) => activeTab === state.activeTab ? {} : {
-    activeTab,
-    // Entering a contextual tab by hand remembers the tab to return to when its context ends.
-    ribbonReturnTab: isContextualTab(activeTab) ? state.activeTab : state.ribbonReturnTab,
-  }),
-  setRibbonTabs: (activeTab, ribbonReturnTab) => set({ activeTab, ribbonReturnTab }),
-  // Cross-slice: leaving the editing tools also prunes the edit session's snapshots.
-  setTool: (tool) => set((state) => {
-    if (isEditingTool(tool)) return { tool }
-    // Leaving the editing tools drops snapshots of layers that were never changed.
-    // Layers with undo/redo steps keep theirs too, so a redo still has something to discard back to.
-    const hasHistory = (layerId: string) => [...state.undoStack, ...state.redoStack].some((step) => step.layerId === layerId)
-    const editSnapshots = Object.fromEntries(Object.entries(state.editSnapshots).filter(([layerId, snapshot]) =>
-      hasHistory(layerId) || state.layers.some((layer) => layer.id === layerId && layer.data !== snapshot)))
-    return { tool, editSnapshots }
-  }),
-  setDisplayCrs: (displayCrs) => set({ displayCrs }),
-  setViewMode: (viewMode) => set({ viewMode }),
-  setMapPropertiesOpen: (mapPropertiesOpen) => set({ mapPropertiesOpen }),
-  setWorkspaceLayout: (workspaceLayout) => set({ workspaceLayout }),
-})
+export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSlice> = (set) => {
+  const settings = loadUiSettings()
+  return {
+    bookmarks: [],
+    projectName: 'Untitled map',
+    tableOpen: false,
+    basemap: 'osm',
+    theme: settings.theme,
+    measureUnits: settings.measureUnits,
+    coordinateFormat: settings.coordinateFormat,
+    activeTab: 'Map',
+    ribbonReturnTab: 'Map',
+    tool: 'pan',
+    displayCrs: 'EPSG:4326',
+    viewMode: 'map',
+    mapPropertiesOpen: false,
+    workspaceLayout: defaultWorkspaceLayout(),
+    addBookmark: (bookmark) => set((state) => ({ bookmarks: [...state.bookmarks, bookmark] })),
+    removeBookmark: (id) => set((state) => ({ bookmarks: state.bookmarks.filter((bookmark) => bookmark.id !== id) })),
+    setBookmarks: (bookmarks) => set({ bookmarks }),
+    setProjectName: (projectName) => set({ projectName }),
+    setTableOpen: (tableOpen) => set({ tableOpen }),
+    setBasemap: (basemap) => set({ basemap }),
+    setTheme: (theme) => set({ theme }),
+    setMeasureUnits: (measureUnits) => set({ measureUnits }),
+    setCoordinateFormat: (coordinateFormat) => set({ coordinateFormat }),
+    setActiveTab: (activeTab) => set((state) => activeTab === state.activeTab ? {} : {
+      activeTab,
+      // Entering a contextual tab by hand remembers the tab to return to when its context ends.
+      ribbonReturnTab: isContextualTab(activeTab) ? state.activeTab : state.ribbonReturnTab,
+    }),
+    setRibbonTabs: (activeTab, ribbonReturnTab) => set({ activeTab, ribbonReturnTab }),
+    // Cross-slice: leaving the editing tools also prunes the edit session's snapshots.
+    setTool: (tool) => set((state) => {
+      if (isEditingTool(tool)) return { tool }
+      // Leaving the editing tools drops snapshots of layers that were never changed.
+      // Layers with undo/redo steps keep theirs too, so a redo still has something to discard back to.
+      const hasHistory = (layerId: string) => [...state.undoStack, ...state.redoStack].some((step) => step.layerId === layerId)
+      const editSnapshots = Object.fromEntries(Object.entries(state.editSnapshots).filter(([layerId, snapshot]) =>
+        hasHistory(layerId) || state.layers.some((layer) => layer.id === layerId && layer.data !== snapshot)))
+      return { tool, editSnapshots }
+    }),
+    setDisplayCrs: (displayCrs) => set({ displayCrs }),
+    setViewMode: (viewMode) => set({ viewMode }),
+    setMapPropertiesOpen: (mapPropertiesOpen) => set({ mapPropertiesOpen }),
+    setWorkspaceLayout: (workspaceLayout) => set({ workspaceLayout }),
+  }
+}

@@ -65,6 +65,7 @@ import { useSketchTools } from './editing/useSketchTools'
 import { useMapInstance, type MapEvents } from './map/useMapInstance'
 import { useMapSync } from './map/useMapSync'
 import { useMapClick, type IdentifyState } from './map/useMapClick'
+import { startUiSettingsSync } from './ui/uiSettingsSync'
 import './App.css'
 import { isolate } from './bidi'
 import { changedLayerIds } from './toolboxes/staleUpdates'
@@ -291,6 +292,9 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
   }, [theme])
+
+  // Theme, measure units and coordinate format are per-browser preferences, saved as they change.
+  useEffect(() => startUiSettingsSync(), [])
 
   useEffect(() => {
     let restored = false

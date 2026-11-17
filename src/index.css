@@ -2,26 +2,34 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 :root {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-ui);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --bg: #111419;
-  --panel: #171b21;
-  --panel-raised: #1d222a;
-  --panel-hover: #232932;
-  --line: #292f38;
-  --line-soft: #222830;
-  --text: #e6e9ed;
-  --text-secondary: #9ba4b0;
-  /* Lightened from #6e7885, which was 3.6:1 on raised panels; this meets WCAG AA (4.5:1) on every dark surface. */
-  --muted: #8490a0;
-  --accent: #52d1b3;
-  --accent-ink: #10211d;
-  --brand-ink: #0e201c;
-  --accent-rgb: 82, 209, 179;
-  --accent-dim: rgba(82, 209, 179, 0.12);
+  --bg: #1e1e1e;
+  --panel: #2b2b2b;
+  --panel-raised: #333333;
+  --panel-hover: #3d3d3d;
+  --line: #4a4a4a;
+  --line-soft: #3a3a3a;
+  --text: #f5f5f5;
+  --text-secondary: #c8c8c8;
+  --muted: #a8a8a8;
+  --accent: #2a76b5;
+  --accent-ink: #ffffff;
+  /* Accent used as text or icon colour on panels (the fill accent is too dark for that on dark panels). */
+  --accent-text: #6cb8f0;
+  /* ArcGIS Pro-style density and shape. */
+  --font-ui: "Segoe UI", Inter, Arial, sans-serif;
+  --font-size-ui: 12px;
+  --radius-sm: 2px;
+  --radius: 3px;
+  --ribbon-height: 94px;
+  --tab-height: 26px;
+  --brand-ink: #ffffff;
+  --accent-rgb: 42, 118, 181;
+  --accent-dim: rgba(42, 118, 181, 0.24);
   --highlight: #f4a261;
   --highlight-dim: rgba(244, 162, 97, 0.16);
   --highlight-ink: #11221e;
@@ -45,7 +53,7 @@
   --toolbar-icon: #b6c0c9;
   --avatar-bg: #273139;
   --avatar-border: #36434a;
-  --avatar-ink: #a7e9d8;
+  --avatar-ink: #9ccbf0;
   --footer-divider: #4a535d;
   --label-preview-shadow: #111111;
   --map-surface: #d9e1df;
@@ -62,7 +70,7 @@
   --status-border: rgba(255, 255, 255, .12);
   --status-divider: rgba(255, 255, 255, .2);
   --status-muted: #9aa5ae;
-  --status-strong: #7ee0c6;
+  --status-strong: #6cb8f0;
   --footer-center: #7f8993;
   --map-control-bg: rgba(25, 31, 36, .94);
   --map-control-hover: #303941;
@@ -84,7 +92,7 @@
   --modal-scrim: rgba(8, 11, 14, .58);
   --drop-scrim: rgba(11, 19, 22, .77);
   --drop-card-bg: rgba(23, 30, 34, .94);
-  --drop-card-border: rgba(82, 209, 179, .32);
+  --drop-card-border: rgba(42, 118, 181, .45);
   --selection-row: rgba(64, 196, 255, .13);
   --selection-row-mark: #40c4ff;
   /* Motion design system: compositor-only (transform/opacity) durations and easings. */
@@ -108,20 +116,21 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f4f4f9;
-  --panel: #f8f8fc;
-  --panel-raised: #ffffff;
-  --panel-hover: #eeeff6;
-  --line: #d8dce8;
-  --line-soft: #e8e9f0;
-  --text: #252a35;
-  --text-secondary: #596372;
-  --muted: #626d7a;
-  --accent: #527582;
+  --bg: #f0f0f0;
+  --panel: #ffffff;
+  --panel-raised: #f8f8f8;
+  --panel-hover: #e8f1f8;
+  --line: #d4d4d4;
+  --line-soft: #e4e4e4;
+  --text: #1f1f1f;
+  --text-secondary: #4c4c4c;
+  --muted: #6b6b6b;
+  --accent: #006aa8;
   --accent-ink: #ffffff;
+  --accent-text: #005e95;
   --brand-ink: #ffffff;
-  --accent-rgb: 126, 162, 172;
-  --accent-dim: rgba(126, 162, 172, 0.18);
+  --accent-rgb: 0, 106, 168;
+  --accent-dim: rgba(0, 106, 168, 0.12);
   --highlight: #f4a261;
   --highlight-dim: rgba(244, 162, 97, 0.2);
   --highlight-ink: #50351f;
@@ -146,7 +155,7 @@
   --toolbar-icon: #667684;
   --avatar-bg: #e8edf2;
   --avatar-border: #cbd4df;
-  --avatar-ink: #456b79;
+  --avatar-ink: #005e95;
   --footer-divider: #b8c0cb;
   --label-preview-shadow: #252a35;
   --map-surface: #e5e8ef;
@@ -163,7 +172,7 @@
   --status-border: #d8dce8;
   --status-divider: rgba(85, 99, 114, .28);
   --status-muted: #657180;
-  --status-strong: #527582;
+  --status-strong: #005e95;
   --footer-center: #626d7a;
   --map-control-bg: #ffffff;
   --map-control-hover: #eeeff6;
