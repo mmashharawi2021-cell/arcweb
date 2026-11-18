@@ -65,7 +65,7 @@ describe('project workspace persistence', () => {
     workspaceLayout.panels.geoprocessing.frame = { left: 540, top: 82, width: 460, height: 700 }
 
     const project = parseProject(JSON.stringify(projectWith(workspaceLayout)), document)
-    expect(project.workspaceLayout).toEqual(workspaceLayout)
+    expect(project.workspaceLayout).toEqual(normalizeWorkspaceLayout(workspaceLayout))
   })
 
   it('defaults older project files without workspace settings to Standard Layout', () => {

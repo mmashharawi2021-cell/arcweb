@@ -18,14 +18,15 @@ This file defines the strict rules, architectural patterns, and design principle
 - **Data Ingestion:** `shpjs` (Shapefiles), `@tmcw/togeojson` (KML), `papaparse` (CSV).
 - **Local Storage:** IndexedDB (via `idb-keyval`) for session persistence.
 
-## 4. UI/UX Design System (The "ArcGIS Pro" Look)
-- **Theme:** Default to a professional Dark Mode (glassmorphism accents are acceptable for menus, but keep the core panels solid and readable).
-- **Layout Structure:**
-  - **Top Ribbon:** Tabbed interface (Map, Insert, Analysis, Edit, View, Share). No scrolling.
-  - **Left Pane (Contents):** Dockable, draggable, z-index hierarchy list with visibility/symbology toggles.
-  - **Right Pane (Geoprocessing / Catalog):** Searchable toolbox list, tool execution forms, and symbology settings.
-  - **Bottom Pane (Attribute Table):** Resizable data grid synchronized with map selections.
-- **Panels:** Must be collapsible and dockable to maximize map canvas space.
+## 4. UI/UX Design System (The ArcWeb Pro Shell)
+- **Theme:** Dark by default; both themes use neutral surfaces and blue accents. Change theme in Project > Options.
+- **Ribbon:** Map, Insert, Analysis, Edit, View, Share, Help. Feature Layer, Raster Layer and Layout are contextual groups. Use RibbonGroupBar/RibbonGroup so groups collapse instead of scrolling.
+- **Panes:** Contents, Catalog, Geoprocessing, Symbology, Create Features, Modify Features and Attributes are independent of ribbon tabs. Open panes through paneLayout operations; preserve active pane when switching ribbon tabs. Left/right docks support tabs, auto hide and floating.
+- **Views:** Map cannot close. Scene and Layout use document tabs and the same single MapLibre instance. Attribute tables have independent tabs with per-layer sort/filter state.
+- **Contents:** List By drawing order/source/visibility/selection/editing/snapping; drag or Alt+Up/Down reorders drawing order. Layer Properties controls aliases and interaction flags.
+- **Map tools:** Measure supports distance/area/feature and metric/imperial/nautical units. Sketch toolbar supports finish, undo vertex and cancel; polygon templates include rectangle/circle.
+- **Shell:** Editable scale and coordinate format live in StatusBar. Alt+Q searches commands/tools; notifications keep the newest 50 messages; Help lists shortcuts.
+- **Icons:** Use CommandIcon and commandIconRegistry semantic colour roles. Core panels stay solid; menus may use glass effects.
 
 ## 5. Architecture & Code Organization
 The application must be highly modular to accommodate hundreds of GIS tools eventually.
@@ -146,3 +147,13 @@ Identity rules (breaking them causes silent, expensive restarts):
   (`StatusBar`), not in App, so pointer moves do not re-render the shell.
 - Ribbon tooltips: `addRibbonTooltips` only decorates buttons written inline, so each
   ribbon component applies it to its own output.
+
+### Pro shell module inventory
+- `src/panes/paneLayout.ts`: immutable pane operations, v1 migration and normalization. The original v1 localStorage key is never erased or overwritten; v2 pane state and shell settings use separate keys.
+- `src/panes/DockArea.tsx`, CatalogPane, CreateFeaturesPane, ModifyFeaturesPane and AttributesPane: dock UI and workflow panes.
+- `src/views/`: view state, document tabs and table tabs. Removing a layer closes its table and keeps the remaining table state.
+- `src/contents/`: List By grouping, geometry symbol patches and Layer Properties. Selection counts must not scan feature arrays.
+- `src/measure/`, `src/editing/constructionTools.ts`, SketchToolbar: geodesic measurement and construction. Overlay-handled keys and typing must not change sketches.
+- `src/shell/`: scale parsing, command search, notifications and keyboard help. Global shortcuts run in capture phase to claim app commands before the IDE host; keep modal guards.
+- `src/ui/commandIconRegistry.ts`, `commandIcons.tsx`: command roles and rendering; role colours require 3:1 contrast in both themes.
+- `src/layout/picture.ts`: local PNG/JPEG/WebP embedding; saved projects never load remote image URLs. Await image decoding before export.

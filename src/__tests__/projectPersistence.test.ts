@@ -94,3 +94,15 @@ describe('layer scale ranges', () => {
     expect(load(NaN, Infinity)).not.toHaveProperty('minScale')
   })
 })
+
+describe('layer interaction metadata',()=>{
+ it('round-trips source and flags, with true defaults for older files',()=>{
+  const layer={...sampleLayer(),selectable:false,editable:false,snappable:false,source:{kind:'file' as const,name:'source.geojson'}}
+  const source={name:'Flags',basemap:'osm' as const,displayCrs:'EPSG:4326',camera:null,bookmarks:[],layers:[layer],layout:{paper:'A4' as const,orientation:'landscape' as const,elements:[]},workspaceLayout:defaultWorkspaceLayout()}
+  const file=buildProject(source)
+  const restored=parseProject(JSON.stringify(file),source.layout)
+  expect(restored.layers[0]).toMatchObject({selectable:false,editable:false,snappable:false,source:layer.source})
+  delete file.layers[0].selectable;delete file.layers[0].editable;delete file.layers[0].snappable
+  expect(parseProject(JSON.stringify(file),source.layout).layers[0]).toMatchObject({selectable:true,editable:true,snappable:true})
+ })
+})

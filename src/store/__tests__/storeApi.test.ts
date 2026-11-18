@@ -3,7 +3,7 @@ import type { FeatureCollection } from 'geojson'
 import * as store from '../index'
 import { createMapLayer } from '../../geo'
 
-const EXPECTED_STATE_KEYS: string[] = ['activeTab', 'addAnalysisRecord', 'addBookmark', 'addLayer', 'analysisHistory', 'basemap', 'beginEdit', 'bookmarks', 'clearSelection', 'clearSession', 'commitEdit', 'coordinateFormat', 'discardEdits', 'displayCrs', 'editSnapshots', 'layers', 'mapPropertiesOpen', 'measureUnits', 'moveLayer', 'projectName', 'redo', 'redoStack', 'removeBookmark', 'removeLayer', 'restoreEditSnapshots', 'restoreLayers', 'ribbonReturnTab', 'saveEdits', 'sceneSettings', 'selectedFeature', 'selectedLayerId', 'selections', 'setActiveTab', 'setAnalysisHistory', 'setBasemap', 'setBookmarks', 'setCoordinateFormat', 'setDisplayCrs', 'setMapPropertiesOpen', 'setMeasureUnits', 'setProjectName', 'setRibbonTabs', 'setSceneSettings', 'setSelectedFeature', 'setSelectedLayer', 'setSelection', 'setSnapping', 'setTableOpen', 'setTableView', 'setTableViews', 'setTheme', 'setTool', 'setViewMode', 'setWorkspaceLayout', 'snapping', 'tableOpen', 'tableViews', 'theme', 'toggleSelected', 'tool', 'undo', 'undoStack', 'updateLayer', 'viewMode', 'workspaceLayout']
+const EXPECTED_STATE_KEYS: string[] = ['notifications', 'addNotification', 'markNotificationsRead', 'openViews', 'activeView', 'openView', 'closeView', 'openTables', 'activeTable', 'openTable', 'closeTable', 'activeTab', 'addAnalysisRecord', 'addBookmark', 'addLayer', 'analysisHistory', 'basemap', 'beginEdit', 'bookmarks', 'clearSelection', 'clearSession', 'commitEdit', 'coordinateFormat', 'discardEdits', 'displayCrs', 'editSnapshots', 'layers', 'mapPropertiesOpen', 'measureUnits', 'moveLayer', 'moveLayerTo', 'projectName', 'redo', 'redoStack', 'removeBookmark', 'removeLayer', 'restoreEditSnapshots', 'restoreLayers', 'ribbonReturnTab', 'saveEdits', 'sceneSettings', 'selectedFeature', 'selectedLayerId', 'selections', 'setActiveTab', 'setAnalysisHistory', 'setBasemap', 'setBookmarks', 'setCoordinateFormat', 'setDisplayCrs', 'setMapPropertiesOpen', 'setMeasureUnits', 'setProjectName', 'setRibbonTabs', 'setSceneSettings', 'setSelectedFeature', 'setSelectedLayer', 'setSelection', 'setSnapping', 'setTableOpen', 'setTableView', 'setTableViews', 'setTheme', 'setTool', 'setViewMode', 'setWorkspaceLayout', 'snapping', 'tableOpen', 'tableViews', 'theme', 'toggleSelected', 'tool', 'undo', 'undoStack', 'updateLayer', 'viewMode', 'workspaceLayout']
 
 const pointCollection = (x: number): FeatureCollection => ({
   type: 'FeatureCollection',
@@ -13,8 +13,8 @@ const pointCollection = (x: number): FeatureCollection => ({
 describe('store public API is unchanged by the split', () => {
   beforeEach(() => store.useArcWebStore.getState().clearSession())
 
-  it('keeps every state key and action', () => {
-    expect(Object.keys(store.useArcWebStore.getState()).sort()).toEqual(EXPECTED_STATE_KEYS)
+  it('keeps every documented state key and action', () => {
+    expect(Object.keys(store.useArcWebStore.getState()).sort()).toEqual([...EXPECTED_STATE_KEYS].sort())
   })
 
   it('keeps every runtime export', () => {

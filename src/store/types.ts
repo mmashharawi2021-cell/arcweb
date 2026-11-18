@@ -7,12 +7,12 @@ import type { ProjectDataSlice } from './slices/projectData'
 
 export type GeometryKind = 'Point' | 'Line' | 'Polygon' | 'Mixed' | 'Unknown'
 export type BasemapId = 'osm' | 'satellite' | 'dark' | 'light'
-export type CoreTab = 'Map' | 'Insert' | 'Analysis' | 'Edit' | 'View' | 'Share'
+export type CoreTab = 'Map' | 'Insert' | 'Analysis' | 'Edit' | 'View' | 'Share' | 'Help'
 /** Ribbon tabs that only appear while their context (layer type or edit session) is active. */
 export type ContextualTab = 'FeatureAppearance' | 'FeatureLabeling' | 'FeatureData' | 'RasterAppearance' | 'RasterData' | 'LayoutInsert' | 'LayoutExport'
 export type AppTab = CoreTab | ContextualTab
 export type ViewMode = 'map' | 'layout'
-export type ToolMode = 'pan' | 'select-box' | 'distance' | 'area' | 'draw-point' | 'draw-line' | 'draw-polygon' | 'move-vertex'
+export type ToolMode = 'pan' | 'select-box' | 'distance' | 'area' | 'draw-point' | 'draw-line' | 'draw-polygon' | 'move-vertex' | 'draw-rectangle' | 'draw-circle' | 'measure-feature'
 export type FeatureId = string | number
 export interface FeatureSelection { layerId: string; featureId: FeatureId }
 /** How a new set of matches combines with a layer's current selection (ArcGIS "Selection type"). */
@@ -97,6 +97,10 @@ export interface MapLayer {
   data: FeatureCollection
   geometry: GeometryKind
   visible: boolean
+  selectable?: boolean
+  editable?: boolean
+  snappable?: boolean
+  source?: { kind: 'file' | 'tool' | 'sketch' | 'project'; name: string }
   minScale?: number
   maxScale?: number
   opacity: number

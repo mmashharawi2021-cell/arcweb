@@ -7,6 +7,7 @@ import {
 
 const items = (entries: MenuEntry[]) => entries.filter((entry) => entry.kind === 'item')
 const item = (entries: MenuEntry[], id: string) => {
+  entries=entries.flatMap(entry=>entry.kind==='item'&&entry.children?[entry,...entry.children]:[entry])
   const found = entries.find((entry) => entry.kind === 'item' && entry.id === id)
   if (!found || found.kind !== 'item') throw new Error(`No menu item ${id}`)
   return found
@@ -85,9 +86,9 @@ describe('layer context menu', () => {
     const entries = buildLayerMenu({ layer: polygon, index: 1, count: 3, tableShowsLayer: false })
     expect(entries[0]).toEqual({ kind: 'label', id: 'title', label: 'Parcels' })
     expect(items(entries).map((entry) => entry.id)).toEqual([
-      'zoom', 'table', 'symbology', 'move-up', 'move-down', 'export-geojson', 'export-csv', 'remove',
+      'zoom', 'zoom-visible', 'table', 'selection-menu', 'label', 'label-properties', 'symbology', 'data-menu', 'move-up', 'move-down', 'remove', 'properties',
     ])
-    expect(items(entries).every((entry) => entry.kind === 'item' && !entry.disabled)).toBe(true)
+    expect(item(entries,'zoom-visible').disabled).toBe(true)
     expect(item(entries, 'remove').danger).toBe(true)
   })
 

@@ -1,3 +1,4 @@
+import { CommandIcon } from '../ui/commandIcons'
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
@@ -32,10 +33,10 @@ function tooltipText(label: string, tooltip?: RibbonTooltip) {
   return tooltip.shortcut ? `${tooltip.title} (${tooltip.shortcut})` : tooltip.title
 }
 
-function ButtonFace({ icon: Icon, label, size }: Pick<RibbonButtonProps, 'icon' | 'label' | 'size'>) {
+function ButtonFace({ id = '', icon, label, size }: Pick<RibbonButtonProps, 'icon' | 'label' | 'size'> & {id?:string}) {
   return (
     <>
-      <Icon size={size === 'large' ? 32 : 16} strokeWidth={size === 'large' ? 1.6 : 2} aria-hidden="true" className="ribbon-button-icon" />
+      <CommandIcon id={id} icon={icon} size={size} />
       <span className="ribbon-button-label">{label}</span>
     </>
   )
@@ -54,7 +55,7 @@ export function RibbonButton({ id, label, icon, size, tooltip, pressed, disabled
       disabled={disabled}
       onClick={onClick}
     >
-      <ButtonFace icon={icon} label={label} size={size} />
+      <ButtonFace id={id} icon={icon} label={label} size={size} />
     </button>
   )
 }
@@ -148,7 +149,7 @@ export function RibbonMenuButton({ items, split = false, ...button }: RibbonMenu
         <>
           <button type="button" className={`ribbon-button ribbon-button-${button.size}${button.pressed ? ' is-pressed' : ''}`} data-command={button.id} aria-label={button.label}
             aria-pressed={button.pressed} data-ribbon-tooltip={tooltip} disabled={button.disabled} onClick={button.onClick}>
-            <ButtonFace icon={button.icon} label={button.label} size={button.size} />
+            <ButtonFace id={button.id} icon={button.icon} label={button.label} size={button.size} />
           </button>
           <button {...menuTrigger} className="ribbon-split-arrow" aria-label={`${button.label} options`} data-ribbon-tooltip={`${button.label} options`}>
             <ChevronDown size={12} aria-hidden="true" />

@@ -66,7 +66,7 @@ export function useFileImport({ notify, loadProjectFile, addSourceAsset }: FileI
           const data = rasterToFeatureCollection(raster)
           if (!data.features.length) throw new Error('The raster has no valid cells to display.')
           const layer = styleRasterCells(createMapLayer(loaded.name, data, raster.crs))
-          useArcWebStore.getState().addLayer(layer)
+          useArcWebStore.getState().addLayer({...layer,source:{kind:'file',name:file.name}})
           notify(`Added raster ${isolate(loaded.name)} (${raster.width.toLocaleString()} × ${raster.height.toLocaleString()} cells).`)
           continue
         }
@@ -77,7 +77,7 @@ export function useFileImport({ notify, loadProjectFile, addSourceAsset }: FileI
           if (item.renderBlob) seedMapSourceBlob(added[index].data, item.renderBlob)
           if (item.fieldCatalog) seedFieldCatalog(added[index].data, item.fieldCatalog)
         })
-        added.forEach((layer) => useArcWebStore.getState().addLayer(layer))
+        added.forEach((layer) => useArcWebStore.getState().addLayer({...layer,source:{kind:'file',name:file.name}}))
         const result = `Added ${added.length} layer${added.length === 1 ? '' : 's'} from ${isolate(file.name)}`
         notify(warnings.length ? `${result}. ${warnings.join(' ')}` : result, warnings.length ? 'warning' : 'success')
       } catch (error) {

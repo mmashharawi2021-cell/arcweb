@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act } from 'react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { Feature } from 'geojson'
@@ -25,12 +25,15 @@ function fakeMap() {
   }
 }
 
+const cleanups: (()=>void)[]=[]
+afterEach(()=>{for(const cleanup of cleanups.splice(0))cleanup()})
 function setup(mapLoaded = true) {
   const map = fakeMap()
   const mapRef = { current: map as unknown as MapLibreMap }
   const notify = vi.fn()
   const appendFeature = vi.fn()
   const hook = renderHook((props: { mapLoaded: boolean }) => useSketchTools({ mapRef, mapLoaded: props.mapLoaded, notify, appendFeature }), { mapLoaded })
+  cleanups.push(hook.unmount)
   return { ...hook, map, mapRef, notify, appendFeature }
 }
 
@@ -54,7 +57,7 @@ describe('useSketchTools', () => {
     act(() => useArcWebStore.getState().setTool('distance'))
     act(() => result.current.addMeasurePoint(map as unknown as MapLibreMap, [0, 0], 'distance'))
     rerender()
-    for (const name of ['finishSketch', 'setEditingTool', 'addMeasurePoint', 'addSketchPoint', 'redrawOverlays', 'toggleMeasureTool', 'clearMeasurements', 'saveEdits', 'discardEdits'] as const) {
+    for (const name of ['undoLastVertex', 'finishSketch', 'setEditingTool', 'addMeasurePoint', 'addSketchPoint', 'redrawOverlays', 'toggleMeasureTool', 'clearMeasurements', 'saveEdits', 'discardEdits'] as const) {
       expect(result.current[name], name).toBe(first[name])
     }
     expect(result.current.movingVertexRef).toBe(first.movingVertexRef)
@@ -138,4 +141,23 @@ describe('useSketchTools', () => {
     act(() => useArcWebStore.getState().setTool('draw-line'))
     expect(map.canvas.style.cursor).toBe('')
   })
+  it('F2 finishes a line and Ctrl+Z removes a sketch vertex first', () => {
+    addTargetLayer()
+    const { result,map,appendFeature }=setup()
+    act(()=>result.current.setEditingTool('draw-line'))
+    act(()=>{result.current.addSketchPoint(map as unknown as MapLibreMap,[0,0],'draw-line');result.current.addSketchPoint(map as unknown as MapLibreMap,[1,1],'draw-line')})
+    const undo=new KeyboardEvent('keydown',{key:'z',ctrlKey:true,cancelable:true})
+    act(()=>window.dispatchEvent(undo));expect(undo.defaultPrevented).toBe(true);expect(result.current.sketchPoints).toHaveLength(1)
+    act(()=>result.current.addSketchPoint(map as unknown as MapLibreMap,[2,2],'draw-line'))
+    act(()=>window.dispatchEvent(new KeyboardEvent('keydown',{key:'F2',cancelable:true})))
+    expect(appendFeature).toHaveBeenCalledOnce()
+  })
+  it('Escape cancels a sketch but respects an event handled by an overlay',()=>{
+    addTargetLayer();const {result,map}=setup();act(()=>result.current.setEditingTool('draw-line'))
+    act(()=>result.current.addSketchPoint(map as unknown as MapLibreMap,[0,0],'draw-line'))
+    const handled=new KeyboardEvent('keydown',{key:'Escape',cancelable:true});handled.preventDefault()
+    act(()=>window.dispatchEvent(handled));expect(result.current.sketchPoints).toHaveLength(1)
+    act(()=>window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',cancelable:true})));expect(result.current.sketchPoints).toHaveLength(0)
+  })
+
 })

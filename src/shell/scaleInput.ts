@@ -1,0 +1,1 @@
+export function parseScale(value:string):number|null {const numeric=Number(value.trim().replace(/^1\s*:\s*/,'').replaceAll(',',''));return Number.isFinite(numeric)&&numeric>=1&&numeric<=1e9?numeric:null}

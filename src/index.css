@@ -233,3 +233,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
     scroll-behavior: auto !important;
   }
 }
+:root { --icon-map:#7cc4ff;--icon-create:#8bd895;--icon-output:#e8c37b;--icon-danger:#ff9696;--icon-neutral:#d0d0d0; }
+:root[data-theme="light"] { --icon-map:#16578b;--icon-create:#23632f;--icon-output:#78540e;--icon-danger:#a12020;--icon-neutral:#454545; }
+.icon-map {color:var(--icon-map)} .icon-create {color:var(--icon-create)} .icon-output {color:var(--icon-output)} .icon-danger {color:var(--icon-danger)} .icon-neutral {color:var(--icon-neutral)}

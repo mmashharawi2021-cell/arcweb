@@ -1,3 +1,4 @@
+import { rectangle, circleFromPoints } from './constructionTools'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
@@ -75,9 +76,16 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
 
   const addSketchPoint = useCallback((map: MapLibreMap, coordinate: Coordinate, mode: ToolMode) => {
     const next = [...sketchPointsRef.current, coordinate]
+    if ((mode==='draw-rectangle'||mode==='draw-circle') && next.length===2) {
+      const state=useArcWebStore.getState(), layer=state.layers.find(layer=>layer.id===state.selectedLayerId)
+      const geometry=mode==='draw-rectangle'?rectangle(next[0],next[1]):circleFromPoints(next[0],next[1])
+      if(!geometry){notify('Choose two different corners or a non-zero radius.', 'warning');setSketch([]);drawSketchOverlay(map,[],'pan');return}
+      if(layer)appendFeature(layer,geometry)
+      setSketch([]);drawSketchOverlay(map,[],'pan');state.setTool('pan');return
+    }
     setSketch(next)
     drawSketchOverlay(map, next, mode)
-  }, [setSketch])
+  }, [setSketch, appendFeature, notify])
 
   /** Redraws in-progress overlays, e.g. after a basemap swap rebuilt the style. */
   const redrawOverlays = useCallback((map: MapLibreMap) => {
@@ -118,6 +126,8 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
     setMeasure([])
     movingVertexRef.current = null
     const state = useArcWebStore.getState()
+    const target=state.layers.find(layer=>layer.id===state.selectedLayerId)
+    if(isEditingTool(nextTool)&&target?.editable===false){notify(`${target.name} is not editable.`, 'warning');return}
     // Picking an editing tool opens (or joins) the edit session for the target layer.
     if (isEditingTool(nextTool) && state.selectedLayerId) state.beginEdit(state.selectedLayerId)
     state.setTool(nextTool)
@@ -125,7 +135,7 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
       drawMeasureOverlay(mapRef.current, [], 'pan')
       drawSketchOverlay(mapRef.current, [], 'pan')
     }
-  }, [mapRef, setMeasure, setSketch])
+  }, [mapRef, setMeasure, setSketch, notify])
 
   /** Turns a measure tool on, or off when it is already active, starting a fresh measurement. */
   const toggleMeasureTool = useCallback((nextTool: 'distance' | 'area') => {
@@ -141,6 +151,20 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
     if (mapRef.current) drawMeasureOverlay(mapRef.current, [], activeTool === 'area' || activeTool === 'distance' ? activeTool : 'pan')
   }, [mapRef, setMeasure])
 
+  const undoLastVertex = useCallback(() => { const points=sketchPointsRef.current.slice(0,-1);setSketch(points);if(mapRef.current)drawSketchOverlay(mapRef.current,points,useArcWebStore.getState().tool) }, [setSketch,mapRef])
+  useEffect(()=>{
+    const key=(event:KeyboardEvent)=>{
+      if(event.defaultPrevented || document.querySelector('[aria-modal="true"], [role="menu"], [role="listbox"]'))return
+      const target=event.target as HTMLElement|null
+      if(target&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))return
+      const active=useArcWebStore.getState().tool
+      if(!isEditingTool(active)||active==='move-vertex')return
+      if(event.key==='F2'){event.preventDefault();finishSketch()}
+      if(event.key==='Escape'){event.preventDefault();setEditingTool('pan')}
+      if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'&&sketchPointsRef.current.length){event.preventDefault();event.stopImmediatePropagation();undoLastVertex()}
+    }
+    window.addEventListener('keydown',key,true);return()=>window.removeEventListener('keydown',key,true)
+  },[finishSketch,setEditingTool,undoLastVertex])
   const saveEdits = useCallback(() => {
     setEditingTool('pan')
     useArcWebStore.getState().saveEdits()
@@ -165,7 +189,7 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
       map.getCanvas().style.cursor = 'grab'
       return
     }
-    if (tool === 'draw-line' || tool === 'draw-polygon' || tool === 'area' || tool === 'distance') map.doubleClickZoom.disable()
+    if (tool === 'draw-line' || tool === 'draw-polygon' || tool === 'draw-rectangle' || tool === 'draw-circle' || tool === 'area' || tool === 'distance') map.doubleClickZoom.disable()
     else map.doubleClickZoom.enable()
     map.getCanvas().style.cursor = 'crosshair'
     if (tool === 'distance' || tool === 'area') drawMeasureOverlay(map, measurePointsRef.current, tool)
@@ -174,7 +198,7 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
 
   return {
     measurePoints, sketchPoints, movingVertexRef,
-    addMeasurePoint, addSketchPoint, redrawOverlays, finishSketch, setEditingTool, toggleMeasureTool, clearMeasurements,
+    addMeasurePoint, addSketchPoint, redrawOverlays, finishSketch, undoLastVertex, setEditingTool, toggleMeasureTool, clearMeasurements,
     saveEdits, discardEdits,
   }
 }

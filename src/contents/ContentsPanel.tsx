@@ -1,11 +1,13 @@
+import { contentsSections, type ContentsMode } from './contentsModes'
+import { SymbolPatch } from './SymbolPatch'
 import { useMemo, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import {
-  ArrowDown, ArrowUp, ChevronDown, Database, Eye, EyeOff, Globe2, Layers3, LocateFixed, Move, Plus, Search,
-  Settings2, Table2, X,
+  ChevronDown, Database, Eye, EyeOff, Globe2, Layers3, Move, Plus, Search,
+  Settings2,
 } from 'lucide-react'
 import { useArcWebStore, type MapLayer } from '../store'
-import { ContentsRendererLegend, LayerIcon } from './ContentsLegend'
+import { ContentsRendererLegend } from './ContentsLegend'
 
 interface ContentsPanelProps {
   layers: MapLayer[]
@@ -27,10 +29,14 @@ interface ContentsPanelProps {
 /** The Contents pane: drawing-order layer list with visibility, ordering and quick actions. */
 export default function ContentsPanel({
   layers, selectedLayerId, menuLayerId, crsCode, minimized, floating,
-  onToggleFloat, onAddData, onOpenMapProperties, onMapRootMenu, onLayerMenu, onZoomToLayer, onRemoveLayer,
+  onToggleFloat, onAddData, onOpenMapProperties, onMapRootMenu, onLayerMenu,
 }: ContentsPanelProps) {
+  const [mode,setMode]=useState<ContentsMode>('drawing')
+  const selections=useArcWebStore(state=>state.selections),snapshots=useArcWebStore(state=>state.editSnapshots)
   const [layerSearch, setLayerSearch] = useState('')
   const filteredLayers = useMemo(() => layers.filter((layer) => layer.name.toLowerCase().includes(layerSearch.toLowerCase())), [layers, layerSearch])
+  const sections=contentsSections(mode,filteredLayers,selections,snapshots)
+  const listedLayers=sections.flatMap(section=>section.layers)
   return (
     <aside className={`dock contents-dock ${minimized ? 'contents-minimized' : ''}`}>
       <div className="dock-heading">
@@ -44,6 +50,7 @@ export default function ContentsPanel({
           <button className="subtle-icon" title="Add data" aria-label="Add data" onClick={onAddData}><Plus size={16} /></button>
         </div>
       </div>
+      <div className="contents-modes" role="toolbar" aria-label="List By">{(['drawing','source','visibility','selection','editing','snapping'] as const).map(value=><button key={value} aria-pressed={mode===value} title={'List By '+value} onClick={()=>setMode(value)}>{value.slice(0,3)}</button>)}</div>
       <div className="pane-subtitle">Drawing order <span>Top layers draw first</span></div>
       {layers.length > 0 && <label className="layer-search"><Search size={14} /><input placeholder="Find a layer" value={layerSearch} onChange={(event) => setLayerSearch(event.target.value)} /><span>⌘F</span></label>}
       <div className="layer-list">
@@ -54,28 +61,22 @@ export default function ContentsPanel({
           <Globe2 size={14} /><strong>Map</strong><span>{crsCode}</span>
           <button title="Map properties" onClick={onOpenMapProperties}><Settings2 size={12} /></button>
         </div>
-        {filteredLayers.map((layer) => {
+        {listedLayers.map((layer) => {
           const layerIndex = layers.findIndex((item) => item.id === layer.id)
           const selected = selectedLayerId === layer.id
           return (
-            <div key={layer.id} data-layer-id={layer.id} className={`layer-row ${selected ? 'selected' : ''} ${menuLayerId === layer.id ? 'menu-open' : ''}`} onClick={() => useArcWebStore.getState().setSelectedLayer(layer.id)} onContextMenu={(event) => onLayerMenu(event, layer.id)}>
+            <div key={layer.id} data-layer-id={layer.id} tabIndex={0} draggable={mode==='drawing'} onDragStart={e=>e.dataTransfer.setData('text/arcweb-layer',layer.id)} onDragOver={e=>{if(mode==='drawing')e.preventDefault()}} onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData('text/arcweb-layer');if(id&&mode==='drawing')useArcWebStore.getState().moveLayerTo(id,layerIndex)}} onKeyDown={e=>{if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();useArcWebStore.getState().moveLayer(layer.id,e.key==='ArrowUp'?-1:1)}if(e.key==='ContextMenu'||(e.shiftKey&&e.key==='F10')){e.preventDefault();const rect=e.currentTarget.getBoundingClientRect();e.currentTarget.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:rect.left+20,clientY:rect.top+20}))}}} className={`layer-row ${selected ? 'selected' : ''} ${menuLayerId === layer.id ? 'menu-open' : ''}`} onClick={() => useArcWebStore.getState().setSelectedLayer(layer.id)} onContextMenu={(event) => onLayerMenu(event, layer.id)}>
+              {mode!=='drawing'&&sections.some(section=>section.layers[0]?.id===layer.id)&&<div className="contents-section-label">{sections.find(section=>section.layers.includes(layer))?.label}</div>}
               <div className="layer-main">
                 <button className={`visibility-button ${layer.visible ? '' : 'hidden-layer'}`} title={layer.visible ? 'Hide layer' : 'Show layer'} onClick={(event) => {
                   event.stopPropagation()
                   useArcWebStore.getState().updateLayer(layer.id, { visible: !layer.visible })
                 }}>{layer.visible ? <Eye size={14} /> : <EyeOff size={14} />}</button>
-                <span className={`geometry-icon geometry-${layer.geometry.toLowerCase()}`} title={layer.geometry === 'Unknown' ? 'Standalone table' : `${layer.geometry} geometry`}><LayerIcon geometry={layer.geometry} /></span>
+                <span className={`geometry-icon geometry-${layer.geometry.toLowerCase()}`} title={layer.geometry === 'Unknown' ? 'Standalone table' : `${layer.geometry} geometry`}><SymbolPatch layer={layer} /></span>
                 <button className="layer-name-button" dir="auto" title={layer.name} onClick={(event) => {
                   event.stopPropagation()
                   useArcWebStore.getState().setSelectedLayer(layer.id)
-                }}>{layer.name}</button>
-                <div className="layer-actions">
-                  <button title="Move layer up" disabled={layerIndex === 0} onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().moveLayer(layer.id, -1) }}><ArrowUp size={12} /></button>
-                  <button title="Move layer down" disabled={layerIndex === layers.length - 1} onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().moveLayer(layer.id, 1) }}><ArrowDown size={12} /></button>
-                  <button title="Zoom to layer" disabled={layer.geometry === 'Unknown'} onClick={(event) => { event.stopPropagation(); onZoomToLayer(layer) }}><LocateFixed size={12} /></button>
-                  <button title="Open attribute table" onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().setSelectedLayer(layer.id); useArcWebStore.getState().setTableOpen(true) }}><Table2 size={12} /></button>
-                  <button title="Remove layer" onClick={(event) => { event.stopPropagation(); onRemoveLayer(layer.id) }}><X size={13} /></button>
-                </div>
+                }}><bdi>{layer.name}</bdi></button>
               </div>
               {selected && (
                 <div className="layer-opacity" onClick={(event) => event.stopPropagation()}>

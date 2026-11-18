@@ -59,7 +59,7 @@ describe('contextual groups', () => {
     expect(reconcileRibbonTabs(state, feature, feature)).toBe(state)
   })
   it('keeps Edit permanent and recognizes editing tools', () => {
-    expect(CORE_TABS).toEqual(['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Share'])
+    expect(CORE_TABS).toEqual(['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Share', 'Help'])
     expect(isEditingTool('draw-point')).toBe(true)
     expect(isEditingTool('pan')).toBe(false)
   })

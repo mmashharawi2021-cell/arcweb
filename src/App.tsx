@@ -1,12 +1,30 @@
+import { LayerPropertiesDialog } from './contents/LayerPropertiesDialog'
+import { toolboxTools } from './toolboxes/registry'
+import { CommandSearch } from './shell/CommandSearch'
+import type { Command } from './shell/commands'
+import { NotificationsMenu } from './shell/NotificationsMenu'
+import { HelpRibbon } from './ribbon/HelpRibbon'
+import { KeyboardShortcutsDialog } from './shell/KeyboardShortcutsDialog'
+import { MeasureWindow } from './measure/MeasureWindow'
+import { SketchToolbar } from './editing/SketchToolbar'
+import { ViewTabs } from './views/ViewTabs'
+import { TableDock } from './views/TableDock'
+import { DockArea } from './panes/DockArea'
+import { PANE_TITLES } from './panes/paneTitles'
+import { PANE_IDS, openPane, loadPaneLayout, migrateWorkspaceLayout, applyPanePreset, closePane, type PaneId, type PaneLayout } from './panes/paneLayout'
+import { CatalogPane } from './panes/CatalogPane'
+import { CreateFeaturesPane } from './panes/CreateFeaturesPane'
+import { ModifyFeaturesPane } from './panes/ModifyFeaturesPane'
+import { AttributesPane } from './panes/AttributesPane'
 import { readLayoutPicture } from './layout/picture'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
-import { coordinateReadout, requireCrs, scaleDenominator } from './crs'
+import { coordinateReadout, requireCrs, zoomForScale, scaleDenominator } from './crs'
 import {
-  Check, Compass, Focus, FolderOpen, Map as MapIcon, PanelRightClose, Settings2, Trash2, X, LayoutTemplate, Box,
+  Check, Compass, Focus, FolderOpen, Settings2, Trash2, X, LayoutTemplate,
 } from 'lucide-react'
 import type { Feature } from 'geojson'
 import AttributeTable from './AttributeTable'
@@ -25,7 +43,6 @@ import { useContentFade } from './ui/useContentFade'
 import { selectToolInputLayers } from './workers/toolInputs'
 import type { ToolRequest } from './workers/toolProtocol'
 import { exportLayer, exportMapCanvas } from './exportData'
-import { EditPanel, SharePanel } from './PhasePanels'
 import MapProperties, { type MapViewInfo } from './MapProperties'
 import { exportLayoutSheet, type LayoutExportFormat } from './layout/exportLayout'
 import LayoutPanel from './layout/LayoutPanel'
@@ -62,7 +79,7 @@ import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
 import { AnalysisRibbon, EditRibbon, InsertRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
 import StatusBar from './StatusBar'
-import { DropOverlay, ImportProgress, MeasurementCard, SketchCard, ToolProgress } from './MapOverlays'
+import { DropOverlay, ImportProgress, ToolProgress } from './MapOverlays'
 import ConfirmDialog from './ui/ConfirmDialog'
 import { useProjectIO } from './useProjectIO'
 import { useFileImport } from './useFileImport'
@@ -84,7 +101,7 @@ import { changedLayerIds } from './toolboxes/staleUpdates'
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
 registerOfflineProtocol()
 
-const WORKSPACE_LAYOUT_STORAGE_KEY = 'arcweb-workspace-layout-v1'
+const WORKSPACE_LAYOUT_STORAGE_KEY = 'arcweb-workspace-shell-v2'
 
 
 
@@ -152,7 +169,17 @@ function App() {
   const projectName = useArcWebStore((state) => state.projectName)
   const [calculatorRequest, setCalculatorRequest] = useState(0)
   const [labelRequest, setLabelRequest] = useState(0)
+  const openViews = useArcWebStore(state=>state.openViews)
+  const activeView = useArcWebStore(state=>state.activeView)
+  const openTables = useArcWebStore(state=>state.openTables)
+  const activeTable = useArcWebStore(state=>state.activeTable)
   const tableOpen = useArcWebStore((state) => state.tableOpen)
+  const [propertiesLayerId,setPropertiesLayerId]=useState<string|null>(null)
+  const [searchOpen,setSearchOpen]=useState(false),[shortcutsOpen,setShortcutsOpen]=useState(false)
+  const [savedPaneLayout] = useState(() => {
+    try { if (!localStorage.getItem('arcweb-workspace-layout-v2')) { const old=localStorage.getItem('arcweb-workspace-layout-v1'); if(old)return migrateWorkspaceLayout(normalizeWorkspaceLayout(JSON.parse(old))) } } catch { /* defaults */ }
+    return loadPaneLayout()
+  })
   const workspaceLayout = useArcWebStore((state) => state.workspaceLayout)
   const basemap = useArcWebStore((state) => state.basemap)
   const theme = useArcWebStore((state) => state.theme)
@@ -171,10 +198,18 @@ function App() {
   const { mapInstance, mapLoaded } = useMapInstance({ mapRef, mapHostRef, workspaceRef, sceneViewRef, eventsRef: mapEventsRef, viewMode, mapFrameHost })
   const extentHistory = useExtentHistory(mapInstance)
   useBoxSelect(mapInstance, tool === 'select-box', (bounds, method) => applyBoxSelection(featuresInBox(useArcWebStore.getState().layers, bounds), method))
+  const paneLayout = workspaceLayout.paneLayout ?? savedPaneLayout
+  const changePanes = useCallback((layout: PaneLayout) => {
+    const state = useArcWebStore.getState()
+    state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, paneLayout: layout })
+    try { localStorage.setItem('arcweb-workspace-layout-v2', JSON.stringify(layout)) } catch { /* storage unavailable */ }
+  }, [])
+  const showPane = useCallback((id: PaneId) => { const state = useArcWebStore.getState(); const layout = state.workspaceLayout.paneLayout ?? savedPaneLayout; changePanes(openPane(layout,id)) }, [changePanes, savedPaneLayout])
   const tableHeight = workspaceLayout.panels.attributeTable.frame.height
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId) ?? null
+  const tableLayer = layers.find(layer=>layer.id===activeTable) ?? selectedLayer
   const selectedFeatureIsEditable = Boolean(
-    selectedLayer &&
+    selectedLayer && selectedLayer.editable!==false && !isRasterLayer(selectedLayer) &&
     selectedFeature?.layerId === selectedLayer.id &&
     selectedLayer.data.features.some((feature) => feature.id === selectedFeature.featureId),
   )
@@ -210,6 +245,7 @@ function App() {
 
   const notify = useCallback((message: string, kind: 'success' | 'error' | 'warning' = 'success') => {
     if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current)
+    useArcWebStore.getState().addNotification(message,kind)
     setToast({ message, kind })
     toastTimerRef.current = window.setTimeout(() => setToast(null), 4200)
   }, [])
@@ -229,11 +265,12 @@ function App() {
     deleteSelectedFeature, editTargetIds, deleteSelectedFeatures, undoEdit, redoEdit, editCell,
   } = useFeatureEdits(notify)
   const {
-    measurePoints, sketchPoints, movingVertexRef, addMeasurePoint, addSketchPoint, redrawOverlays, finishSketch,
+    measurePoints, sketchPoints, movingVertexRef, addMeasurePoint, addSketchPoint, redrawOverlays, finishSketch, undoLastVertex,
     setEditingTool, toggleMeasureTool, clearMeasurements, saveEdits, discardEdits,
   } = useSketchTools({ mapRef, mapLoaded, notify, appendFeature })
   const terrainState = useMapSync({ mapRef, mapLoaded, sceneView, sceneViewRef, viewMode, offlineBasemap, projectStorageReady, redrawOverlays })
-  const { handleMapClick, showIdentify } = useMapClick({ notify, workspaceRef, setIdentify, appendFeature, addMeasurePoint, addSketchPoint, movingVertexRef })
+  const [measuredFeature,setMeasuredFeature]=useState<Feature['geometry']|null>(null)
+  const { handleMapClick, showIdentify } = useMapClick({ notify, workspaceRef, setIdentify, appendFeature, addMeasurePoint, addSketchPoint, movingVertexRef, onMeasureFeature: hit=>{const layer=useArcWebStore.getState().layers.find(layer=>layer.id===hit.layerId);setMeasuredFeature(layer?.data.features.find(feature=>feature.id===hit.featureId)?.geometry??null)} })
   // The map reads its handlers through this ref, so handler changes never rebuild the map.
   useEffect(() => {
     mapEventsRef.current = {
@@ -276,7 +313,7 @@ function App() {
 
   const selectWorkspacePreset = useCallback((preset: WorkspacePreset) => {
     const state = useArcWebStore.getState()
-    state.setWorkspaceLayout(applyWorkspacePreset(state.workspaceLayout, preset))
+    state.setWorkspaceLayout({ ...applyWorkspacePreset(state.workspaceLayout, preset), paneLayout: applyPanePreset(state.workspaceLayout.paneLayout??savedPaneLayout, preset) })
     setSceneView(false)
     if (preset === 'analysis') {
       state.setActiveTab('Analysis')
@@ -288,11 +325,11 @@ function App() {
       state.setActiveTab('Map')
       state.setViewMode('map')
     }
-  }, [])
+  }, [savedPaneLayout])
 
   const toggleFullCanvas = useCallback(() => {
     const state = useArcWebStore.getState()
-    state.setWorkspaceLayout({ ...state.workspaceLayout, fullCanvas: !state.workspaceLayout.fullCanvas })
+    state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, fullCanvas: !state.workspaceLayout.fullCanvas })
   }, [])
   const workspaceStorageErrorRef = useRef(false)
   const reportWorkspaceStorageError = useCallback((message: string) => {
@@ -319,7 +356,7 @@ function App() {
   useEffect(() => {
     let restored = false
     try {
-      const saved = window.localStorage.getItem(WORKSPACE_LAYOUT_STORAGE_KEY)
+      const saved = window.localStorage.getItem(WORKSPACE_LAYOUT_STORAGE_KEY) ?? window.localStorage.getItem('arcweb-workspace-layout-v1')
       if (saved) {
         useArcWebStore.getState().setWorkspaceLayout(normalizeWorkspaceLayout(JSON.parse(saved)))
         restored = true
@@ -459,7 +496,7 @@ function App() {
         const merged = subset && updates.data && current ? { ...updates, data: mergeScopedData(current.data, subset, updates.data) } : updates
         useArcWebStore.getState().updateLayer(layerId, merged)
       })
-      result.layers?.forEach((layer) => useArcWebStore.getState().addLayer(layer))
+      result.layers?.forEach((layer) => useArcWebStore.getState().addLayer({...layer,source:{kind:'tool',name:toolDefinition.name}}))
       record('succeeded', result.message, result.layers?.map((layer) => layer.name))
       result.downloads?.forEach(({ blob, fileName }) => {
         const url = URL.createObjectURL(blob)
@@ -551,7 +588,7 @@ function App() {
   const saveNow = useCallback(() => {
     void saveProjectNow({ state: libraryState, error: libraryError, flush: flushLibrary }, notify)
   }, [libraryState, libraryError, flushLibrary, notify])
-  useAppShortcuts({ save: saveNow, open: openProjectPage })
+  useAppShortcuts({ save: saveNow, open: openProjectPage, commandSearch:()=>setSearchOpen(true) })
   /** Save As › Save a copy in Projects: like Pro, the copy becomes the open project. */
   const saveProjectCopy = async () => {
     try {
@@ -712,7 +749,7 @@ function App() {
       return
     }
     state.setSelectedLayer(layerId)
-    if (state.workspaceLayout.tableMinimized) state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false })
+    if (state.workspaceLayout.tableMinimized) state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, tableMinimized: false })
     state.setTableOpen(true)
   }, [])
 
@@ -720,9 +757,10 @@ function App() {
   const openLayerSymbology = useCallback((layer: MapLayer) => {
     const state = useArcWebStore.getState()
     state.setSelectedLayer(layer.id)
+    showPane('symbology')
     state.setActiveTab(isRasterLayer(layer) ? 'RasterAppearance' : 'FeatureAppearance')
-    if (!state.workspaceLayout.rightPaneOpen) state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
-  }, [])
+    if (!state.workspaceLayout.rightPaneOpen) state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: true })
+  }, [showPane])
 
   const confirmRemoveLayer = useCallback(() => {
     const state = useArcWebStore.getState()
@@ -795,16 +833,18 @@ function App() {
   /** Shows the Geoprocessing pane (Analysis tab, right pane open), optionally on a tool or the history. */
   const openGeoprocessing = useCallback((request: { toolId?: string; view?: 'tools' | 'history' }) => {
     const state = useArcWebStore.getState()
+    showPane('geoprocessing')
     state.setActiveTab('Analysis')
-    state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
+    state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: true })
     setToolboxRequest((current) => ({ nonce: current.nonce + 1, ...request }))
-  }, [])
+  }, [showPane])
   /** Insert › New Layer: the Edit pane holds the new-layer form. */
   const openNewLayerForm = useCallback(() => {
     const state = useArcWebStore.getState()
+    showPane('createFeatures')
     state.setActiveTab('Edit')
-    state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
-  }, [])
+    state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: true })
+  }, [showPane])
 
   const centerMapAt = useCallback((lngLat: [number, number]) => {
     mapRef.current?.easeTo({ center: lngLat, duration: 450 })
@@ -852,6 +892,13 @@ function App() {
       const layer = useArcWebStore.getState().layers.find((item) => item.id === menu.layerId)
       if (!layer) return
       runLayerMenuAction(id, {
+        properties:()=>setPropertiesLayerId(layer.id),
+        zoomVisible:()=>{const map=mapRef.current;if(map){const scale=layer.minScale&&layer.maxScale?Math.sqrt(layer.minScale*layer.maxScale):layer.minScale?layer.minScale/1.1:layer.maxScale?layer.maxScale*1.1:undefined;if(scale)map.setZoom(zoomForScale(map.getCenter().lat,scale))}},
+        selectAll:()=>useArcWebStore.getState().setSelection(layer.id,layer.data.features.flatMap(feature=>feature.id===undefined?[]:[feature.id])),
+        clearSelection:()=>useArcWebStore.getState().setSelection(layer.id,[]),
+        zoomSelection:zoomToSelected,
+        toggleLabels:()=>useArcWebStore.getState().updateLayer(layer.id,{labelStyle:{...layer.labelStyle,enabled:!layer.labelStyle.enabled}}),
+        labelProperties:()=>{openLayerSymbology(layer);setLabelRequest(value=>value+1)},
         zoomTo: () => zoomToLayer(layer),
         toggleTable: () => toggleLayerTable(layer.id),
         openSymbology: () => openLayerSymbology(layer),
@@ -875,7 +922,7 @@ function App() {
       clearMarkers: clearQuickMarkers,
     })
   }, [
-    openMapProperties, zoomToAll, zoomToLayer, toggleLayerTable, openLayerSymbology, exportSelectedLayer,
+    openMapProperties, zoomToAll, zoomToLayer, toggleLayerTable, openLayerSymbology, exportSelectedLayer, zoomToSelected,
     identifyAtPoint, centerMapAt, notify, addQuickMarker, clearQuickMarkers,
   ])
 
@@ -893,6 +940,7 @@ function App() {
   const openFilePicker = useCallback(() => fileInputRef.current?.click(), [])
   /** Switches between the 2D map, the 3D scene and the print layout. */
   const showView = useCallback((view: WorkspaceView) => {
+    useArcWebStore.getState().openView(view==='3d'?'scene':view==='layout'?'layout':'map')
     setSceneView(view === '3d')
     useArcWebStore.getState().setViewMode(view === 'layout' ? 'layout' : 'map')
   }, [])
@@ -901,10 +949,8 @@ function App() {
 
   const selectedCount = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
   const hasSelection = selectedCount > 0 || selectedFeature !== null
-  const tableSelectedIds = useMemo(
-    () => new Set<FeatureId>(selectedLayerId ? selections[selectedLayerId] ?? [] : []),
-    [selections, selectedLayerId],
-  )
+  const tableLayerId=tableLayer?.id
+  const tableSelectedIds=new Set<FeatureId>(tableLayerId?selections[tableLayerId]??[]:[])
   // Resolve identified features against the live layers so edits and deletions are reflected.
   const identifyHits: IdentifyHit[] = identify ? identify.hits.flatMap((hit) => {
     const layer = layers.find((item) => item.id === hit.layerId)
@@ -916,6 +962,106 @@ function App() {
 
   const displayCrsDefinition = requireCrs(displayCrs)
 
+  const commands: Command[] = [
+    {id:'save',label:'Save Project',keywords:'save Ctrl S',run:saveNow},
+    {id:'open',label:'Open Project',keywords:'open Ctrl O',run:openProjectPage},
+    {id:'select-attributes',label:'Select By Attributes',run:()=>setSelectionDialog('attributes'),disabled:!selectedLayer},
+    {id:'select-location',label:'Select By Location',run:()=>setSelectionDialog('location'),disabled:!layers.length},
+    ...PANE_IDS.map(id=>({id:'pane-'+id,label:'Open '+PANE_TITLES[id],run:()=>showPane(id)})),
+    ...CORE_TABS.map(tab=>({id:'tab-'+tab,label:tab+' tab',run:()=>useArcWebStore.getState().setActiveTab(tab)})),
+    ...toolboxTools.map(tool=>({id:'tool-'+tool.id,label:tool.name,keywords:'geoprocessing '+tool.category,run:()=>openGeoprocessing({toolId:tool.id})})),
+  ]
+  const renderPane = (pane: PaneId) => pane === 'contents' ? (<DockablePanel
+          floating={false}
+          frame={workspaceLayout.panels.contents.frame}
+          className="contents-window"
+          onFrameChange={updateContentsFrame}
+        >
+        <ContentsPanel
+          layers={layers}
+          selectedLayerId={selectedLayerId}
+          menuLayerId={contextMenu?.kind === 'layer' ? contextMenu.layerId : null}
+          crsCode={displayCrsDefinition.code}
+          minimized={false}
+          floating={false}
+          onToggleFloat={toggleContentsFloating}
+          onAddData={openFilePicker}
+          onOpenMapProperties={openMapProperties}
+          onMapRootMenu={openMapRootMenu}
+          onLayerMenu={openLayerMenu}
+          onZoomToLayer={zoomToLayer}
+          onRemoveLayer={setPendingRemoval}
+        />
+        </DockablePanel>) : pane === 'catalog' ? (
+    <CatalogPane offlineBasemapName={offlineBasemap?.name} assetIds={captureWorkspace().assetIds ?? []} onView={showView} onTool={toolId=>openGeoprocessing({toolId})} onAdd={files=>void addFiles(files)} onOffline={()=>setBackstage('library')} />
+  ) : pane === 'modifyFeatures' ? (<ModifyFeaturesPane onTool={setEditingTool} onDelete={deleteSelectedFeatures} onAttributes={()=>showPane('attributes')} />) : pane === 'attributes' ? (<AttributesPane layers={layers} onEdit={(layer,id,field,value)=>editCell(layer.id,id,field,value)} />) : pane === 'geoprocessing' ? (
+          <DockablePanel
+            floating={false}
+            frame={workspaceLayout.panels.geoprocessing.frame}
+            className="geoprocessing-window"
+            onFrameChange={updateGeoprocessingFrame}
+          >
+            <aside className="dock symbology-dock toolbox-dock">
+              <ToolboxPanel
+                key={toolboxRequest.nonce}
+                initialToolId={toolboxRequest.toolId}
+                initialView={toolboxRequest.view}
+                layers={layers}
+                selectedLayerId={selectedLayerId}
+                floating={false}
+                onToggleFloat={() => togglePanelFloating('geoprocessing')}
+                selectionCount={selectedFeatureCount(layers, selections)}
+                running={toolExecutionProgress?.name ?? null}
+                history={analysisHistory}
+                onExecute={(definition, parameters, options) => void executeTool(definition, parameters, options)}
+                onCancel={cancelTool}
+                onClose={() => {
+                  changePanes(closePane(paneLayout,'geoprocessing'))
+                }}
+              />
+            </aside>
+          </DockablePanel>
+        ) : pane === 'createFeatures' ? (
+          <aside className="dock symbology-dock"><CreateFeaturesPane
+            layers={layers}
+            selectedLayer={selectedLayer}
+            selectedFeatureIsEditable={selectedFeatureIsEditable}
+            tool={tool}
+            onCreateLayer={createEditableLayer}
+            onSetTool={setEditingTool}
+            onDeleteFeature={deleteSelectedFeature}
+            onOpenTable={() => useArcWebStore.getState().setTableOpen(true)}
+            onFinishSketch={finishSketch}
+          /></aside>
+        ) : viewMode === 'layout' && pane === 'symbology' ? (
+          <aside className="dock symbology-dock"><LayoutPanel
+            viewMode={viewMode}
+            exporting={layoutExporting}
+            onSetViewMode={(mode) => useArcWebStore.getState().setViewMode(mode)}
+            onInsert={insertLayoutElement}
+            onExport={(format, dpi) => void exportLayout(format, dpi)}
+          /></aside>
+        ) : (
+        <DockablePanel
+          floating={false}
+          frame={workspaceLayout.panels.symbology.frame}
+          className="symbology-window"
+          onFrameChange={updateSymbologyFrame}
+        >
+        <SymbologyPanel
+          labelRequest={labelRequest}
+          selectedLayer={selectedLayer}
+          floating={false}
+          onToggleFloat={() => togglePanelFloating('symbology')}
+          onUpdate={(updates) => {
+            if (selectedLayer) useArcWebStore.getState().updateLayer(selectedLayer.id, updates)
+          }}
+          onAddData={() => useArcWebStore.getState().setActiveTab('Insert')}
+        />
+        </DockablePanel>
+         )
+  const paneRenderers = Object.fromEntries(PANE_IDS.map(id=>[id,{title:PANE_TITLES[id],render:()=>renderPane(id)}]))
+
   return (
     <main ref={contentFadeRef} inert={library.state === 'loading'} aria-busy={library.state === 'loading'} className={`arc-app preset-${workspaceLayout.preset} ${workspaceLayout.fullCanvas ? 'full-canvas' : ''}`}>
       <TitleBar
@@ -924,7 +1070,10 @@ function App() {
         saveState={library.state}
         saveError={library.error}
         quickAccess={{ onSave: saveNow, onUndo: undoEdit, onRedo: redoEdit, onOpen: openProjectPage, canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }}
-      />
+      ><button onClick={()=>setSearchOpen(true)}>Search commands (Alt+Q)</button><NotificationsMenu /></TitleBar>
+      {propertiesLayerId&&layers.find(layer=>layer.id===propertiesLayerId)&&<LayerPropertiesDialog layer={layers.find(layer=>layer.id===propertiesLayerId)!} onClose={()=>setPropertiesLayerId(null)} onUpdate={update=>useArcWebStore.getState().updateLayer(propertiesLayerId,update)} />}
+      {searchOpen&&<CommandSearch commands={commands} onClose={()=>setSearchOpen(false)} />}
+      {shortcutsOpen&&<KeyboardShortcutsDialog onClose={()=>setShortcutsOpen(false)} />}
       <input ref={projectInputRef} className="visually-hidden" type="file" tabIndex={-1} aria-label="Choose an ArcWeb project file" accept=".json,.arcweb.json,application/json" onChange={(event) => {
         const file = event.currentTarget.files?.[0]
         if (file) void loadProjectFile(file)
@@ -936,10 +1085,7 @@ function App() {
         {CORE_TABS.map((tab) => (
           <button key={tab} className={`ribbon-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => {
             useArcWebStore.getState().setActiveTab(tab)
-            if (tab === 'Analysis') {
-              const state = useArcWebStore.getState()
-              state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
-            }
+
           }}>{tab}</button>
         ))}
         {CONTEXTUAL_GROUPS.filter(group => group.tabs.some(tab => visibleContextualTabs.includes(tab))).map(group => (
@@ -968,12 +1114,13 @@ function App() {
                 if (type === 'unique') useArcWebStore.getState().updateLayer(selectedLayer.id, { renderer: buildUniqueRenderer(selectedLayer, getFeatureFields(selectedLayer)[0], 'pastel', selectedLayer.renderer) })
                 if (type === 'graduated') useArcWebStore.getState().updateLayer(selectedLayer.id, { renderer: buildGraduatedRenderer(selectedLayer, getNumericFields(selectedLayer)[0], 'quantile', 5, 'viridis') })
                 const state = useArcWebStore.getState()
-                state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
+                state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: true })
+                showPane('symbology')
                 if (labels) setLabelRequest(value => value + 1)
               } catch (error) { notify(error instanceof Error ? error.message : 'Could not apply symbology', 'error') }
             }}
-            onTable={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }) }}
-            onCalculate={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }); setCalculatorRequest(value => value + 1) }}
+            onTable={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, tableMinimized: false }) }}
+            onCalculate={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, tableMinimized: false }); setCalculatorRequest(value => value + 1) }}
             onSelect={() => setSelectionDialog('attributes')}
             onZoomSelection={zoomToSelected}
             onClear={clearSelection}
@@ -983,7 +1130,7 @@ function App() {
         ) : ['RasterAppearance', 'RasterData'].includes(activeTab) && selectedLayer ? (
           <RasterLayerRibbon
             tab={activeTab as 'RasterAppearance' | 'RasterData'}
-            onTable={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }) }}
+            onTable={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, tableMinimized: false }) }}
             onExport={format => exportSelectedLayer(selectedLayer, format)}
             layer={selectedLayer}
             onUpdate={(updates) => useArcWebStore.getState().updateLayer(selectedLayer.id, updates)}
@@ -1018,6 +1165,7 @@ function App() {
             onClearSelection={clearSelection}
             onToggleMeasure={toggleMeasureTool}
             onOpenMapProperties={openMapProperties}
+            onMeasureFeature={()=>{setMeasuredFeature(null);useArcWebStore.getState().setTool('measure-feature')}}
             onGoToXY={() => setGoToXYOpen(true)}
             onSelectTool={() => setEditingTool(tool === 'select-box' ? 'pan' : 'select-box')}
           />
@@ -1040,7 +1188,7 @@ function App() {
             orientation={layoutOrientation}
             onPage={(paper, orientation) => useLayoutStore.getState().setPage(paper, orientation)}
             exporting={layoutExporting}
-            onClose={() => showView('2d')}
+            onClose={() => {useArcWebStore.getState().closeView('layout');showView('2d')}}
             onInsert={insertLayoutElement}
             onExport={(format, dpi) => void exportLayout(format, dpi)}
           />
@@ -1055,17 +1203,19 @@ function App() {
             fullCanvas={workspaceLayout.fullCanvas}
             theme={theme}
             onTogglePane={(pane) => {
+              if (pane !== 'table') { showPane(pane === 'side' ? 'symbology' : pane); return }
               const state = useArcWebStore.getState()
               if (pane === 'table') state.setTableOpen(!tableOpen)
-              else if (pane === 'side') state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: !state.workspaceLayout.rightPaneOpen })
-              else state.setWorkspaceLayout({ ...state.workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
+              else if (pane === 'side') state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: !state.workspaceLayout.rightPaneOpen })
+              else state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
             }}
             onPreset={selectWorkspacePreset}
             onMode={showView}
+            onOpenPane={showPane}
             onToggleFullCanvas={toggleFullCanvas}
             onToggleTheme={() => useArcWebStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark')}
           />
-        ) : activeTab === 'Edit' ? (
+        ) : activeTab === 'Help' ? (<HelpRibbon onShortcuts={()=>setShortcutsOpen(true)} onAbout={()=>setBackstage('about')} />        ) : activeTab === 'Edit' ? (
           <EditRibbon
             tool={tool}
             hasLayer={Boolean(selectedLayer)}
@@ -1075,7 +1225,7 @@ function App() {
             canRedo={redoStack.length > 0}
             hasSelection={editTargetIds.length > 0}
             snapping={snapping}
-            onSetTool={setEditingTool}
+            onSetTool={next=>{ setEditingTool(next); showPane(next==='move-vertex'?'modifyFeatures':'createFeatures') }}
             onSave={saveEdits}
             onDiscard={discardEdits}
             onUndo={undoEdit}
@@ -1106,29 +1256,7 @@ function App() {
       </section>
 
       <div className={`workspace ${workspaceLayout.preset === 'analysis' ? 'analysis-focus' : ''}`}>
-        <DockablePanel
-          floating={workspaceLayout.panels.contents.floating}
-          frame={workspaceLayout.panels.contents.frame}
-          className="contents-window"
-          onFrameChange={updateContentsFrame}
-        >
-        <ContentsPanel
-          layers={layers}
-          selectedLayerId={selectedLayerId}
-          menuLayerId={contextMenu?.kind === 'layer' ? contextMenu.layerId : null}
-          crsCode={displayCrsDefinition.code}
-          minimized={workspaceLayout.contentsMinimized}
-          floating={workspaceLayout.panels.contents.floating}
-          onToggleFloat={toggleContentsFloating}
-          onAddData={openFilePicker}
-          onOpenMapProperties={openMapProperties}
-          onMapRootMenu={openMapRootMenu}
-          onLayerMenu={openLayerMenu}
-          onZoomToLayer={zoomToLayer}
-          onRemoveLayer={setPendingRemoval}
-        />
-        </DockablePanel>
-
+        <DockArea side="left" layout={paneLayout} panes={paneRenderers} onChange={changePanes} />
         <section className="map-workspace" ref={workspaceRef} onDragEnter={(event) => { event.preventDefault(); setIsDragging(true) }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => {
           if (event.currentTarget === event.target) setIsDragging(false)
         }} onDrop={(event) => {
@@ -1136,6 +1264,7 @@ function App() {
           setIsDragging(false)
           if (event.dataTransfer.files.length) void addFiles(event.dataTransfer.files)
         }}>
+          <ViewTabs views={openViews} active={activeView} onActivate={kind=>showView(kind==='scene'?'3d':kind==='layout'?'layout':'2d')} onClose={kind=>{useArcWebStore.getState().closeView(kind);const next=useArcWebStore.getState().activeView;showView(next==='scene'?'3d':next==='layout'?'layout':'2d')}} />
           <div className="map-host" ref={mapHostRef} />
           {goToXYOpen && <GoToXY onGo={goToXY} onClose={closeGoToXY} />}
           {workspaceLayout.fullCanvas && <button className="full-canvas-exit" onClick={toggleFullCanvas}><X size={14} />Restore workspace</button>}
@@ -1145,11 +1274,6 @@ function App() {
             <LayoutView map={mapInstance} layers={layers} basemap={basemap} pageRef={layoutPageRef} onMapFrameHost={setMapFrameHost} />
           )}
           <div className="map-top-left">
-            <div className="view-switch" role="tablist" aria-label="View">
-              <button role="tab" aria-selected={workspaceView === '2d'} className={workspaceView === '2d' ? 'active' : ''} onClick={() => showView('2d')}><MapIcon size={13} /> 2D Map</button>
-              <button role="tab" aria-selected={workspaceView === '3d'} className={workspaceView === '3d' ? 'active' : ''} onClick={() => showView('3d')}><Box size={13} /> 3D Scene</button>
-              <button role="tab" aria-selected={workspaceView === 'layout'} className={workspaceView === 'layout' ? 'active' : ''} onClick={() => showView('layout')}><LayoutTemplate size={13} /> Layout</button>
-            </div>
             {viewMode === 'map' && <span className="map-coordinate-badge"><span className="live-dot" />{sceneView ? '3D Scene · right-drag to rotate' : offlineBasemap?.name ?? basemaps.find((item) => item.id === basemap)?.name}</span>}
           </div>
           {viewMode === 'map' && sceneView && mapInstance && (
@@ -1164,8 +1288,8 @@ function App() {
               onFlyToLayer={flyToLayer}
             />
           )}
-          {(tool === 'distance' || tool === 'area') && (
-            <MeasurementCard mode={tool} points={measurePoints} onClear={clearMeasurements} onFinish={() => useArcWebStore.getState().setTool('pan')} />
+          {(tool === 'distance' || tool === 'area' || tool === 'measure-feature') && (
+            <MeasureWindow mode={tool} points={measurePoints} feature={measuredFeature} units={measureUnits} onUnits={units=>useArcWebStore.getState().setMeasureUnits(units)} onMode={mode=>useArcWebStore.getState().setTool(mode)} onClear={()=>{clearMeasurements();setMeasuredFeature(null)}} onClose={()=>useArcWebStore.getState().setTool('pan')} />
           )}
           {identify && identifiedHit && (
             <IdentifyPopup
@@ -1198,8 +1322,8 @@ function App() {
               onClose={() => setIdentify(null)}
             />
           )}
-          {(tool === 'draw-line' || tool === 'draw-polygon') && (
-            <SketchCard mode={tool} vertexCount={sketchPoints.length} onCancel={() => setEditingTool('pan')} onFinish={finishSketch} />
+          {(tool === 'draw-line' || tool === 'draw-polygon' || tool === 'draw-rectangle' || tool === 'draw-circle') && (
+            <SketchToolbar onUndo={undoLastVertex} mode={tool} vertexCount={sketchPoints.length} onCancel={() => setEditingTool('pan')} onFinish={finishSketch} />
           )}
           {isDragging && <DropOverlay />}
           <StatusBar
@@ -1212,121 +1336,40 @@ function App() {
           />
         </section>
 
-        {!workspaceLayout.rightPaneOpen ? (
-          workspaceLayout.preset === 'cartography' ? null : (
-            <aside className="right-pane-rail"><button title={activeTab === 'Analysis' ? 'Open Geoprocessing pane' : 'Open side panel'} onClick={() => {
-              const state = useArcWebStore.getState()
-              state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
-            }}><PanelRightClose size={16} /><span>{activeTab === 'Analysis' ? 'Tools' : 'Panel'}</span></button></aside>
-          )
-        ) : activeTab === 'Analysis' ? (
-          <DockablePanel
-            floating={workspaceLayout.panels.geoprocessing.floating}
-            frame={workspaceLayout.panels.geoprocessing.frame}
-            className="geoprocessing-window"
-            onFrameChange={updateGeoprocessingFrame}
-          >
-            <aside className="dock symbology-dock toolbox-dock">
-              <ToolboxPanel
-                key={toolboxRequest.nonce}
-                initialToolId={toolboxRequest.toolId}
-                initialView={toolboxRequest.view}
-                layers={layers}
-                selectedLayerId={selectedLayerId}
-                floating={workspaceLayout.panels.geoprocessing.floating}
-                onToggleFloat={() => togglePanelFloating('geoprocessing')}
-                selectionCount={selectedFeatureCount(layers, selections)}
-                running={toolExecutionProgress?.name ?? null}
-                history={analysisHistory}
-                onExecute={(definition, parameters, options) => void executeTool(definition, parameters, options)}
-                onCancel={cancelTool}
-                onClose={() => {
-                  const state = useArcWebStore.getState()
-                  state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: false })
-                }}
-              />
-            </aside>
-          </DockablePanel>
-        ) : activeTab === 'Edit' ? (
-          <aside className="dock symbology-dock"><EditPanel
-            layers={layers}
-            selectedLayer={selectedLayer}
-            selectedFeatureIsEditable={selectedFeatureIsEditable}
-            tool={tool}
-            onCreateLayer={createEditableLayer}
-            onSetTool={setEditingTool}
-            onDeleteFeature={deleteSelectedFeature}
-            onOpenTable={() => useArcWebStore.getState().setTableOpen(true)}
-            onFinishSketch={finishSketch}
-          /></aside>
-        ) : (activeTab === 'LayoutInsert' || activeTab === 'LayoutExport') ? (
-          <aside className="dock symbology-dock"><LayoutPanel
-            viewMode={viewMode}
-            exporting={layoutExporting}
-            onSetViewMode={(mode) => useArcWebStore.getState().setViewMode(mode)}
-            onInsert={insertLayoutElement}
-            onExport={(format, dpi) => void exportLayout(format, dpi)}
-          /></aside>
-        ) : activeTab === 'Share' ? (
-          <aside className="dock symbology-dock"><SharePanel key={selectedLayerId ?? 'no-layer'}
-            layers={layers}
-            selectedLayerId={selectedLayerId}
-            layoutExporting={layoutExporting}
-            onExportLayer={exportSelectedLayer}
-            onExportImage={() => void exportCurrentMap()}
-            onExportLayout={(format, dpi) => void exportLayout(format, dpi)}
-          /></aside>
-        ) : (
-        <DockablePanel
-          floating={workspaceLayout.panels.symbology.floating}
-          frame={workspaceLayout.panels.symbology.frame}
-          className="symbology-window"
-          onFrameChange={updateSymbologyFrame}
-        >
-        <SymbologyPanel
-          labelRequest={labelRequest}
-          selectedLayer={selectedLayer}
-          floating={workspaceLayout.panels.symbology.floating}
-          onToggleFloat={() => togglePanelFloating('symbology')}
-          onUpdate={(updates) => {
-            if (selectedLayer) useArcWebStore.getState().updateLayer(selectedLayer.id, updates)
-          }}
-          onAddData={() => useArcWebStore.getState().setActiveTab('Insert')}
-        />
-        </DockablePanel>
-        )}
+        <DockArea side="right" layout={paneLayout} panes={paneRenderers} onChange={changePanes} />
       </div>
 
-      {tableOpen && selectedLayer && !workspaceLayout.tableMinimized && (
+      {tableOpen && tableLayer && !workspaceLayout.tableMinimized && (
         <DockablePanel
           floating={workspaceLayout.panels.attributeTable.floating}
           frame={workspaceLayout.panels.attributeTable.frame}
           className="attribute-table-window"
           onFrameChange={updateAttributeTableFrame}
         >
+        <TableDock layers={layers} openTables={openTables} active={activeTable} onActivate={id=>useArcWebStore.getState().openTable(id)} onClose={id=>useArcWebStore.getState().closeTable(id)} />
         <AttributeTable
           calculatorRequest={calculatorRequest}
-          layer={selectedLayer}
-          selectedFeatureId={selectedFeature?.layerId === selectedLayer.id ? selectedFeature.featureId : null}
+          layer={tableLayer}
+          selectedFeatureId={selectedFeature?.layerId === tableLayer.id ? selectedFeature.featureId : null}
           selectedIds={tableSelectedIds}
           height={tableHeight}
           floating={workspaceLayout.panels.attributeTable.floating}
           onToggleFloat={() => togglePanelFloating('attributeTable')}
-          onToggleSelection={(feature) => { if (feature.id !== undefined) useArcWebStore.getState().toggleSelected(selectedLayer.id, feature.id) }}
+          onToggleSelection={(feature) => { if (feature.id !== undefined) useArcWebStore.getState().toggleSelected(tableLayer.id, feature.id) }}
           onSelectByAttributes={() => setSelectionDialog('attributes')}
           onZoomToSelected={zoomToSelected}
           onClearSelection={clearSelection}
           onResizePointerDown={handleTableResize}
-          onClose={() => useArcWebStore.getState().setTableOpen(false)}
-          onSelectFeature={(feature) => selectAndZoomFeature(selectedLayer, feature)}
-          onDeleteFeature={(featureId) => deleteFeature(selectedLayer, featureId)}
-          onAddField={(name) => addCustomField(selectedLayer, name)}
-          onRemoveField={(name) => removeCustomField(selectedLayer, name)}
-          onCalculate={(name, expression) => calculateLayerField(selectedLayer, name, expression)}
-          view={tableViews[selectedLayer.id] ?? EMPTY_TABLE_VIEW}
-          onViewChange={(view) => useArcWebStore.getState().setTableView(selectedLayer.id, view)}
-          editable={!isRasterLayer(selectedLayer)}
-          onEditCell={(featureId, field, value) => editCell(selectedLayer.id, featureId, field, value)}
+          onClose={() => useArcWebStore.getState().closeTable(tableLayer.id)}
+          onSelectFeature={(feature) => selectAndZoomFeature(tableLayer, feature)}
+          onDeleteFeature={(featureId) => deleteFeature(tableLayer, featureId)}
+          onAddField={(name) => addCustomField(tableLayer, name)}
+          onRemoveField={(name) => removeCustomField(tableLayer, name)}
+          onCalculate={(name, expression) => calculateLayerField(tableLayer, name, expression)}
+          view={tableViews[tableLayer.id] ?? EMPTY_TABLE_VIEW}
+          onViewChange={(view) => useArcWebStore.getState().setTableView(tableLayer.id, view)}
+          editable={tableLayer.editable!==false&&!isRasterLayer(tableLayer)}
+          onEditCell={(featureId, field, value) => editCell(tableLayer.id, featureId, field, value)}
           canUndo={undoStack.length > 0}
           canRedo={redoStack.length > 0}
           onUndo={undoEdit}
@@ -1335,11 +1378,7 @@ function App() {
         </DockablePanel>
       )}
 
-      <footer className="app-footer">
-        <div><span className="footer-app-dot" />ArcWeb <span className="footer-divider">/</span><span>{layers.length ? 'Ready' : 'No active layers'}</span></div>
-        <div className="footer-center"><span>CLIENT-SIDE GIS</span><span className="footer-divider">·</span><span>SESSION STORED LOCALLY</span></div>
-        <div><span>{layers.reduce((sum, layer) => sum + layer.data.features.length, 0).toLocaleString()} features</span><span className="footer-divider">·</span><span>MapLibre GL</span></div>
-      </footer>
+
 
       {contextMenu && contextMenuEntries.length > 0 && (
         <ContextMenu

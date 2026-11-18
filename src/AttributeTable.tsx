@@ -163,8 +163,8 @@ export default function AttributeTable({
           </div>
           <button className={`table-action ${filtersOpen ? 'active' : ''}`} title="Filter individual columns (text, =, !=, >, <, a..b, null)" onClick={() => setFiltersOpen((open) => !open)}><Filter size={14} />Columns{activeFilterCount > 0 && <span className="table-filter-count">{activeFilterCount}</span>}</button>
           <label className="table-search"><Search size={13} /><input dir="auto" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Filter records" aria-label="Filter records" /><kbd>⌕</kbd></label>
-          <button className={`table-action ${calculatorOpen ? 'active' : ''}`} onClick={() => { setCalculatorOpen((open) => !open); setShowAddField(false) }}><Calculator size={14} />Field calculator</button>
-          <button className={`table-action ${showAddField && !calculatorOpen ? 'active' : ''}`} onClick={() => { setShowAddField((show) => !show); setCalculatorOpen(false) }}><Plus size={14} />Add field</button>
+          <button disabled={!editable} className={`table-action ${calculatorOpen ? 'active' : ''}`} onClick={() => { setCalculatorOpen((open) => !open); setShowAddField(false) }}><Calculator size={14} />Field calculator</button>
+          <button disabled={!editable} className={`table-action ${showAddField && !calculatorOpen ? 'active' : ''}`} onClick={() => { setShowAddField((show) => !show); setCalculatorOpen(false) }}><Plus size={14} />Add field</button>
           <button className="table-action icon-only" title={floating ? 'Dock Attribute Table' : 'Float Attribute Table'} aria-label={floating ? 'Dock Attribute Table' : 'Float Attribute Table'} onClick={onToggleFloat}><Move size={14} /></button>
           <button className="table-close" title="Close attribute table" onClick={onClose}><X size={15} /></button>
         </div>

@@ -14,11 +14,12 @@ const geometry = vi.hoisted(() => ({
   hits: [] as FeatureSelection[],
   nearest: null as { path: number[]; distance: number } | null,
   snapCalls: [] as unknown[][],
+  queryCalls: [] as unknown[][],
 }))
 vi.mock('../mapGeometry', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../mapGeometry')>()),
   snapCoordinate: (...args: unknown[]) => { geometry.snapCalls.push(args); return geometry.snapped },
-  queryFeaturesAt: () => geometry.hits,
+  queryFeaturesAt: (...args:unknown[]) => {geometry.queryCalls.push(args);return geometry.hits},
   nearestVertexPath: () => geometry.nearest,
 }))
 
@@ -37,6 +38,7 @@ function setup() {
   const identify: { current: IdentifyState | null } = { current: null }
   const options = {
     notify: vi.fn(),
+    onMeasureFeature:vi.fn(),
     workspaceRef: { current: { getBoundingClientRect: () => ({ left: 100, top: 50, width: 900, height: 600 }) } as unknown as HTMLElement },
     setIdentify: vi.fn((next: IdentifyState | null | ((value: IdentifyState | null) => IdentifyState | null)) => {
       identify.current = typeof next === 'function' ? next(identify.current) : next
@@ -71,6 +73,7 @@ describe('useMapClick', () => {
     geometry.hits = []
     geometry.nearest = null
     geometry.snapCalls = []
+    geometry.queryCalls = []
   })
 
   it('adds a measure vertex at the clicked location', () => {
@@ -185,4 +188,19 @@ describe('useMapClick', () => {
     rerender()
     expect(result.current.handleMapClick).toBe(first)
   })
+  it('filters non-selectable and non-snappable layers at the query boundary',()=>{
+    const layer=addLayer();useArcWebStore.getState().updateLayer(layer.id,{selectable:false,snappable:false})
+    const {result}=setup();act(()=>result.current.handleMapClick(map,click()))
+    expect(geometry.queryCalls.at(-1)?.[2]).toEqual([])
+    act(()=>useArcWebStore.getState().setTool('draw-point'));act(()=>result.current.handleMapClick(map,click()))
+    expect(geometry.snapCalls.at(-1)?.[2]).toEqual([])
+  })
+  it('refuses drawing on a read-only layer and routes Feature measurement directly',()=>{
+    const layer=addLayer();const {result,options}=setup();useArcWebStore.getState().updateLayer(layer.id,{editable:false})
+    act(()=>useArcWebStore.getState().setTool('draw-point'));act(()=>result.current.handleMapClick(map,click()))
+    expect(options.appendFeature).not.toHaveBeenCalled();expect(options.notify).toHaveBeenCalledWith(expect.stringContaining('not editable'),'warning')
+    geometry.hits=[{layerId:layer.id,featureId:'w1'}];act(()=>useArcWebStore.getState().setTool('measure-feature'));act(()=>result.current.handleMapClick(map,click()))
+    expect(options.onMeasureFeature).toHaveBeenCalledWith(geometry.hits[0])
+  })
+
 })

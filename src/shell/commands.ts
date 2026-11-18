@@ -1,0 +1,3 @@
+export interface Command { id:string;label:string;keywords?:string;disabled?:boolean;run:()=>void }
+export function searchCommands(commands:Command[],query:string):Command[] {const tokens=query.toLowerCase().trim().split(/\s+/).filter(Boolean);const rank=(c:Command)=>c.disabled?-100:tokens.length&&c.label.toLowerCase().startsWith(tokens.join(' '))?30:tokens.length&&tokens.every(token=>c.label.toLowerCase().includes(token))?20:10;return commands.filter(c=>tokens.every(token=>(c.label+' '+(c.keywords??'')).toLowerCase().includes(token))).sort((a,b)=>rank(b)-rank(a)||a.label.localeCompare(b.label))}
+export function runCommand(command:Command):boolean {if(command.disabled)return false;command.run();return true}

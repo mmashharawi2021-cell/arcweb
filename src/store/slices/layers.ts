@@ -8,6 +8,7 @@ export interface LayersSlice {
   addLayer: (layer: MapLayer) => void
   removeLayer: (id: string) => void
   updateLayer: (id: string, updates: Partial<MapLayer>) => void
+  moveLayerTo: (id: string, index: number) => void
   moveLayer: (id: string, direction: -1 | 1) => void
   setSelectedLayer: (id: string | null) => void
   clearSession: () => void
@@ -58,6 +59,8 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
       ? { ...state.sceneSettings, terrain: state.sceneSettings.terrain === 'layer' ? 'none' as const : state.sceneSettings.terrain, terrainLayerId: null }
       : state.sceneSettings
     return {
+      openTables: state.openTables.filter(value=>value!==id),
+      activeTable: state.activeTable===id ? state.openTables.find(value=>value!==id)??null : state.activeTable,
       sceneSettings,
       tableViews,
       undoStack: state.undoStack.filter((step) => step.layerId !== id),
@@ -67,12 +70,13 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
       editSnapshots,
       selectedLayerId: state.selectedLayerId === id ? layers[0]?.id ?? null : state.selectedLayerId,
       selectedFeature: removesSelection ? null : state.selectedFeature,
-      tableOpen: removesSelection ? false : state.tableOpen,
+      tableOpen: state.openTables.includes(id) ? state.openTables.some(value=>value!==id) : removesSelection ? false : state.tableOpen,
     }
   }),
   updateLayer: (id, updates) => set((state) => ({
     layers: state.layers.map((layer) => layer.id === id ? { ...layer, ...updates } : layer),
   })),
+  moveLayerTo: (id, index) => set(state=>{const from=state.layers.findIndex(layer=>layer.id===id);if(from<0)return state;const layers=[...state.layers];const [layer]=layers.splice(from,1);layers.splice(Math.max(0,Math.min(layers.length,index)),0,layer);return {layers}}),
   moveLayer: (id, direction) => set((state) => {
     const index = state.layers.findIndex((layer) => layer.id === id)
     const target = index + direction
@@ -90,6 +94,8 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
     selectedFeature: null,
     selections: {},
     tableOpen: false,
+    openViews: [{kind:'map'}], activeView:'map',
+    openTables: [], activeTable: null,
     tool: 'pan',
     editSnapshots: {},
     undoStack: [],
@@ -132,6 +138,6 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
         data: idsChanged ? { ...layer.data, features } : layer.data,
       }
     })
-    set({ layers: normalized, selectedLayerId: normalized[0]?.id ?? null, selectedFeature: null, selections: {}, editSnapshots: {}, undoStack: [], redoStack: [] })
+    set({ openTables:[],activeTable:null,tableOpen:false,openViews:[{kind:'map'}],activeView:'map',layers: normalized, selectedLayerId: normalized[0]?.id ?? null, selectedFeature: null, selections: {}, editSnapshots: {}, undoStack: [], redoStack: [] })
   },
 })

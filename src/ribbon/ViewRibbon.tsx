@@ -1,66 +1,24 @@
-import {
-  Box, Focus, LayoutTemplate, Layers3, Map as MapIcon, Moon, PanelRight, Sun, Table2,
-} from 'lucide-react'
+import { Box, Focus, LayoutTemplate, Layers3, Map as MapIcon, Table2, FolderOpen, Paintbrush, Hammer, Plus, Spline, List } from 'lucide-react'
 import type { WorkspacePreset } from '../workspaceLayout'
-import { addRibbonTooltips } from './ribbonTooltips'
-
+import type { PaneId } from '../panes/paneLayout'
+import { RibbonButton, RibbonGroup, RibbonMenuButton } from './RibbonParts'
+import { RibbonGroupBar } from './RibbonGroupBar'
 export type ViewMode = '2d' | '3d' | 'layout'
 export type ViewPane = 'contents' | 'side' | 'table'
-
 export interface ViewRibbonProps {
-  contentsOpen: boolean
-  sidePaneOpen: boolean
-  tableOpen: boolean
-  tableAvailable: boolean
-  preset: WorkspacePreset
-  mode: ViewMode
-  fullCanvas: boolean
-  theme: 'dark' | 'light'
-  onTogglePane(pane: ViewPane): void
-  onPreset(preset: WorkspacePreset): void
-  onMode(mode: ViewMode): void
-  onToggleFullCanvas(): void
-  onToggleTheme(): void
+  contentsOpen:boolean; sidePaneOpen:boolean; tableOpen:boolean; tableAvailable:boolean; preset:WorkspacePreset; mode:ViewMode; fullCanvas:boolean; theme:'dark'|'light'
+  onTogglePane:(pane:ViewPane)=>void; onPreset:(preset:WorkspacePreset)=>void; onMode:(mode:ViewMode)=>void; onToggleFullCanvas:()=>void; onToggleTheme:()=>void; onOpenPane?:(pane:PaneId)=>void
 }
-
-const PRESETS: { id: WorkspacePreset; label: string; title: string }[] = [
-  { id: 'standard', label: 'Standard', title: 'Standard layout: map with Contents and side pane' },
-  { id: 'analysis', label: 'Analysis', title: 'Analysis focus: Geoprocessing pane and attribute table' },
-  { id: 'cartography', label: 'Cartography', title: 'Cartography focus: print layout view' },
-]
-
-export function ViewRibbon(props: ViewRibbonProps) {
-  const { contentsOpen, sidePaneOpen, tableOpen, tableAvailable, preset, mode, fullCanvas, theme } = props
-  const active = (on: boolean) => `ribbon-action ${on ? 'tool-selected' : ''}`
-  // Decorate here: the App-level decorator does not see inside this component's output.
-  return addRibbonTooltips(
-    <>
-      <div className="phase-ribbon-actions">
-        <button className={active(contentsOpen)} title="Show or hide the Contents pane" onClick={() => props.onTogglePane('contents')}><Layers3 size={17} /><span>Contents</span></button>
-        <button className={active(sidePaneOpen)} title="Show or hide the side pane (Symbology, Geoprocessing)" onClick={() => props.onTogglePane('side')}><PanelRight size={17} /><span>Side pane</span></button>
-        <button className={active(tableOpen)} title={tableAvailable ? 'Show or hide the attribute table' : 'Select a layer to open its attribute table'} disabled={!tableAvailable} onClick={() => props.onTogglePane('table')}><Table2 size={17} /><span>Table</span></button>
-        <div className="group-caption">Windows</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions">
-        {PRESETS.map((item) => (
-          <button key={item.id} className={active(preset === item.id)} title={item.title} onClick={() => props.onPreset(item.id)}><span>{item.label}</span></button>
-        ))}
-        <button className={active(fullCanvas)} title="Hide panels and ribbons for a full-canvas map view" onClick={props.onToggleFullCanvas}><Focus size={17} /><span>Full canvas</span></button>
-        <div className="group-caption">Workspace</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions">
-        <button className={active(mode === '2d')} title="Switch to 2D Map" onClick={() => props.onMode('2d')}><MapIcon size={17} /><span>2D Map</span></button>
-        <button className={active(mode === '3d')} title="Switch to 3D Scene; right-drag to rotate and tilt" onClick={() => props.onMode('3d')}><Box size={17} /><span>3D Scene</span></button>
-        <button className={active(mode === 'layout')} title="Switch to print layout view" onClick={() => props.onMode('layout')}><LayoutTemplate size={17} /><span>Layout</span></button>
-        <div className="group-caption">View</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions">
-        <button className="ribbon-action" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} onClick={props.onToggleTheme}>{theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}<span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span></button>
-        <div className="group-caption">Display</div>
-      </div>
-    </>,
-  )
+export function ViewRibbon(props:ViewRibbonProps) {
+  return <RibbonGroupBar>
+    <RibbonGroup label="Windows" icon={Layers3}><div className="ribbon-window-grid">
+      {([{id:'contents',label:'Contents',icon:Layers3},{id:'catalog',label:'Catalog',icon:FolderOpen},{id:'geoprocessing',label:'Geoprocessing',icon:Hammer},{id:'symbology',label:'Symbology',icon:Paintbrush},{id:'createFeatures',label:'Create Features',icon:Plus},{id:'modifyFeatures',label:'Modify Features',icon:Spline},{id:'attributes',label:'Attributes',icon:List}] as const).map(item=><RibbonButton key={item.id} id={'open-'+item.id} label={item.label} icon={item.icon} size="small" onClick={()=>props.onOpenPane?.(item.id)} />)}
+      <RibbonButton id="open-table" label="Attribute Table" icon={Table2} size="small" disabled={!props.tableAvailable} onClick={()=>props.onTogglePane('table')} />
+    </div></RibbonGroup>
+    <RibbonGroup label="Workspace" icon={Focus}>
+      <RibbonMenuButton id="reset-panes" label="Reset Panes" icon={Layers3} size="large" items={(['standard','analysis','cartography'] as const).map(id=>({id,label:id[0].toUpperCase()+id.slice(1),onSelect:()=>props.onPreset(id)}))} />
+      <RibbonButton id="full-canvas" label="Full Canvas" icon={Focus} size="large" pressed={props.fullCanvas} onClick={props.onToggleFullCanvas} />
+    </RibbonGroup>
+    <RibbonGroup label="View" icon={MapIcon}>{([{id:'2d',label:'Map',icon:MapIcon},{id:'3d',label:'Scene',icon:Box},{id:'layout',label:'Layout',icon:LayoutTemplate}] as const).map(item=><RibbonButton key={item.id} id={'view-'+item.id} label={item.label} icon={item.icon} size="large" pressed={props.mode===item.id} onClick={()=>props.onMode(item.id)} />)}</RibbonGroup>
+  </RibbonGroupBar>
 }

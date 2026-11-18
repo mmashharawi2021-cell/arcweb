@@ -1,3 +1,4 @@
+import { normalizePaneLayout, migrateWorkspaceLayout, type PaneLayout } from './panes/paneLayout'
 export type WorkspacePreset = 'standard' | 'analysis' | 'cartography'
 export type WorkspacePanelId = 'contents' | 'geoprocessing' | 'attributeTable' | 'symbology'
 
@@ -14,6 +15,7 @@ export interface WorkspacePanelState {
 }
 
 export interface WorkspaceLayoutConfig {
+  paneLayout?: PaneLayout
   preset: WorkspacePreset
   fullCanvas: boolean
   contentsMinimized: boolean
@@ -74,7 +76,8 @@ export function normalizeWorkspaceLayout(value: unknown): WorkspaceLayoutConfig 
     }
   }
 
-  return {
+  const result: WorkspaceLayoutConfig = {
+    ...(value.paneLayout ? { paneLayout: normalizePaneLayout(value.paneLayout) } : {}),
     preset: value.preset === 'analysis' || value.preset === 'cartography' ? value.preset : 'standard',
     fullCanvas: value.fullCanvas === true,
     contentsMinimized: value.contentsMinimized === true,
@@ -82,6 +85,7 @@ export function normalizeWorkspaceLayout(value: unknown): WorkspaceLayoutConfig 
     tableMinimized: value.tableMinimized === true,
     panels: normalizedPanels,
   }
+  return { ...result, paneLayout: result.paneLayout ?? migrateWorkspaceLayout(result) }
 }
 
 export function applyWorkspacePreset(

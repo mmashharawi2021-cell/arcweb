@@ -10,11 +10,15 @@
 
 **Spec:** No separate spec document. This plan argues from (1) the user's request on 2026-11-17 to adopt ArcGIS Pro's appearance, Project page, ribbon, contextual tabs, views, panes, Contents, measure/sketch, icons and extra elements, (2) the Pro-vs-ArcWeb comparison given in that conversation, and (3) `CLAUDE.md`. Decisions taken where the request was open are listed under **Decisions**.
 
+## Implementation status - 2026-11-19
+
+Tasks 1-30 now have implementations on the existing `ui/c-ribbon` branch. See [completion and validation report](../2026-11-19-interface-completion.md). Historical test-first workflow checkboxes below have deliberately not been retroactively checked. They describe execution steps, not the current feature status. Delivery stayed on the existing branch instead of creating a separate branch for every phase; review/merge to main remains a separate release action.
+
 ## Decisions
 
 - **Dark stays the default theme** (`CLAUDE.md` §4). Both themes are re-tokenised to Pro's neutral grey + blue scheme; Light/Dark is chosen in Backstage → Options, as in Pro.
 - **No Esri assets.** Icons stay Lucide; Pro's *system* (32 px large / 16 px small, colour-coded) is reproduced, not its artwork. No Esri logos, fonts or the "ArcGIS" name in UI text.
-- **Core tabs become** `Map, Insert, Analysis, View, Edit, Share, Help` (Pro order). `Layout` becomes a contextual tab group shown in layout view. No `Imagery` tab (raster tools stay in Geoprocessing).
+- **Core tabs become** `Map, Insert, Analysis, Edit, View, Share, Help` (Pro order). `Layout` becomes a contextual tab group shown in layout view. No `Imagery` tab (raster tools stay in Geoprocessing).
 - **One MapLibre instance.** "Map" and "Scene" view tabs share it (`sceneView` toggle); views never create a second map.
 - **Panes are independent of ribbon tabs.** Ribbon commands open panes; switching tabs no longer swaps the right pane.
 - `Ctrl+N` is not used (browsers reserve it). Shortcuts: `Ctrl+S` save, `Ctrl+O` open, `Alt+Q` command search, `F2` finish sketch, `Esc` cancel sketch/close, `Ctrl+Z`/`Ctrl+Y` undo/redo (existing).

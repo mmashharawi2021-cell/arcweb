@@ -15,7 +15,7 @@ export function featuresInBox(layers: MapLayer[], [west, south, east, north]: Bo
   const box = polygon([[[west, south], [east, south], [east, north], [west, north], [west, south]]])
   const result: Record<string, FeatureId[]> = {}
   for (const layer of layers) {
-    if (!layer.visible || layer.geometry === 'Unknown') continue
+    if (layer.selectable === false || !layer.visible || layer.geometry === 'Unknown') continue
     const ids: FeatureId[] = []
     for (const feature of layer.data.features) {
       if (!feature.geometry || feature.id === undefined) continue

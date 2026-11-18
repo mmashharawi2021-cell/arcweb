@@ -1,0 +1,8 @@
+import { useState } from 'react'
+import type { MapLayer } from '../store'
+import { trapTabKey,useRestoreFocus } from '../a11y/modalFocus'
+import { getFeatureFields } from '../symbology'
+export function LayerPropertiesDialog({layer,onUpdate,onClose}:{layer:MapLayer;onUpdate:(update:Partial<MapLayer>)=>void;onClose:()=>void}) {
+ useRestoreFocus();const [name,setName]=useState(layer.name),[aliases,setAliases]=useState(layer.fieldAliases??{}),[flags,setFlags]=useState({selectable:layer.selectable!==false,editable:layer.editable!==false,snappable:layer.snappable!==false})
+ return <div className="modal-backdrop"><section className="modal" role="dialog" aria-modal="true" aria-label="Layer Properties" onKeyDown={e=>{e.stopPropagation();trapTabKey(e);if(e.key==='Escape')onClose()}}><header className="modal-header"><strong>Layer Properties</strong><button onClick={onClose} aria-label="Close Layer Properties">×</button></header><div className="modal-body"><label>Name<input autoFocus value={name} onChange={e=>setName(e.target.value)}/></label><p>Source: <bdi>{layer.source?.name??'Unknown'}</bdi></p><p>{layer.sourceCrs}</p>{(['selectable','editable','snappable'] as const).map(flag=><label key={flag}><input type="checkbox" checked={flags[flag]} onChange={e=>setFlags({...flags,[flag]:e.target.checked})}/>{flag}</label>)}{getFeatureFields(layer).map(field=><label key={field}>{field}<input aria-label={'Alias '+field} value={aliases[field]??''} onChange={e=>setAliases({...aliases,[field]:e.target.value})}/></label>)}<button onClick={()=>{onUpdate({name:name.trim()||layer.name,fieldAliases:aliases,...flags});onClose()}}>Apply</button></div></section></div>
+}

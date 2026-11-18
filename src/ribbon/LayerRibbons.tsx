@@ -84,7 +84,7 @@ export function FeatureLayerRibbon({ tab, layer, currentScale, onUpdate, onSymbo
       <RibbonButton id="layer-clear-selection" label="Clear" icon={Eraser} size="small" disabled={!hasSelection} onClick={onClear} />
     </RibbonGroup>
     <RibbonGroup label="Export" icon={Download}><RibbonMenuButton id="layer-export" label="Export Features" icon={Download} size="large" items={(['geojson', 'csv'] as const).map(format => ({ id: format, label: format === 'csv' ? 'CSV' : 'GeoJSON', onSelect: () => onExport(format) }))} /></RibbonGroup>
-    <RibbonGroup label="Calculate" icon={Calculator}><RibbonButton id="layer-calculate" label="Calculate Field" icon={Calculator} size="large" onClick={onCalculate} /></RibbonGroup>
+    <RibbonGroup label="Calculate" icon={Calculator}><RibbonButton id="layer-calculate" disabled={layer.editable===false} label="Calculate Field" icon={Calculator} size="large" onClick={onCalculate} /></RibbonGroup>
   </RibbonGroupBar>
 }
 

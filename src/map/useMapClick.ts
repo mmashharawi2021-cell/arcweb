@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import { isRasterLayer } from '../ribbon/contextualTabs'
+import { useCallback, useRef, useEffect } from 'react'
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import type * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
@@ -21,6 +22,7 @@ export interface IdentifyState {
 }
 
 interface MapClickOptions {
+  onMeasureFeature?: (hit: FeatureSelection) => void
   notify: Notify
   /** The map workspace; Identify pop-ups are positioned relative to it. */
   workspaceRef: RefObject<HTMLElement | null>
@@ -35,7 +37,9 @@ interface MapClickOptions {
  * Routes a map click to the active tool: measure, sketch (with vertex snapping), move-vertex,
  * or Explore (identify, Ctrl/Cmd+click toggles selection).
  */
-export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, addMeasurePoint, addSketchPoint, movingVertexRef }: MapClickOptions) {
+export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, addMeasurePoint, addSketchPoint, movingVertexRef, onMeasureFeature }: MapClickOptions) {
+  const measureFeatureRef=useRef(onMeasureFeature)
+  useEffect(()=>{measureFeatureRef.current=onMeasureFeature})
   /** Selects the first hit and opens the Identify pop-up next to a viewport point. */
   const showIdentify = useCallback((hits: FeatureSelection[], client: { x: number; y: number }, lngLat: [number, number]) => {
     const state = useArcWebStore.getState()
@@ -59,19 +63,21 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
     const activeTool = state.tool
     // The rectangle selection tool handles its own clicks and drags (useBoxSelect).
     if (activeTool === 'select-box') return
+    if(activeTool==='measure-feature'){const hit=queryFeaturesAt(map,event.point,state.layers.filter(layer=>layer.selectable!==false))[0];if(hit)measureFeatureRef.current?.(hit);return}
     const snap = (exclude?: FeatureSelection | null): Coordinate => state.snapping.enabled
-      ? snapCoordinate(map, event, state.layers, exclude, state.snapping.tolerancePx)
+      ? snapCoordinate(map, event, state.layers.filter(layer=>layer.snappable!==false), exclude, state.snapping.tolerancePx)
       : [event.lngLat.lng, event.lngLat.lat]
     if (activeTool === 'distance' || activeTool === 'area') {
       addMeasurePoint(map, [event.lngLat.lng, event.lngLat.lat], activeTool)
       return
     }
-    if (activeTool === 'draw-point' || activeTool === 'draw-line' || activeTool === 'draw-polygon') {
+    if (activeTool === 'draw-point' || activeTool === 'draw-line' || activeTool === 'draw-polygon' || activeTool === 'draw-rectangle' || activeTool === 'draw-circle') {
       const layer = state.layers.find((item) => item.id === state.selectedLayerId)
       if (!layer) {
         notify('Create or select a target layer before drawing.', 'warning')
         return
       }
+      if (layer.editable === false || isRasterLayer(layer)) { notify(`${isolate(layer.name)} is not editable.`, 'warning'); return }
       const expectedGeometry = activeTool === 'draw-point' ? 'Point' : activeTool === 'draw-line' ? 'Line' : 'Polygon'
       if (layer.geometry !== 'Unknown' && layer.geometry !== 'Mixed' && layer.geometry !== expectedGeometry) {
         notify(`${isolate(layer.name)} stores ${layer.geometry.toLowerCase()} features; choose a matching sketch tool.`, 'warning')
@@ -94,6 +100,7 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
         notify('Select a feature with an editable geometry first.', 'warning')
         return
       }
+      if (layer.editable === false || isRasterLayer(layer)) { notify(`${isolate(layer.name)} is not editable.`, 'warning'); return }
       const pending = movingVertexRef.current
       if (pending?.layerId === layer.id && pending.featureId === selection.featureId) {
         const coordinate = snap(selection)
@@ -125,7 +132,7 @@ export function useMapClick({ notify, workspaceRef, setIdentify, appendFeature, 
     }
 
     // Explore tool: identify every feature under the pointer.
-    const hits = queryFeaturesAt(map, event.point, state.layers)
+    const hits = queryFeaturesAt(map, event.point, state.layers.filter(layer=>layer.selectable!==false))
     if (!hits.length) {
       state.setSelectedFeature(null)
       setIdentify(null)

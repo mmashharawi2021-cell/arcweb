@@ -13,7 +13,7 @@ export type MenuIcon = ComponentType<{ size?: number | string }>
  * lets the action wiring be tested on its own.
  */
 export type MenuEntry<Id extends string = string> =
-  | { kind: 'item'; id: Id; label: string; icon?: MenuIcon; disabled?: boolean; danger?: boolean }
+  | { kind: 'item'; id: Id; label: string; icon?: MenuIcon; disabled?: boolean; danger?: boolean; children?: MenuEntry<Id>[] }
   | { kind: 'label'; id: string; label: string }
   | { kind: 'separator'; id: string }
 
@@ -69,10 +69,10 @@ export function dispatchMenuAction<Id extends string>(id: string, handlers: Part
 // ── Contents pane: layer menu ────────────────────────────────────────────────
 
 export type LayerMenuAction =
-  | 'zoom' | 'table' | 'symbology' | 'move-up' | 'move-down' | 'export-geojson' | 'export-csv' | 'remove'
+  | 'properties' | 'zoom-visible' | 'selection-menu' | 'data-menu' | 'select-all' | 'clear-layer-selection' | 'zoom-layer-selection' | 'label' | 'label-properties' | 'zoom' | 'table' | 'symbology' | 'move-up' | 'move-down' | 'export-geojson' | 'export-csv' | 'remove'
 
 export interface LayerMenuContext {
-  layer: Pick<MapLayer, 'name' | 'geometry'>
+  layer: Pick<MapLayer, 'name' | 'geometry'> & Partial<Pick<MapLayer,'minScale'|'maxScale'>>
   /** Position in the drawing order (0 = top). */
   index: number
   count: number
@@ -85,20 +85,29 @@ export function buildLayerMenu({ layer, index, count, tableShowsLayer }: LayerMe
   return [
     { kind: 'label', id: 'title', label: layer.name },
     { kind: 'item', id: 'zoom', label: 'Zoom To Layer', icon: LocateFixed, disabled: isTable },
+    { kind:'item', id:'zoom-visible', label:'Zoom To Make Visible', icon:LocateFixed, disabled:isTable || (layer.minScale===undefined&&layer.maxScale===undefined) },
     { kind: 'item', id: 'table', label: tableShowsLayer ? 'Close Attribute Table' : 'Open Attribute Table', icon: Table2 },
+    {kind:'item',id:'selection-menu',label:'Selection',children:[
+      {kind:'item',id:'select-all',label:'Select All'}, {kind:'item',id:'clear-layer-selection',label:'Clear'}, {kind:'item',id:'zoom-layer-selection',label:'Zoom To Selection'},
+    ]},
+    {kind:'item',id:'label',label:'Label',disabled:isTable},
+    {kind:'item',id:'label-properties',label:'Labeling Properties...',disabled:isTable},
     { kind: 'item', id: 'symbology', label: 'Symbology…', icon: Paintbrush, disabled: isTable },
+    {kind:'item',id:'data-menu',label:'Data',children:[    { kind: 'item', id: 'export-geojson', label: 'Export as GeoJSON', icon: FileJson },
+    { kind: 'item', id: 'export-csv', label: 'Export as CSV', icon: FileSpreadsheet },
+]},
     { kind: 'separator', id: 'sep-order' },
     { kind: 'item', id: 'move-up', label: 'Move Up', icon: ArrowUp, disabled: index <= 0 },
     { kind: 'item', id: 'move-down', label: 'Move Down', icon: ArrowDown, disabled: index >= count - 1 },
-    { kind: 'separator', id: 'sep-export' },
-    { kind: 'item', id: 'export-geojson', label: 'Export as GeoJSON', icon: FileJson },
-    { kind: 'item', id: 'export-csv', label: 'Export as CSV', icon: FileSpreadsheet },
     { kind: 'separator', id: 'sep-remove' },
     { kind: 'item', id: 'remove', label: 'Remove Layer…', icon: Trash2, danger: true },
+    {kind:'item',id:'properties',label:'Properties...'},
   ]
 }
 
 export interface LayerMenuHandlers {
+  properties?:()=>void; zoomVisible?:()=>void; selectAll?:()=>void; clearSelection?:()=>void; zoomSelection?:()=>void; toggleLabels?:()=>void; labelProperties?:()=>void
+
   zoomTo: () => void
   toggleTable: () => void
   openSymbology: () => void
@@ -110,6 +119,7 @@ export interface LayerMenuHandlers {
 
 export function runLayerMenuAction(id: string, handlers: LayerMenuHandlers): boolean {
   return dispatchMenuAction<LayerMenuAction>(id, {
+    properties:handlers.properties, 'zoom-visible':handlers.zoomVisible, 'select-all':handlers.selectAll, 'clear-layer-selection':handlers.clearSelection, 'zoom-layer-selection':handlers.zoomSelection, label:handlers.toggleLabels, 'label-properties':handlers.labelProperties,
     zoom: handlers.zoomTo,
     table: handlers.toggleTable,
     symbology: handlers.openSymbology,

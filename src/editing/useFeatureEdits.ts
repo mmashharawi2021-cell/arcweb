@@ -1,3 +1,4 @@
+import { isRasterLayer } from '../ribbon/contextualTabs'
 import { useCallback, useEffect, useMemo } from 'react'
 import type { FeatureCollection, Geometry } from 'geojson'
 import { isolate } from '../bidi'
@@ -21,6 +22,7 @@ export function useFeatureEdits(notify: Notify) {
 
   const appendFeature = useCallback((layer: MapLayer, geometry: Geometry) => {
     const feature = createSketchFeature(layer, geometry)
+    if (layer.editable === false || isRasterLayer(layer)) { notify(`${isolate(layer.name)} is not editable.`, 'warning'); return }
     const data: FeatureCollection = { ...layer.data, features: [...layer.data.features, feature] }
     useArcWebStore.getState().commitEdit(layer.id, data, `Add ${geometry.type.toLowerCase()} feature`)
     useArcWebStore.getState().setSelectedFeature({ layerId: layer.id, featureId: feature.id })
@@ -41,6 +43,7 @@ export function useFeatureEdits(notify: Notify) {
   }, [notify])
 
   const addCustomField = useCallback((layer: MapLayer, name: string) => {
+    if(layer.editable===false||isRasterLayer(layer)){notify(`${isolate(layer.name)} is not editable.`, 'warning');return}
     const field = name.trim()
     if (!field) {
       notify('Enter a field name.', 'warning')
@@ -62,6 +65,7 @@ export function useFeatureEdits(notify: Notify) {
   }, [notify])
 
   const removeCustomField = useCallback((layer: MapLayer, field: string) => {
+    if(layer.editable===false||isRasterLayer(layer)){notify(`${isolate(layer.name)} is not editable.`, 'warning');return}
     const data: FeatureCollection = {
       ...layer.data,
       features: layer.data.features.map((feature) => {
@@ -82,6 +86,7 @@ export function useFeatureEdits(notify: Notify) {
   }, [notify])
 
   const calculateLayerField = useCallback((layer: MapLayer, name: string, expression: string) => {
+    if(layer.editable===false||isRasterLayer(layer)){notify(`${isolate(layer.name)} is not editable.`, 'warning');return}
     try {
       const data = calculateField(layer.data, name, expression)
       const field = name.trim()
@@ -103,6 +108,7 @@ export function useFeatureEdits(notify: Notify) {
       return
     }
     const layer = createMapLayer(layerName, { type: 'FeatureCollection', features: [] })
+    layer.source = { kind: 'sketch', name: layerName }
     layer.geometry = geometry
     layer.customFields = fields
     useArcWebStore.getState().addLayer(layer)
@@ -130,6 +136,7 @@ export function useFeatureEdits(notify: Notify) {
     const state = useArcWebStore.getState()
     const layer = state.layers.find((item) => item.id === state.selectedLayerId)
     if (!layer || !editTargetIds.length) return
+    if(layer.editable===false||isRasterLayer(layer)){notify(`${isolate(layer.name)} is not editable.`, 'warning');return}
     const doomed = new Set<FeatureId>(editTargetIds)
     const features = layer.data.features.filter((feature) => feature.id === undefined || !doomed.has(feature.id))
     const removed = layer.data.features.length - features.length

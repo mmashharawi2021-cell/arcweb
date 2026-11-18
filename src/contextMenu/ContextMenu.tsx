@@ -18,7 +18,9 @@ interface ContextMenuProps {
  * so it never clips off-screen, supports arrow-key navigation, and closes on Escape, an outside
  * press, scrolling, resizing or the window losing focus.
  */
-export default function ContextMenu({ anchor, entries, label, onSelect, onClose }: ContextMenuProps) {
+export default function ContextMenu({ anchor, entries: rootEntries, label, onSelect, onClose }: ContextMenuProps) {
+  const [submenu,setSubmenu]=useState<MenuEntry[]|null>(null)
+  const entries=submenu??rootEntries
   const menuRef = useRef<HTMLDivElement>(null)
   const fadeRef = useFadeExit(menuRef)
   const [position, setPosition] = useState<Point | null>(null)
@@ -70,6 +72,8 @@ export default function ContextMenu({ anchor, entries, label, onSelect, onClose 
   }, [onClose])
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if(event.key==='ArrowLeft'&&submenu){event.preventDefault();setSubmenu(null);setFocusIndex(stepMenuFocus(rootEntries,-1,1));return}
+    if(event.key==='ArrowRight'){const entry=entries[focusIndex];if(entry?.kind==='item'&&entry.children){event.preventDefault();setSubmenu(entry.children);setFocusIndex(stepMenuFocus(entry.children,-1,1))}return}
     if (event.key === 'Escape' || event.key === 'Tab') {
       event.preventDefault()
       onClose()
@@ -94,21 +98,24 @@ export default function ContextMenu({ anchor, entries, label, onSelect, onClose 
       onKeyDown={onKeyDown}
       onContextMenu={(event) => event.preventDefault()}
     >
+      {submenu&&<button role="menuitem" onClick={()=>{setSubmenu(null);setFocusIndex(stepMenuFocus(rootEntries,-1,1))}}>Back</button>}
       {entries.map((entry, index) => {
         if (entry.kind === 'separator') return <div key={entry.id} className="context-menu-separator" role="separator" />
-        if (entry.kind === 'label') return <div key={entry.id} className="context-menu-label" dir="auto" title={entry.label}>{entry.label}</div>
+        if (entry.kind === 'label') return <div key={entry.id} className="context-menu-label" dir="auto" title={entry.label}><bdi>{entry.label}</bdi></div>
         const Icon = entry.icon
         return (
           <button
             key={entry.id}
             type="button"
             role="menuitem"
+            aria-haspopup={entry.children?'menu':undefined}
             data-menu-index={index}
             className={entry.danger ? 'danger' : undefined}
             disabled={entry.disabled}
             tabIndex={index === focusIndex ? 0 : -1}
             onPointerEnter={() => { if (!entry.disabled) setFocusIndex(index) }}
             onClick={() => {
+              if(entry.children){setSubmenu(entry.children);setFocusIndex(stepMenuFocus(entry.children,-1,1));return}
               onClose()
               onSelect(entry.id)
             }}

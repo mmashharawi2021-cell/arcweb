@@ -1,0 +1,4 @@
+import { parseScale } from './scaleInput'
+import { useState } from 'react'
+
+export function ScaleBox({scale,onScale}:{scale:number;onScale:(scale:number)=>void}) { const [draft,setDraft]=useState<string|null>(null),[error,setError]=useState(false);return <label className="scale-box">Scale<input aria-label="Map scale" aria-invalid={error} value={draft??'1:'+Math.round(scale).toLocaleString('en-US')} onFocus={e=>setDraft(e.target.value)} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){const next=parseScale(draft??'');if(next){onScale(next);setDraft(null);setError(false);e.currentTarget.blur()}else setError(true)}if(e.key==='Escape'){setDraft(null);setError(false);e.currentTarget.blur()}}} onBlur={()=>{setDraft(null);setError(false)}} title="Enter a scale such as 1:50,000" /></label> }

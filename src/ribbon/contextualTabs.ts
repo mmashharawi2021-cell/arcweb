@@ -2,7 +2,7 @@ import type { FeatureCollection } from 'geojson'
 import type { AppTab, ContextualTab, CoreTab, MapLayer, ToolMode, ViewMode } from '../store'
 
 /** Permanent tabs and contextual groups, in display order. */
-export const CORE_TABS: readonly CoreTab[] = ['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Share']
+export const CORE_TABS: readonly CoreTab[] = ['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Share', 'Help']
 export const CONTEXTUAL_GROUPS: { id: 'feature' | 'raster' | 'layout'; label: string; tabs: ContextualTab[] }[] = [
   { id: 'feature', label: 'Feature Layer', tabs: ['FeatureAppearance', 'FeatureLabeling', 'FeatureData'] },
   { id: 'raster', label: 'Raster Layer', tabs: ['RasterAppearance', 'RasterData'] },
@@ -21,7 +21,7 @@ export function migrateTabId(id: string): AppTab {
 
 const NEUTRAL_TABS: ReadonlySet<AppTab> = new Set<AppTab>(['Map', 'Insert', 'View'])
 
-const EDITING_TOOLS: ReadonlySet<ToolMode> = new Set<ToolMode>(['draw-point', 'draw-line', 'draw-polygon', 'move-vertex'])
+const EDITING_TOOLS: ReadonlySet<ToolMode> = new Set<ToolMode>(['draw-point', 'draw-line', 'draw-polygon', 'draw-rectangle', 'draw-circle', 'move-vertex'])
 
 export function isContextualTab(tab: AppTab): tab is ContextualTab {
   return (CONTEXTUAL_TABS as readonly AppTab[]).includes(tab)

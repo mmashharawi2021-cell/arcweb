@@ -63,7 +63,7 @@ export const createEditSessionSlice: StateCreator<ArcWebState, [], [], EditSessi
     redoStack: [],
     beginEdit: (layerId) => set((state) => {
       const layer = state.layers.find((item) => item.id === layerId)
-      if (!layer || state.editSnapshots[layerId]) return {}
+      if (!layer || layer.editable === false || state.editSnapshots[layerId]) return {}
       return { editSnapshots: { ...state.editSnapshots, [layerId]: layer.data } }
     }),
     saveEdits: () => set({ editSnapshots: {}, undoStack: [], redoStack: [], tool: 'pan' }),
@@ -77,7 +77,7 @@ export const createEditSessionSlice: StateCreator<ArcWebState, [], [], EditSessi
     }),
     commitEdit: (layerId, data, label) => set((state) => {
       const layer = state.layers.find((item) => item.id === layerId)
-      if (!layer || layer.data === data) return {}
+      if (!layer || layer.editable === false || layer.data === data) return {}
       return {
         layers: state.layers.map((item) => item.id === layerId ? { ...item, data } : item),
         editSnapshots: state.editSnapshots[layerId] ? state.editSnapshots : { ...state.editSnapshots, [layerId]: layer.data },

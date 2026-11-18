@@ -1,3 +1,4 @@
+import { openView, closeView, type ViewKind, type ViewRef } from '../../views/viewState'
 import type { StateCreator } from 'zustand'
 import { isContextualTab, isEditingTool, migrateTabId } from '../../ribbon/contextualTabs'
 import { defaultWorkspaceLayout } from '../../workspaceLayout'
@@ -6,6 +7,19 @@ import { loadUiSettings, type CoordinateFormat, type LengthUnit } from '../../ui
 import type { AppTab, ArcWebState, BasemapId, Bookmark, ToolMode, ViewMode } from '../types'
 
 export interface WorkspaceSlice {
+  notifications: {id:string;message:string;kind:'success'|'warning'|'error';at:number;read:boolean}[]
+  addNotification:(message:string,kind:'success'|'warning'|'error')=>void
+  markNotificationsRead:()=>void
+
+  openViews: ViewRef[]
+  activeView: ViewKind
+  openView: (kind: ViewKind) => void
+  closeView: (kind: ViewKind) => void
+  openTables: string[]
+  activeTable: string | null
+  openTable: (id: string) => void
+  closeTable: (id: string) => void
+
   bookmarks: Bookmark[]
   projectName: string
   tableOpen: boolean
@@ -48,6 +62,15 @@ export interface WorkspaceSlice {
 export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSlice> = (set) => {
   const settings = loadUiSettings()
   return {
+    notifications: [],
+    addNotification:(message,kind)=>set(state=>({notifications:[{id:crypto.randomUUID(),message,kind,at:Date.now(),read:false},...state.notifications].slice(0,50)})),
+    markNotificationsRead:()=>set(state=>({notifications:state.notifications.map(item=>({...item,read:true}))})),
+    openViews: [{kind:'map'}], activeView: 'map',
+    openView: kind => set(state=>({openViews:openView(state.openViews,kind),activeView:kind,viewMode:kind==='layout'?'layout':'map'})),
+    closeView: kind => set(state=>{if(kind==='map')return {};const next=closeView(state.openViews,kind);return {openViews:next.views,...(state.activeView===kind?{activeView:next.next,viewMode:next.next==='layout'?'layout' as const:'map' as const}:{})}}),
+    openTables: [], activeTable: null,
+    openTable: id => set(state=>({openTables:state.openTables.includes(id)?state.openTables:[...state.openTables,id],activeTable:id,tableOpen:true,selectedLayerId:id})),
+    closeTable: id => set(state=>{const openTables=state.openTables.filter(value=>value!==id);return {openTables,activeTable:state.activeTable===id?openTables.at(-1)??null:state.activeTable,tableOpen:openTables.length>0}}),
     bookmarks: [],
     projectName: 'Untitled map',
     tableOpen: false,
@@ -67,7 +90,7 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
     removeBookmark: (id) => set((state) => ({ bookmarks: state.bookmarks.filter((bookmark) => bookmark.id !== id) })),
     setBookmarks: (bookmarks) => set({ bookmarks }),
     setProjectName: (projectName) => set({ projectName }),
-    setTableOpen: (tableOpen) => set({ tableOpen }),
+    setTableOpen: (tableOpen) => set(state=>({tableOpen,...(tableOpen&&state.selectedLayerId?{openTables:state.openTables.includes(state.selectedLayerId)?state.openTables:[...state.openTables,state.selectedLayerId],activeTable:state.selectedLayerId}:{})})),
     setBasemap: (basemap) => set({ basemap }),
     setTheme: (theme) => set({ theme }),
     setMeasureUnits: (measureUnits) => set({ measureUnits }),
@@ -90,7 +113,7 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
       return { tool, editSnapshots }
     }),
     setDisplayCrs: (displayCrs) => set({ displayCrs }),
-    setViewMode: (viewMode) => set({ viewMode }),
+    setViewMode: (viewMode) => set(state=>({viewMode, ...(viewMode==='layout'?{openViews:openView(state.openViews,'layout'),activeView:'layout' as const}:state.activeView==='layout'?{activeView:'map' as const}:{})})),
     setMapPropertiesOpen: (mapPropertiesOpen) => set({ mapPropertiesOpen }),
     setWorkspaceLayout: (workspaceLayout) => set({ workspaceLayout }),
   }

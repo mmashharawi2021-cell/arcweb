@@ -49,7 +49,7 @@ export function snapCoordinate(
   /** Snap only to vertices within this many screen pixels. */
   tolerancePx = 10,
 ): [number, number] {
-  const renderedLayers = getRenderedFeatureLayerIds(map, layers)
+  const renderedLayers = getRenderedFeatureLayerIds(map, layers.filter(layer=>layer.snappable!==false))
   if (!renderedLayers.length) return [event.lngLat.lng, event.lngLat.lat]
   const point = event.point
   const rendered = map.queryRenderedFeatures([
@@ -60,6 +60,7 @@ export function snapCoordinate(
   for (const candidate of rendered) {
     if (!candidate.geometry) continue
     const candidateLayer = layers.find((layer) => getLayerIds(layer.id).source === candidate.source)
+    if (candidateLayer?.snappable===false) continue
     if (exclude && candidateLayer?.id === exclude.layerId && candidate.id === exclude.featureId) continue
     if (!('coordinates' in candidate.geometry)) continue
     for (const vertex of getPositions(candidate.geometry.coordinates)) {
@@ -75,13 +76,13 @@ export function snapCoordinate(
 
 /** Every feature drawn within a few pixels of `point` (the tolerance makes points and thin lines easy to hit). */
 export function queryFeaturesAt(map: MapLibreMap, point: { x: number; y: number }, layers: MapLayer[]): FeatureSelection[] {
-  const visibleLayerIds = getRenderedFeatureLayerIds(map, layers)
+  const visibleLayerIds = getRenderedFeatureLayerIds(map, layers.filter(layer=>layer.selectable!==false))
   if (!visibleLayerIds.length) return []
   const rendered = map.queryRenderedFeatures([[point.x - 4, point.y - 4], [point.x + 4, point.y + 4]], { layers: visibleLayerIds })
   const hits: FeatureSelection[] = []
   for (const candidate of rendered) {
     const layer = layers.find((item) => getLayerIds(item.id).source === candidate.source)
-    if (!layer || candidate.id === undefined) continue
+    if (!layer || layer.selectable===false || candidate.id === undefined) continue
     // A feature drawn across several tiles is reported once per tile.
     if (!hits.some((hit) => hit.layerId === layer.id && hit.featureId === candidate.id)) {
       hits.push({ layerId: layer.id, featureId: candidate.id as FeatureId })

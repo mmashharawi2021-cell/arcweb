@@ -1,3 +1,4 @@
+import { CommandIcon } from '../ui/commandIcons'
 import type { ReactNode } from 'react'
 import { FolderOpen, Map as MapIcon, Redo2, Save, Undo2 } from 'lucide-react'
 import type { SaveState } from '../storage/projectSession'
@@ -38,7 +39,7 @@ export default function TitleBar({ projectName, onRename, saveState, saveError, 
         <div className="quick-access" role="toolbar" aria-label="Quick Access Toolbar">
           {commands.map(({ label, shortcut, icon: Icon, onClick, disabled }) => (
             <button key={label} type="button" className="quick-access-button" aria-label={label} title={`${label} (${shortcut})`} disabled={disabled} onClick={onClick}>
-              <Icon size={15} aria-hidden="true" />
+              <CommandIcon id={label.toLowerCase()} icon={Icon} />
             </button>
           ))}
         </div>

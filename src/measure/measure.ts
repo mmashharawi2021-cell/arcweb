@@ -1,0 +1,8 @@
+﻿import { area, distance, length, lineString } from '@turf/turf'
+import type { Geometry } from 'geojson'
+import type { LengthUnit } from '../ui/uiSettings'
+export type Coordinate=[number,number]
+export function measurePoints(points:Coordinate[],closed=false) { const segments=points.slice(1).map((point,i)=>distance(points[i],point,{units:'meters'}));if(closed&&points.length>2)segments.push(distance(points.at(-1)!,points[0],{units:'meters'}));return {segments,total:segments.reduce((a,b)=>a+b,0),area:closed&&points.length>2?area({type:'Polygon',coordinates:[[...points,points[0]]]}):0} }
+export function measureGeometry(geometry:Geometry):{total:number;area:number} { if(geometry.type==='Polygon'||geometry.type==='MultiPolygon'){const rings=geometry.type==='Polygon'?geometry.coordinates:geometry.coordinates.flat();return {area:area(geometry),total:rings.reduce((sum,ring)=>sum+length(lineString(ring),{units:'meters'}),0)}}if(geometry.type==='LineString'||geometry.type==='MultiLineString')return {area:0,total:length({type:'Feature',properties:{},geometry},{units:'meters'})};return {area:0,total:0} }
+export function formatLength(meters:number,units:LengthUnit) {return units==='imperial'?meters>=1609.344?`${(meters/1609.344).toFixed(3)} mi`:`${(meters/0.3048).toFixed(2)} ft`:units==='nautical'?`${(meters/1852).toFixed(3)} NM`:meters>=1000?`${(meters/1000).toFixed(3)} km`:`${meters.toFixed(2)} m`}
+export function formatArea(meters:number,units:LengthUnit) {return units==='imperial'?`${(meters/2589988.110336).toFixed(4)} mi²`:units==='nautical'?`${(meters/3429904).toFixed(4)} NM²`:meters>=1e6?`${(meters/1e6).toFixed(4)} km²`:`${meters.toFixed(2)} m²`}

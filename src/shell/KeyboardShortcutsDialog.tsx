@@ -1,0 +1,3 @@
+import { trapTabKey,useRestoreFocus } from '../a11y/modalFocus'
+import { SHORTCUTS } from './shortcuts'
+export function KeyboardShortcutsDialog({onClose}:{onClose:()=>void}) {useRestoreFocus();return <div className="modal-backdrop"><section className="modal" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts" onKeyDown={e=>{e.stopPropagation();trapTabKey(e);if(e.key==='Escape')onClose()}}><header className="modal-header"><strong>Keyboard Shortcuts</strong><button autoFocus onClick={onClose}>Close</button></header><dl className="modal-body">{SHORTCUTS.map(([key,description])=><div key={key}><dt>{key}</dt><dd>{description}</dd></div>)}</dl></section></div>}

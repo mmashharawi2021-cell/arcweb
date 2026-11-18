@@ -1,0 +1,1 @@
+export const SHORTCUTS=[['Ctrl+S','Save project'],['Ctrl+O','Open project'],['Alt+Q','Command search'],['F2','Finish sketch'],['Esc','Cancel sketch / close dialog'],['Ctrl+Z','Undo vertex or edit'],['Ctrl+Y','Redo edit']]
