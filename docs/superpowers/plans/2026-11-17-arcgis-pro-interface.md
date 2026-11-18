@@ -12,7 +12,7 @@
 
 ## Implementation status - 2026-11-19
 
-Tasks 1-30 now have implementations on the existing `ui/c-ribbon` branch. See [completion and validation report](../2026-11-19-interface-completion.md). Historical test-first workflow checkboxes below have deliberately not been retroactively checked. They describe execution steps, not the current feature status. Delivery stayed on the existing branch instead of creating a separate branch for every phase; review/merge to main remains a separate release action.
+Tasks 1-30 now have implementations on the existing `ui/c-ribbon` branch. See [completion and validation report](../2026-11-19-interface-completion.md). Historical test-first workflow checkboxes below have deliberately not been retroactively checked. They describe execution steps, not the current feature status. Delivery stayed on the existing branch instead of creating a separate branch for every phase; the completed implementation was merged to main and pushed on 2026-11-19.
 
 ## Decisions
 

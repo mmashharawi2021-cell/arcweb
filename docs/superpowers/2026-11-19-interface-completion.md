@@ -36,7 +36,7 @@ Implementation of the 30 tasks in [the interface plan](plans/2026-11-17-arcgis-p
 
 ## Delivery notes
 
-- The feature implementation stayed on the previously authorized `ui/c-ribbon` branch rather than creating a separate branch per phase. **It has not been merged to main.** Review/merge is a separate release step.
+- The feature implementation stayed on the previously authorized `ui/c-ribbon` branch rather than creating a separate branch per phase. **Merged to main and pushed to origin on 2026-11-19**, by fast-forward to implementation commit `9870f51`.
 - Historical failing-test/commit checkboxes in the plan were not retroactively marked as proof of an execution history. The coverage table above records the final implementation and validation.
 - Raster Data exports the existing raster-cell feature representation as GeoJSON/CSV; no new GeoTIFF exporter is claimed.
 - Picture exports generate embedded image content. The earlier integrated-browser PNG download event was canceled by the IDE, so its generated payload was saved and visually checked separately; ordinary browser download delivery is distinct from layout image generation.
