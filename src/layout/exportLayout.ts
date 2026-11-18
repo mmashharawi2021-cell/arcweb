@@ -67,6 +67,7 @@ export async function exportLayoutSheet(options: LayoutExportOptions): Promise<{
   const mapInFrame = map && page.contains(map.getContainer()) ? map : null
   page.classList.add('layout-exporting')
   try {
+    await Promise.all([...page.querySelectorAll('img')].map(image => image.decode()))
     if (mapInFrame) {
       const container = mapInFrame.getContainer()
       const longest = Math.max(container.clientWidth, container.clientHeight, 1)

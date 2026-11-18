@@ -8,7 +8,7 @@ export { pageSize, type Orientation, type PaperSize }
 /** State of the print layout sheet. All element geometry is in millimetres on the page. */
 
 export type NorthArrowStyle = 'classic' | 'compass' | 'arrow' | 'star'
-export type LayoutElementType = 'map' | 'title' | 'text' | 'legend' | 'north' | 'scalebar' | 'titleblock'
+export type LayoutElementType = 'map' | 'title' | 'text' | 'legend' | 'north' | 'scalebar' | 'titleblock' | 'picture'
 
 interface ElementBase {
   id: string
@@ -51,7 +51,9 @@ export interface TitleBlockElement extends ElementBase {
   accent: string
 }
 
-export type LayoutElement = MapFrameElement | TextElement | LegendElement | NorthArrowElement | ScaleBarElement | TitleBlockElement
+export interface PictureElement extends ElementBase { type: 'picture'; src: string; alt: string; fit: 'contain' | 'cover' }
+
+export type LayoutElement = PictureElement | MapFrameElement | TextElement | LegendElement | NorthArrowElement | ScaleBarElement | TitleBlockElement
 
 export interface LayoutDocument {
   paper: PaperSize
@@ -67,6 +69,7 @@ export const elementLabels: Record<LayoutElementType, string> = {
   north: 'North arrow',
   scalebar: 'Scale bar',
   titleblock: 'Title block',
+  picture: 'Picture',
 }
 
 const newId = () => crypto.randomUUID()
@@ -84,6 +87,7 @@ function createElement(type: LayoutElementType, paper: PaperSize, orientation: O
   const offset = (count % 6) * 4
   const place = (w: number, h: number) => ({ id: newId(), x: round((width - w) / 2 + offset), y: round((height - h) / 2 + offset), w: round(w), h: round(h) })
   switch (type) {
+    case 'picture': return { ...place(60 * unit, 40 * unit), type, src: '', alt: 'Picture', fit: 'contain' }
     case 'map': return { ...place(width * 0.7, height * 0.5), type, border: true }
     case 'title': return { ...place(width * 0.7, 16 * unit), y: round(14 + offset), type, text: 'Map Title', fontSize: 24 * unit, bold: true, italic: false, align: 'center', color: '#1b2127' }
     case 'text': return { ...place(70 * unit, 12 * unit), type, text: 'Text', fontSize: 10 * unit, bold: false, italic: false, align: 'left', color: '#1b2127' }

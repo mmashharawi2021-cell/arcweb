@@ -54,6 +54,12 @@ function ElementProperties({ element }: { element: LayoutElement }) {
   return (
     <>
       <div className="phase-section-title">{elementLabels[element.type]} properties</div>
+      {element.type === 'picture' && <>
+        <label className="phase-field-label" htmlFor="picture-alt">Description</label>
+        <input id="picture-alt" className="phase-text-input" value={element.alt} onChange={e => update({ alt: e.target.value })} />
+        <label className="phase-field-label" htmlFor="picture-fit">Fit</label>
+        <select id="picture-fit" className="phase-text-input" value={element.fit} onChange={e => update({ fit: e.target.value as 'contain' | 'cover' })}><option value="contain">Fit whole picture</option><option value="cover">Fill frame (crop)</option></select>
+      </>}
       {(element.type === 'title' || element.type === 'text') && (
         <>
           <label className="phase-field-label" htmlFor="layout-text">Text</label>

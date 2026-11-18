@@ -1,4 +1,4 @@
-import { Compass, FileText, ListTree, Map as MapIcon, PanelBottom, Ruler, Type } from 'lucide-react'
+import { Compass, FileImage, FileText, ListTree, Map as MapIcon, PanelBottom, Ruler, Type } from 'lucide-react'
 import type { LayoutElementType, NorthArrowStyle } from './layoutStore'
 
 /** Static catalogs shared by the layout ribbon, panel and sheet. */
@@ -11,6 +11,7 @@ export const insertableElements: { type: LayoutElementType; icon: typeof MapIcon
   { type: 'north', icon: Compass },
   { type: 'scalebar', icon: Ruler },
   { type: 'titleblock', icon: PanelBottom },
+  { type: 'picture', icon: FileImage },
 ]
 
 export const layoutDpiOptions = [150, 200, 300, 600] as const

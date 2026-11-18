@@ -1,3 +1,4 @@
+import { readLayoutPicture } from './layout/picture'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import * as maplibregl from 'maplibre-gl'
@@ -666,8 +667,28 @@ function App() {
   const insertLayoutElement = useCallback((type: LayoutElementType) => {
     setSceneView(false)
     useArcWebStore.getState().setViewMode('layout')
-    useLayoutStore.getState().addElement(type)
-  }, [])
+    if (type !== 'picture') { useLayoutStore.getState().addElement(type); return }
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/png,image/jpeg,image/webp'
+    input.className = 'layout-picture-input'
+    input.hidden = true
+    document.body.appendChild(input)
+    input.oncancel = () => input.remove()
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      input.remove()
+      if (!file) return
+      try {
+        const picture = await readLayoutPicture(file)
+        const state = useLayoutStore.getState()
+        state.addElement('picture')
+        const id = useLayoutStore.getState().selectedId
+        if (id) state.updateElement(id, { src: picture.src, alt: picture.alt, w: 60, h: Math.min(100, 60 / picture.aspect) })
+      } catch (error) { notify(error instanceof Error ? error.message : 'Could not insert picture.', 'error') }
+    }
+    input.click()
+  }, [notify])
 
   const openMapProperties = useCallback(() => {
     const map = mapRef.current

@@ -246,6 +246,8 @@ export default function LayoutView({ map, layers, basemap, pageRef, onMapFrameHo
 
   const renderContent = (element: LayoutElement) => {
     switch (element.type) {
+      case 'picture':
+        return <img src={element.src} alt={element.alt} draggable={false} style={{ width: '100%', height: '100%', objectFit: element.fit, pointerEvents: 'none' }} />
       case 'map':
         return (
           <div className={`layout-map-frame ${element.border ? 'bordered' : ''}`}>

@@ -1,3 +1,4 @@
+import { isEmbeddedPicture } from './layout/picture'
 import type { FeatureCollection } from 'geojson'
 import { getCrs, WGS84 } from './crs'
 import type { LayoutDocument, LayoutElement } from './layout/layoutStore'
@@ -102,7 +103,7 @@ const categoricalRamps: CategoricalRampId[] = ['pastel', 'vivid', 'earth', 'urba
 const continuousRamps: ContinuousRampId[] = ['viridis', 'yl-or-rd', 'blues', 'greens', 'rd-yl-gn']
 const strokeDashes: StrokeDash[] = ['solid', 'dashed', 'dotted']
 const pointShapes: PointShape[] = ['circle', 'square', 'triangle', 'diamond']
-const elementTypes = ['map', 'title', 'text', 'legend', 'north', 'scalebar', 'titleblock']
+const elementTypes = ['map', 'title', 'text', 'legend', 'north', 'scalebar', 'titleblock', 'picture']
 
 function parseCamera(value: unknown): MapCamera | null {
   if (!isRecord(value) || !Array.isArray(value.center)) return null
@@ -270,9 +271,9 @@ function normalizeTitleBlock(element: Record<string, unknown>): Record<string, u
 function parseLayout(value: unknown): LayoutDocument | null {
   if (!isRecord(value) || !Array.isArray(value.elements)) return null
   const elements = (value.elements as unknown[]).filter((element): element is Record<string, unknown> =>
-    isRecord(element) && elementTypes.includes(element.type as string) &&
+    isRecord(element) && (element.type !== 'picture' || isEmbeddedPicture(element.src)) && elementTypes.includes(element.type as string) &&
     ['x', 'y', 'w', 'h'].every((key) => typeof element[key] === 'number' && Number.isFinite(element[key])))
-    .map((element) => ({ ...(element.type === 'titleblock' ? normalizeTitleBlock(element) : element), id: text(element.id, crypto.randomUUID()) }))
+    .map((element) => ({ ...(element.type === 'titleblock' ? normalizeTitleBlock(element) : element.type === 'picture' ? { ...element, alt: typeof element.alt === 'string' ? element.alt : 'Picture', fit: element.fit === 'cover' ? 'cover' : 'contain' } : element), id: text(element.id, crypto.randomUUID()) }))
   return {
     paper: isPaperSize(value.paper) ? value.paper : 'A4',
     orientation: value.orientation === 'portrait' ? 'portrait' : 'landscape',
