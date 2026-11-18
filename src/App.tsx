@@ -43,6 +43,7 @@ import {
   buildLayerMenu, buildMapCanvasMenu, formatLngLat, runLayerMenuAction, runMapCanvasMenuAction, type MenuEntry,
 } from './contextMenu/menuModel'
 import { ViewRibbon } from './ribbon/ViewRibbon'
+import { LayoutRibbon } from './ribbon/LayoutRibbon'
 import { FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/LayerRibbons'
 import { buildUniqueRenderer, buildGraduatedRenderer, getFeatureFields, getNumericFields } from './symbology'
 import BookmarksPopover from './BookmarksPopover'
@@ -58,7 +59,7 @@ import { basemaps } from './basemaps'
 import { queryFeaturesAt } from './mapGeometry'
 import ContentsPanel from './contents/ContentsPanel'
 import { addRibbonTooltips } from './ribbon/ribbonTooltips'
-import { AnalysisRibbon, EditRibbon, InsertRibbon, LayoutRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
+import { AnalysisRibbon, EditRibbon, InsertRibbon, MapRibbon, ShareRibbon, type WorkspaceView } from './ribbon/CoreRibbons'
 import StatusBar from './StatusBar'
 import { DropOverlay, ImportProgress, MeasurementCard, SketchCard, ToolProgress } from './MapOverlays'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -960,6 +961,9 @@ function App() {
           />
         ) : ['RasterAppearance', 'RasterData'].includes(activeTab) && selectedLayer ? (
           <RasterLayerRibbon
+            tab={activeTab as 'RasterAppearance' | 'RasterData'}
+            onTable={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }) }}
+            onExport={format => exportSelectedLayer(selectedLayer, format)}
             layer={selectedLayer}
             onUpdate={(updates) => useArcWebStore.getState().updateLayer(selectedLayer.id, updates)}
             onZoomToLayer={() => zoomToLayer(selectedLayer)}
@@ -1010,11 +1014,14 @@ function App() {
           />
         ) : (activeTab === 'LayoutInsert' || activeTab === 'LayoutExport') ? (
           <LayoutRibbon
-            viewMode={viewMode}
+            tab={activeTab}
+            paper={layoutPaper}
+            orientation={layoutOrientation}
+            onPage={(paper, orientation) => useLayoutStore.getState().setPage(paper, orientation)}
             exporting={layoutExporting}
-            onShowView={showView}
+            onClose={() => showView('2d')}
             onInsert={insertLayoutElement}
-            onExport={(format) => void exportLayout(format)}
+            onExport={(format, dpi) => void exportLayout(format, dpi)}
           />
         ) : activeTab === 'View' ? (
           <ViewRibbon

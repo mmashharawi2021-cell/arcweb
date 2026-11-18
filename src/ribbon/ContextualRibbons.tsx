@@ -1,3 +1,5 @@
+import { RibbonGroup } from './RibbonParts'
+import { RibbonGroupBar } from './RibbonGroupBar'
 import {
   Check, LocateFixed, PenLine, Redo2, Save, Spline, Trash2, Undo, Undo2,
 } from 'lucide-react'
@@ -39,8 +41,6 @@ export function RasterLayerRibbon({ layer, onUpdate, onZoomToLayer, onError }: R
   const method = renderer?.method ?? 'quantile'
   const ramp = renderer?.ramp ?? 'viridis'
   const classCount = renderer?.classCount ?? (renderer ? renderer.breaks.length + 1 : 7)
-  const first = layer.data.features[0]?.properties
-  const dimensions = first ? `${Number(first.rasterWidth).toLocaleString()} × ${Number(first.rasterHeight).toLocaleString()} cells` : ''
   const restyle = (next: { method?: ClassificationMethod; ramp?: ContinuousRampId; classCount?: number }) => {
     try {
       onUpdate({ renderer: buildGraduatedRenderer(layer, 'value', next.method ?? method, next.classCount ?? classCount, next.ramp ?? ramp) })
@@ -49,8 +49,8 @@ export function RasterLayerRibbon({ layer, onUpdate, onZoomToLayer, onError }: R
     }
   }
   return (
-    <>
-      <div className="phase-ribbon-actions ctx-group">
+    <RibbonGroupBar>
+      <RibbonGroup label="Rendering" icon={LocateFixed}>
         <label className="ctx-field">
           <span className="ctx-field-label">Band</span>
           {/* GeoTIFFs are read as single-band grids, so band 1 is the only band available to display. */}
@@ -68,10 +68,8 @@ export function RasterLayerRibbon({ layer, onUpdate, onZoomToLayer, onError }: R
             {[3, 4, 5, 6, 7, 8].map((count) => <option key={count} value={count}>{count}</option>)}
           </select>
         </label>
-        <div className="group-caption">Rendering{dimensions ? ` · ${dimensions}` : ''}</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions ctx-group">
+      </RibbonGroup>
+      <RibbonGroup label="Colormap" icon={LocateFixed}>
         <div className="ctx-ramps" role="radiogroup" aria-label="Color scheme">
           {(Object.keys(CONTINUOUS_RAMPS) as ContinuousRampId[]).map((id) => (
             <button
@@ -85,15 +83,12 @@ export function RasterLayerRibbon({ layer, onUpdate, onZoomToLayer, onError }: R
             </button>
           ))}
         </div>
-        <div className="group-caption">Colormap</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions ctx-group">
+      </RibbonGroup>
+      <RibbonGroup label="Effects & navigate" icon={LocateFixed}>
         <OpacityControl layer={layer} onUpdate={onUpdate} />
         <button className="ribbon-action" title="Zoom to raster extent" onClick={onZoomToLayer}><LocateFixed size={17} /><span>Zoom to layer</span></button>
-        <div className="group-caption">Effects &amp; navigate</div>
-      </div>
-    </>
+      </RibbonGroup>
+    </RibbonGroupBar>
   )
 }
 

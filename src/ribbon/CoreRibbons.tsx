@@ -3,11 +3,8 @@ import {
   Archive, CircleDashed, Download, FileOutput, Hammer, History as HistoryIcon, ImageDown, Layers, Link, Merge, Scissors, SquaresIntersect, SquaresUnite, ChevronLeft, ChevronRight, Crosshair, FolderOpen, Layers3, Navigation, AreaChart, Bookmark as BookmarkIcon, Eraser, FileImage, FilePlus2, FileText, Focus, Globe2, LayoutTemplate, ListFilter, Map as MapIcon, Minus, MousePointer2, Plus, Ruler, ScanSearch, Sparkles, SquareDashedMousePointer, Table2,
 } from 'lucide-react'
 import { basemaps } from '../basemaps'
-import { insertableElements } from '../layout/catalog'
-import { elementLabels, type LayoutElementType } from '../layout/layoutStore'
 import type { LayoutExportFormat } from '../layout/exportLayout'
-import type { BasemapId, ToolMode, ViewMode } from '../store'
-import { addRibbonTooltips } from './ribbonTooltips'
+import type { BasemapId, ToolMode } from '../store'
 import { RibbonButton, RibbonGallery, RibbonGroup, RibbonMenuButton } from './RibbonParts'
 import { RibbonGroupBar } from './RibbonGroupBar'
 import { LAYOUT_TEMPLATES, type LayoutTemplateId } from '../layout/templates'
@@ -186,37 +183,6 @@ export function AnalysisRibbon({ onOpenTools, onOpenHistory, onOpenTool }: Analy
       </RibbonGroup>
     </RibbonGroupBar>
   )
-}
-
-interface LayoutRibbonProps {
-  viewMode: ViewMode
-  exporting: boolean
-  onShowView: (view: WorkspaceView) => void
-  onInsert: (type: LayoutElementType) => void
-  onExport: (format: LayoutExportFormat) => void
-}
-
-export function LayoutRibbon({ viewMode, exporting, onShowView, onInsert, onExport }: LayoutRibbonProps) {
-  return addRibbonTooltips(<>
-    <div className="phase-ribbon-actions layout-ribbon">
-      <button className={`ribbon-action ${viewMode === 'map' ? 'tool-selected' : ''}`} onClick={() => onShowView('2d')}><MapIcon size={17} /><span>Map view</span></button>
-      <button className={`ribbon-action ${viewMode === 'layout' ? 'tool-selected' : ''}`} onClick={() => onShowView('layout')}><LayoutTemplate size={17} /><span>Layout view</span></button>
-      <div className="group-caption">View</div>
-    </div>
-    <div className="ribbon-separator" />
-    <div className="phase-ribbon-actions layout-ribbon">
-      {insertableElements.map(({ type, icon: Icon }) => (
-        <button key={type} className="ribbon-action" title={`Insert ${elementLabels[type].toLowerCase()}`} onClick={() => onInsert(type)}><Icon size={17} /><span>{elementLabels[type]}</span></button>
-      ))}
-      <div className="group-caption">Insert map elements</div>
-    </div>
-    <div className="ribbon-separator" />
-    <div className="phase-ribbon-actions layout-ribbon">
-      <button className="ribbon-action" disabled={exporting} onClick={() => onExport('png')}><FileImage size={17} /><span>PNG</span></button>
-      <button className="ribbon-action" disabled={exporting} onClick={() => onExport('pdf')}><FileText size={17} /><span>PDF</span></button>
-      <div className="group-caption">Export layout</div>
-    </div>
-  </>)
 }
 
 interface EditRibbonProps {

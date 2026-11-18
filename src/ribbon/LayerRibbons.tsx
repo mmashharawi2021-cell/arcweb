@@ -1,9 +1,10 @@
+import type { ComponentProps } from 'react'
 import { Calculator, Download, Eye, Layers, Paintbrush, Tag, Table2, ScanSearch, Eraser, Focus, Box } from 'lucide-react'
 import type { MapLayer, RendererConfig } from '../store'
 import { getFeatureFields, getNumericFields } from '../symbology'
 import { RibbonButton, RibbonGroup, RibbonMenuButton } from './RibbonParts'
 import { RibbonGroupBar } from './RibbonGroupBar'
-export { RasterLayerRibbon } from './ContextualRibbons'
+import { RasterLayerRibbon as RasterAppearanceRibbon } from './ContextualRibbons'
 
 interface Props {
   tab: 'FeatureAppearance' | 'FeatureLabeling' | 'FeatureData'
@@ -84,5 +85,18 @@ export function FeatureLayerRibbon({ tab, layer, currentScale, onUpdate, onSymbo
     </RibbonGroup>
     <RibbonGroup label="Export" icon={Download}><RibbonMenuButton id="layer-export" label="Export Features" icon={Download} size="large" items={(['geojson', 'csv'] as const).map(format => ({ id: format, label: format === 'csv' ? 'CSV' : 'GeoJSON', onSelect: () => onExport(format) }))} /></RibbonGroup>
     <RibbonGroup label="Calculate" icon={Calculator}><RibbonButton id="layer-calculate" label="Calculate Field" icon={Calculator} size="large" onClick={onCalculate} /></RibbonGroup>
+  </RibbonGroupBar>
+}
+
+interface RasterProps extends ComponentProps<typeof RasterAppearanceRibbon> {
+  tab: 'RasterAppearance' | 'RasterData'
+  onTable: () => void
+  onExport: (format: 'geojson' | 'csv') => void
+}
+export function RasterLayerRibbon({ tab, onTable, onExport, ...appearance }: RasterProps) {
+  if (tab === 'RasterAppearance') return <RasterAppearanceRibbon {...appearance} />
+  return <RibbonGroupBar>
+    <RibbonGroup label="Table" icon={Table2}><RibbonButton id="raster-table" label="Attribute Table" icon={Table2} size="large" onClick={onTable} /></RibbonGroup>
+    <RibbonGroup label="Export" icon={Download}><RibbonMenuButton id="raster-export" label="Export Cells" icon={Download} size="large" items={(['geojson', 'csv'] as const).map(format => ({ id: format, label: format === 'csv' ? 'CSV' : 'GeoJSON', onSelect: () => onExport(format) }))} /></RibbonGroup>
   </RibbonGroupBar>
 }
