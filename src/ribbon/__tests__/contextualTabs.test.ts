@@ -4,7 +4,7 @@ import { createMapLayer } from '../../geo'
 import { createRasterGrid, rasterToFeatureCollection } from '../../rasterEngine'
 import { useArcWebStore, type ContextualTab, type MapLayer } from '../../store'
 import {
-  CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isEditingTool, isRasterLayer, reconcileRibbonTabs,
+  migrateTabId, CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isEditingTool, isRasterLayer, reconcileRibbonTabs,
 } from '../contextualTabs'
 
 const points: FeatureCollection = {
@@ -24,93 +24,52 @@ function rasterLayer(): MapLayer {
   return createMapLayer('Elevation', rasterToFeatureCollection(grid))
 }
 
-describe('contextual tab visibility', () => {
-  it('shows no contextual tabs without a selected layer or editing', () => {
-    expect(getVisibleContextualTabs({ selectedLayer: null, tool: 'pan', pendingEdits: false })).toEqual([])
+describe('contextual groups', () => {
+  const feature: ContextualTab[] = ['FeatureAppearance', 'FeatureLabeling', 'FeatureData']
+  const raster: ContextualTab[] = ['RasterAppearance', 'RasterData']
+  const layout: ContextualTab[] = ['LayoutInsert', 'LayoutExport']
+  it('shows three feature tabs and activates Appearance from Map', () => {
+    expect(getVisibleContextualTabs({ selectedLayer: vectorLayer(), viewMode: 'map' })).toEqual(feature)
+    expect(reconcileRibbonTabs({ activeTab: 'Map', returnTab: 'Map' }, [], feature)).toEqual({ activeTab: 'FeatureAppearance', returnTab: 'Map' })
   })
-
-  it('shows the Feature Layer tab for a selected vector layer', () => {
-    const layer = vectorLayer()
-    expect(isRasterLayer(layer)).toBe(false)
-    expect(getVisibleContextualTabs({ selectedLayer: layer, tool: 'pan', pendingEdits: false })).toEqual(['FeatureLayer'])
+  it('shows raster tabs and preserves Data when changing layer type', () => {
+    expect(isRasterLayer(rasterLayer())).toBe(true)
+    expect(getVisibleContextualTabs({ selectedLayer: rasterLayer(), viewMode: 'map' })).toEqual(raster)
+    expect(reconcileRibbonTabs({ activeTab: 'FeatureData', returnTab: 'Insert' }, feature, raster)).toEqual({ activeTab: 'RasterData', returnTab: 'Insert' })
   })
-
-  it('shows the Raster Layer tab (not Feature Layer) for a selected raster layer', () => {
-    const layer = rasterLayer()
-    expect(isRasterLayer(layer)).toBe(true)
-    expect(getVisibleContextualTabs({ selectedLayer: layer, tool: 'pan', pendingEdits: false })).toEqual(['RasterLayer'])
+  it('shows Layout only in layout view and returns when leaving it', () => {
+    expect(getVisibleContextualTabs({ selectedLayer: null, viewMode: 'layout' })).toEqual(layout)
+    const state = reconcileRibbonTabs({ activeTab: 'View', returnTab: 'Map' }, [], layout)
+    expect(state).toEqual({ activeTab: 'LayoutInsert', returnTab: 'View' })
+    expect(reconcileRibbonTabs(state, layout, [])).toEqual({ activeTab: 'View', returnTab: 'Map' })
+    expect(getVisibleContextualTabs({ selectedLayer: vectorLayer(), viewMode: 'layout' })).toEqual([...feature, ...layout])
   })
-
-  it('shows no appearance tab for a standalone table', () => {
-    const table = { ...vectorLayer(), geometry: 'Unknown' as const }
-    expect(getVisibleContextualTabs({ selectedLayer: table, tool: 'pan', pendingEdits: false })).toEqual([])
+  it('does not steal focus from Analysis', () => {
+    const state = { activeTab: 'Analysis' as const, returnTab: 'Map' as const }
+    expect(reconcileRibbonTabs(state, [], feature)).toBe(state)
   })
-
-  it.each(['draw-point', 'draw-line', 'draw-polygon', 'move-vertex'] as const)('shows the Edit tab while %s is active', (tool) => {
-    expect(isEditingTool(tool)).toBe(true)
-    expect(getVisibleContextualTabs({ selectedLayer: vectorLayer(), tool, pendingEdits: false })).toEqual(['EditSession', 'FeatureLayer'])
+  it('standalone tables have no layer group', () => {
+    expect(getVisibleContextualTabs({ selectedLayer: { ...vectorLayer(), geometry: 'Unknown' }, viewMode: 'map' })).toEqual([])
   })
-
-  it.each(['pan', 'distance', 'area'] as const)('does not treat %s as editing', (tool) => {
-    expect(isEditingTool(tool)).toBe(false)
-    expect(getVisibleContextualTabs({ selectedLayer: null, tool, pendingEdits: false })).toEqual([])
+  it('returns to the previous core tab when a layer is deselected', () => {
+    expect(reconcileRibbonTabs({ activeTab: 'FeatureLabeling', returnTab: 'Insert' }, feature, [])).toEqual({ activeTab: 'Insert', returnTab: 'Map' })
   })
-
-  it('keeps the Edit tab while edits are unsaved, even after leaving the editing tools', () => {
-    expect(getVisibleContextualTabs({ selectedLayer: null, tool: 'pan', pendingEdits: true })).toEqual(['EditSession'])
+  it('does not change tabs when the context stays the same', () => {
+    const state = { activeTab: 'FeatureData' as const, returnTab: 'Map' as const }
+    expect(reconcileRibbonTabs(state, feature, feature)).toBe(state)
   })
-})
-
-describe('core tab order', () => {
-  it('orders core tabs with View between Edit and Layout', () => {
-    expect(CORE_TABS).toEqual(['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Layout', 'Share'])
+  it('keeps Edit permanent and recognizes editing tools', () => {
+    expect(CORE_TABS).toEqual(['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Share'])
+    expect(isEditingTool('draw-point')).toBe(true)
+    expect(isEditingTool('pan')).toBe(false)
   })
-
-  it('treats View as neutral: a newly selected vector layer takes over the ribbon', () => {
-    expect(reconcileRibbonTabs({ activeTab: 'View', returnTab: 'Map' }, [], ['FeatureLayer'])).toEqual({ activeTab: 'FeatureLayer', returnTab: 'View' })
-  })
-})
-
-describe('contextual tab activation', () => {
-  const run = (activeTab: Parameters<typeof reconcileRibbonTabs>[0]['activeTab'], prev: ContextualTab[], next: ContextualTab[], returnTab: typeof activeTab = 'Map') =>
-    reconcileRibbonTabs({ activeTab, returnTab }, prev, next)
-
-  it('switches to the Feature Layer tab from the Map tab and remembers Map', () => {
-    expect(run('Map', [], ['FeatureLayer'])).toEqual({ activeTab: 'FeatureLayer', returnTab: 'Map' })
-  })
-
-  it('only highlights a layer tab while a workflow tab such as Analysis is active', () => {
-    expect(run('Analysis', [], ['FeatureLayer'])).toEqual({ activeTab: 'Analysis', returnTab: 'Map' })
-    expect(run('Layout', [], ['RasterLayer'])).toEqual({ activeTab: 'Layout', returnTab: 'Map' })
-  })
-
-  it('reverts to the previous tab when the layer is deselected', () => {
-    expect(run('FeatureLayer', ['FeatureLayer'], [], 'Insert')).toEqual({ activeTab: 'Insert', returnTab: 'Map' })
-  })
-
-  it('moves from the Feature Layer tab to the Raster Layer tab when a raster is selected instead', () => {
-    expect(run('FeatureLayer', ['FeatureLayer'], ['RasterLayer'], 'Insert')).toEqual({ activeTab: 'RasterLayer', returnTab: 'Insert' })
-  })
-
-  it('always switches to the Edit tab when editing starts and returns when it ends', () => {
-    const started = run('Edit', ['FeatureLayer'], ['EditSession', 'FeatureLayer'])
-    expect(started).toEqual({ activeTab: 'EditSession', returnTab: 'Edit' })
-    expect(reconcileRibbonTabs(started, ['EditSession', 'FeatureLayer'], ['FeatureLayer'])).toEqual({ activeTab: 'Edit', returnTab: 'Map' })
-  })
-
-  it('returns to a still-visible contextual tab after editing finishes', () => {
-    const started = run('FeatureLayer', ['FeatureLayer'], ['EditSession', 'FeatureLayer'])
-    expect(started).toEqual({ activeTab: 'EditSession', returnTab: 'FeatureLayer' })
-    expect(reconcileRibbonTabs(started, ['EditSession', 'FeatureLayer'], ['FeatureLayer']).activeTab).toBe('FeatureLayer')
-  })
-
-  it('falls back to Map when the remembered tab has also disappeared', () => {
-    expect(run('EditSession', ['EditSession', 'FeatureLayer'], [], 'FeatureLayer').activeTab).toBe('Map')
-  })
-
-  it('leaves the ribbon alone when nothing appears or disappears', () => {
-    const state = { activeTab: 'Share' as const, returnTab: 'Map' as const }
-    expect(reconcileRibbonTabs(state, ['FeatureLayer'], ['FeatureLayer'])).toBe(state)
+  it('migrates legacy ids and safely defaults unknown ids', () => {
+    expect(migrateTabId('FeatureLayer')).toBe('FeatureAppearance')
+    expect(migrateTabId('RasterLayer')).toBe('RasterAppearance')
+    expect(migrateTabId('EditSession')).toBe('Edit')
+    expect(migrateTabId('Layout')).toBe('Map')
+    expect(migrateTabId('FeatureData')).toBe('FeatureData')
+    expect(migrateTabId('bad')).toBe('Map')
   })
 })
 

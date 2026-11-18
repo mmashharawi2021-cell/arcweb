@@ -1,24 +1,24 @@
 import type { FeatureCollection } from 'geojson'
-import type { AppTab, ContextualTab, CoreTab, MapLayer, ToolMode } from '../store'
+import type { AppTab, ContextualTab, CoreTab, MapLayer, ToolMode, ViewMode } from '../store'
 
-/** The permanent ribbon tabs, in display order. */
-export const CORE_TABS: readonly CoreTab[] = ['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Layout', 'Share']
+/** Permanent tabs and contextual groups, in display order. */
+export const CORE_TABS: readonly CoreTab[] = ['Map', 'Insert', 'Analysis', 'Edit', 'View', 'Share']
+export const CONTEXTUAL_GROUPS: { id: 'feature' | 'raster' | 'layout'; label: string; tabs: ContextualTab[] }[] = [
+  { id: 'feature', label: 'Feature Layer', tabs: ['FeatureAppearance', 'FeatureLabeling', 'FeatureData'] },
+  { id: 'raster', label: 'Raster Layer', tabs: ['RasterAppearance', 'RasterData'] },
+  { id: 'layout', label: 'Layout', tabs: ['LayoutInsert', 'LayoutExport'] },
+]
+export const CONTEXTUAL_TABS = CONTEXTUAL_GROUPS.flatMap(group => group.tabs)
+export const CONTEXTUAL_TAB_META = Object.fromEntries(CONTEXTUAL_GROUPS.flatMap(group => group.tabs.map(tab => [tab, {
+  group: group.label, label: tab.replace(/^(Feature|Raster|Layout)/, ''),
+}]))) as Record<ContextualTab, { group: string; label: string }>
 
-/** Contextual tabs in display order; earlier entries win when several appear at once. */
-export const CONTEXTUAL_TABS: readonly ContextualTab[] = ['EditSession', 'FeatureLayer', 'RasterLayer']
-
-/** ArcGIS Pro shows a contextual tab under a small group header naming the context. */
-export const CONTEXTUAL_TAB_META: Record<ContextualTab, { group: string; label: string }> = {
-  FeatureLayer: { group: 'Feature Layer', label: 'Appearance' },
-  RasterLayer: { group: 'Raster Layer', label: 'Appearance' },
-  EditSession: { group: 'Editing', label: 'Edit Tools' },
+/** Old session tab ids are accepted at the store boundary. Unknown ids return to Map. */
+export function migrateTabId(id: string): AppTab {
+  const legacy: Record<string, AppTab> = { FeatureLayer: 'FeatureAppearance', RasterLayer: 'RasterAppearance', EditSession: 'Edit', Layout: 'Map' }
+  return legacy[id] ?? ([...CORE_TABS, ...CONTEXTUAL_TABS].includes(id as AppTab) ? id as AppTab : 'Map')
 }
 
-/**
- * Core tabs that carry no workflow state of their own. A contextual tab that appears while one of
- * these is active takes over the ribbon; on Analysis, Edit, Layout or Share it only lights up, so
- * selecting a layer never tears down the Geoprocessing pane or a print layout mid-task.
- */
 const NEUTRAL_TABS: ReadonlySet<AppTab> = new Set<AppTab>(['Map', 'Insert', 'View'])
 
 const EDITING_TOOLS: ReadonlySet<ToolMode> = new Set<ToolMode>(['draw-point', 'draw-line', 'draw-polygon', 'move-vertex'])
@@ -50,17 +50,16 @@ export function hasPendingEdits(layers: Pick<MapLayer, 'id' | 'data'>[], snapsho
 
 export interface RibbonContext {
   selectedLayer: Pick<MapLayer, 'data' | 'geometry'> | null
-  tool: ToolMode
-  pendingEdits: boolean
+  viewMode: ViewMode
 }
 
-export function getVisibleContextualTabs({ selectedLayer, tool, pendingEdits }: RibbonContext): ContextualTab[] {
+export function getVisibleContextualTabs({ selectedLayer, viewMode }: RibbonContext): ContextualTab[] {
   const visible: ContextualTab[] = []
-  if (isEditingTool(tool) || pendingEdits) visible.push('EditSession')
   // Standalone tables (no geometry) get no appearance tab.
   if (selectedLayer && selectedLayer.geometry !== 'Unknown') {
-    visible.push(isRasterLayer(selectedLayer) ? 'RasterLayer' : 'FeatureLayer')
+    visible.push(...CONTEXTUAL_GROUPS[isRasterLayer(selectedLayer) ? 1 : 0].tabs)
   }
+  if (viewMode === 'layout') visible.push('LayoutInsert', 'LayoutExport')
   return visible
 }
 
@@ -76,7 +75,7 @@ function isAvailable(tab: AppTab, visible: readonly ContextualTab[]): boolean {
 
 /**
  * Decides the active ribbon tab after the set of contextual tabs changes.
- * - A newly visible tab is activated (Edit Tools always; layer tabs only from a neutral or contextual tab).
+ * - A newly visible tab is activated (only from a neutral or contextual tab).
  * - An active contextual tab that disappears reverts to the tab that was active before it.
  */
 export function reconcileRibbonTabs(
@@ -85,12 +84,13 @@ export function reconcileRibbonTabs(
   nextVisible: readonly ContextualTab[],
 ): RibbonTabState {
   const appeared = CONTEXTUAL_TABS.filter((tab) => nextVisible.includes(tab) && !previousVisible.includes(tab))
-  const candidate = appeared[0]
+  const fromKind = CONTEXTUAL_TAB_META[state.activeTab as ContextualTab]?.label
+  const candidate = appeared.find(tab => CONTEXTUAL_TAB_META[tab].label === fromKind) ?? appeared[0]
   const from = state.activeTab
   const fromContextual = isContextualTab(from)
 
   if (candidate && candidate !== from &&
-    (candidate === 'EditSession' || fromContextual || NEUTRAL_TABS.has(from))) {
+    (fromContextual || NEUTRAL_TABS.has(from))) {
     // Remember where to come back to; if the tab we leave is itself going away, keep its own return target.
     const returnTab = isAvailable(from, nextVisible) ? from
       : isAvailable(state.returnTab, nextVisible) ? state.returnTab : 'Map'

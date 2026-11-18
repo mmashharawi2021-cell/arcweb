@@ -36,14 +36,14 @@ import {
 } from './store'
 import SceneNavigator from './scene/SceneNavigator'
 import {
-  CONTEXTUAL_TAB_META, CONTEXTUAL_TABS, CORE_TABS, getVisibleContextualTabs, hasPendingEdits, isContextualTab, isRasterLayer, reconcileRibbonTabs,
+  CONTEXTUAL_TAB_META, CONTEXTUAL_GROUPS, CORE_TABS, getVisibleContextualTabs, isContextualTab, isRasterLayer, reconcileRibbonTabs,
 } from './ribbon/contextualTabs'
 import ContextMenu from './contextMenu/ContextMenu'
 import {
   buildLayerMenu, buildMapCanvasMenu, formatLngLat, runLayerMenuAction, runMapCanvasMenuAction, type MenuEntry,
 } from './contextMenu/menuModel'
 import { ViewRibbon } from './ribbon/ViewRibbon'
-import { EditSessionRibbon, FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/ContextualRibbons'
+import { FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/ContextualRibbons'
 import BookmarksPopover from './BookmarksPopover'
 import IdentifyPopup, { type IdentifyHit } from './IdentifyPopup'
 import { applyWorkspacePreset, normalizeWorkspaceLayout } from './workspaceLayout'
@@ -184,7 +184,7 @@ function App() {
   const pendingEditLayerNames = useMemo(() => layers
     .filter((layer) => editSnapshots[layer.id] !== undefined && editSnapshots[layer.id] !== layer.data)
     .map((layer) => layer.name), [layers, editSnapshots])
-  const visibleContextualTabs = getVisibleContextualTabs({ selectedLayer, tool, pendingEdits: pendingEditLayerNames.length > 0 })
+  const visibleContextualTabs = getVisibleContextualTabs({ selectedLayer, viewMode })
   const visibleContextualKey = visibleContextualTabs.join('|')
   const previousContextualTabsRef = useRef<ContextualTab[]>([])
   /** Treats the current context as already seen, so restoring a session does not hijack the ribbon. */
@@ -192,8 +192,7 @@ function App() {
     const state = useArcWebStore.getState()
     previousContextualTabsRef.current = getVisibleContextualTabs({
       selectedLayer: state.layers.find((layer) => layer.id === state.selectedLayerId) ?? null,
-      tool: state.tool,
-      pendingEdits: hasPendingEdits(state.layers, state.editSnapshots),
+      viewMode: state.viewMode,
     })
   }, [])
   useEffect(() => {
@@ -278,7 +277,7 @@ function App() {
       state.setActiveTab('Analysis')
       state.setViewMode('map')
     } else if (preset === 'cartography') {
-      state.setActiveTab('Layout')
+      state.setActiveTab('LayoutInsert')
       state.setViewMode('layout')
     } else {
       state.setActiveTab('Map')
@@ -343,7 +342,7 @@ function App() {
       useArcWebStore.getState().setActiveTab('Analysis')
       useArcWebStore.getState().setViewMode('map')
     } else if (workspaceLayout.preset === 'cartography') {
-      useArcWebStore.getState().setActiveTab('Layout')
+      useArcWebStore.getState().setActiveTab('LayoutInsert')
       useArcWebStore.getState().setViewMode('layout')
     }
   }, [workspaceLayout.preset])
@@ -701,7 +700,7 @@ function App() {
   const openLayerSymbology = useCallback((layer: MapLayer) => {
     const state = useArcWebStore.getState()
     state.setSelectedLayer(layer.id)
-    state.setActiveTab(isRasterLayer(layer) ? 'RasterLayer' : 'FeatureLayer')
+    state.setActiveTab(isRasterLayer(layer) ? 'RasterAppearance' : 'FeatureAppearance')
     if (!state.workspaceLayout.rightPaneOpen) state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
   }, [])
 
@@ -921,25 +920,23 @@ function App() {
               const state = useArcWebStore.getState()
               state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
             }
-            if (tab === 'Layout') showView('layout')
           }}>{tab}</button>
         ))}
-        {CONTEXTUAL_TABS.filter((tab) => visibleContextualTabs.includes(tab)).map((tab) => (
-          <button
-            key={tab}
-            className={`ribbon-tab contextual-tab contextual-${tab === 'EditSession' ? 'edit' : 'layer'} ${activeTab === tab ? 'active' : ''}`}
-            title={`${CONTEXTUAL_TAB_META[tab].group}: ${CONTEXTUAL_TAB_META[tab].label}${tab !== 'EditSession' && selectedLayer ? ` — ${selectedLayer.name}` : ''}`}
-            onClick={() => useArcWebStore.getState().setActiveTab(tab)}
-          >
-            <span className="contextual-tab-group">{CONTEXTUAL_TAB_META[tab].group}</span>
-            <span className="contextual-tab-label">{CONTEXTUAL_TAB_META[tab].label}</span>
-          </button>
+        {CONTEXTUAL_GROUPS.filter(group => group.tabs.some(tab => visibleContextualTabs.includes(tab))).map(group => (
+          <div key={group.id} className={'contextual-tab-set contextual-' + group.id} role="group" aria-label={group.label}>
+            <span className="contextual-group-heading">{group.label}</span>
+            <div className="contextual-group-tabs">{group.tabs.filter(tab => visibleContextualTabs.includes(tab)).map(tab => (
+              <button key={tab} className={`ribbon-tab contextual-tab ${activeTab === tab ? 'active' : ''}`}
+                aria-pressed={activeTab === tab} title={group.label + ': ' + CONTEXTUAL_TAB_META[tab].label}
+                onClick={() => useArcWebStore.getState().setActiveTab(tab)}>{CONTEXTUAL_TAB_META[tab].label}</button>
+            ))}</div>
+          </div>
         ))}
         <div className="ribbon-context">{viewMode === 'layout' ? 'LAYOUT VIEW' : sceneView ? '3D SCENE' : '2D MAP'}</div>
       </nav>
 
-      <section className={`ribbon-toolbar ${isContextualTab(activeTab) ? `contextual-toolbar contextual-${activeTab === 'EditSession' ? 'edit' : 'layer'}` : ''}`}>
-        {addRibbonTooltips(<>{activeTab === 'FeatureLayer' && selectedLayer ? (
+      <section className={`ribbon-toolbar ${isContextualTab(activeTab) ? `contextual-toolbar contextual-${activeTab.startsWith('Layout') ? 'layout' : 'layer'}` : ''}`}>
+        {addRibbonTooltips(<>{['FeatureAppearance', 'FeatureLabeling', 'FeatureData'].includes(activeTab) && selectedLayer ? (
           <FeatureLayerRibbon
             layer={selectedLayer}
             symbologyOpen={workspaceLayout.rightPaneOpen}
@@ -949,31 +946,14 @@ function App() {
             onZoomToLayer={() => zoomToLayer(selectedLayer)}
             onToggleTable={() => useArcWebStore.getState().setTableOpen(!tableOpen)}
           />
-        ) : activeTab === 'RasterLayer' && selectedLayer ? (
+        ) : ['RasterAppearance', 'RasterData'].includes(activeTab) && selectedLayer ? (
           <RasterLayerRibbon
             layer={selectedLayer}
             onUpdate={(updates) => useArcWebStore.getState().updateLayer(selectedLayer.id, updates)}
             onZoomToLayer={() => zoomToLayer(selectedLayer)}
             onError={(message) => notify(message, 'error')}
           />
-        ) : activeTab === 'EditSession' ? (
-          <EditSessionRibbon
-            layer={selectedLayer}
-            tool={tool}
-            selectedFeatureIsEditable={selectedFeatureIsEditable}
-            selectedCount={editTargetIds.length}
-            pendingLayerNames={pendingEditLayerNames}
-            onSetTool={setEditingTool}
-            onFinishSketch={finishSketch}
-            onDeleteSelected={deleteSelectedFeatures}
-            onSave={saveEdits}
-            onDiscard={discardEdits}
-            canUndo={undoStack.length > 0}
-            canRedo={redoStack.length > 0}
-            onUndo={undoEdit}
-            onRedo={redoEdit}
-          />
-        ) : isContextualTab(activeTab) ? null : activeTab === 'Map' ? (
+        ) : activeTab === 'Map' ? (
           <MapRibbon
             basemap={basemap}
             offlineBasemapActive={Boolean(offlineBasemap)}
@@ -1016,7 +996,7 @@ function App() {
             onOpenHistory={() => openGeoprocessing({ view: 'history' })}
             onOpenTool={(toolId) => openGeoprocessing({ toolId })}
           />
-        ) : activeTab === 'Layout' ? (
+        ) : (activeTab === 'LayoutInsert' || activeTab === 'LayoutExport') ? (
           <LayoutRibbon
             viewMode={viewMode}
             exporting={layoutExporting}
@@ -1227,7 +1207,7 @@ function App() {
               />
             </aside>
           </DockablePanel>
-        ) : activeTab === 'Edit' || activeTab === 'EditSession' ? (
+        ) : activeTab === 'Edit' ? (
           <aside className="dock symbology-dock"><EditPanel
             layers={layers}
             selectedLayer={selectedLayer}
@@ -1239,7 +1219,7 @@ function App() {
             onOpenTable={() => useArcWebStore.getState().setTableOpen(true)}
             onFinishSketch={finishSketch}
           /></aside>
-        ) : activeTab === 'Layout' ? (
+        ) : (activeTab === 'LayoutInsert' || activeTab === 'LayoutExport') ? (
           <aside className="dock symbology-dock"><LayoutPanel
             viewMode={viewMode}
             exporting={layoutExporting}

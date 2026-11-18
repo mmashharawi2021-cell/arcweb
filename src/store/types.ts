@@ -7,9 +7,9 @@ import type { ProjectDataSlice } from './slices/projectData'
 
 export type GeometryKind = 'Point' | 'Line' | 'Polygon' | 'Mixed' | 'Unknown'
 export type BasemapId = 'osm' | 'satellite' | 'dark' | 'light'
-export type CoreTab = 'Map' | 'Insert' | 'Analysis' | 'Edit' | 'View' | 'Layout' | 'Share'
+export type CoreTab = 'Map' | 'Insert' | 'Analysis' | 'Edit' | 'View' | 'Share'
 /** Ribbon tabs that only appear while their context (layer type or edit session) is active. */
-export type ContextualTab = 'FeatureLayer' | 'RasterLayer' | 'EditSession'
+export type ContextualTab = 'FeatureAppearance' | 'FeatureLabeling' | 'FeatureData' | 'RasterAppearance' | 'RasterData' | 'LayoutInsert' | 'LayoutExport'
 export type AppTab = CoreTab | ContextualTab
 export type ViewMode = 'map' | 'layout'
 export type ToolMode = 'pan' | 'select-box' | 'distance' | 'area' | 'draw-point' | 'draw-line' | 'draw-polygon' | 'move-vertex'

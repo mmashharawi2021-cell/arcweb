@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand'
-import { isContextualTab, isEditingTool } from '../../ribbon/contextualTabs'
+import { isContextualTab, isEditingTool, migrateTabId } from '../../ribbon/contextualTabs'
 import { defaultWorkspaceLayout } from '../../workspaceLayout'
 import type { WorkspaceLayoutConfig } from '../../workspaceLayout'
 import { loadUiSettings, type CoordinateFormat, type LengthUnit } from '../../ui/uiSettings'
@@ -36,7 +36,7 @@ export interface WorkspaceSlice {
   setMeasureUnits: (units: LengthUnit) => void
   setCoordinateFormat: (format: CoordinateFormat) => void
   setSnapping: (snapping: { enabled: boolean; tolerancePx: number }) => void
-  setActiveTab: (tab: AppTab) => void
+  setActiveTab: (tab: AppTab | string) => void
   setRibbonTabs: (activeTab: AppTab, returnTab: AppTab) => void
   setTool: (tool: ToolMode) => void
   setDisplayCrs: (code: string) => void
@@ -73,11 +73,11 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
     setMeasureUnits: (measureUnits) => set({ measureUnits }),
     setCoordinateFormat: (coordinateFormat) => set({ coordinateFormat }),
     setSnapping: (snapping) => set({ snapping }),
-    setActiveTab: (activeTab) => set((state) => activeTab === state.activeTab ? {} : {
+    setActiveTab: (id) => set((state) => { const activeTab = migrateTabId(id); return activeTab === state.activeTab ? {} : {
       activeTab,
       // Entering a contextual tab by hand remembers the tab to return to when its context ends.
-      ribbonReturnTab: isContextualTab(activeTab) ? state.activeTab : state.ribbonReturnTab,
-    }),
+      ribbonReturnTab: isContextualTab(activeTab) && !isContextualTab(state.activeTab) ? state.activeTab : state.ribbonReturnTab,
+    } }),
     setRibbonTabs: (activeTab, ribbonReturnTab) => set({ activeTab, ribbonReturnTab }),
     // Cross-slice: leaving the editing tools also prunes the edit session's snapshots.
     setTool: (tool) => set((state) => {

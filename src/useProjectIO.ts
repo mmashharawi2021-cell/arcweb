@@ -77,7 +77,7 @@ export function useProjectIO({ mapRef, mapInstance, notify, adoptRibbonContext, 
       state.setActiveTab('Analysis')
       state.setViewMode('map')
     } else if (project.workspaceLayout.preset === 'cartography') {
-      state.setActiveTab('Layout')
+      state.setActiveTab('LayoutInsert')
       state.setViewMode('layout')
     } else {
       state.setActiveTab('Map')

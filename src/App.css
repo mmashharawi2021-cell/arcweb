@@ -1385,3 +1385,16 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
   position: absolute; z-index: 3; pointer-events: none;
   border: 1.5px dashed var(--accent-text); background: rgba(var(--accent-rgb), .12);
 }
+
+/* One shared heading spans every tab in a contextual group. */
+.contextual-tab-set { align-self: stretch; display: flex; flex-direction: column; border-top: 2px solid #d38b53; background: #d38b5315; flex-shrink: 0; }
+.contextual-group-heading { text-align: center; font-size: 8px; line-height: 11px; color: #e9ab79; }
+.contextual-group-tabs { display: flex; flex: 1; }
+.contextual-group-tabs .contextual-tab { min-width: 0; padding: 0 10px; }
+.contextual-layout { border-top-color: #67a9d6; background: #67a9d615; }
+.contextual-layout .contextual-group-heading { color: #8bc6ec; }
+@media (max-width: 1100px) {
+  .ribbon-tabs > .ribbon-tab { padding-left: 9px; padding-right: 9px; }
+  .contextual-group-tabs .contextual-tab { padding-left: 7px; padding-right: 7px; }
+  .ribbon-context { display: none; }
+}
