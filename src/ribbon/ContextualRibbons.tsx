@@ -1,8 +1,8 @@
 import {
-  Check, Eye, LocateFixed, Paintbrush, PenLine, Redo2, Save, Spline, Table2, Tag, Trash2, Undo, Undo2,
+  Check, LocateFixed, PenLine, Redo2, Save, Spline, Trash2, Undo, Undo2,
 } from 'lucide-react'
 import type { ClassificationMethod, ContinuousRampId, MapLayer, ToolMode } from '../store'
-import { buildGraduatedRenderer, CONTINUOUS_RAMPS, getFeatureFields } from '../symbology'
+import { buildGraduatedRenderer, CONTINUOUS_RAMPS } from '../symbology'
 
 type LayerUpdate = (updates: Partial<MapLayer>) => void
 
@@ -17,64 +17,6 @@ function OpacityControl({ layer, onUpdate }: { layer: MapLayer; onUpdate: LayerU
         onChange={(event) => onUpdate({ opacity: Number(event.target.value) / 100 })}
       />
     </label>
-  )
-}
-
-interface FeatureLayerRibbonProps {
-  layer: MapLayer
-  symbologyOpen: boolean
-  tableOpen: boolean
-  onUpdate: LayerUpdate
-  onOpenSymbology: () => void
-  onZoomToLayer: () => void
-  onToggleTable: () => void
-}
-
-/** Feature Layer ▸ Appearance / Labeling. */
-export function FeatureLayerRibbon({ layer, symbologyOpen, tableOpen, onUpdate, onOpenSymbology, onZoomToLayer, onToggleTable }: FeatureLayerRibbonProps) {
-  const fields = getFeatureFields(layer)
-  const hasLabelSource = Boolean(layer.labelField || layer.labelStyle.expression.trim())
-  const labelsOn = layer.labelStyle.enabled && hasLabelSource
-  const toggleLabels = () => {
-    if (labelsOn) {
-      onUpdate({ labelStyle: { ...layer.labelStyle, enabled: false } })
-      return
-    }
-    // Turning labels on without a label source picks the first attribute, like ArcGIS's default label class.
-    const labelField = hasLabelSource ? layer.labelField : fields[0] ?? ''
-    onUpdate({ labelField, labelStyle: { ...layer.labelStyle, enabled: true } })
-  }
-  return (
-    <>
-      <div className="phase-ribbon-actions ctx-group">
-        <button className={`ribbon-action ${symbologyOpen ? 'tool-selected' : ''}`} title="Open the Symbology pane for this layer" onClick={onOpenSymbology}><Paintbrush size={17} /><span>Symbology</span></button>
-        <button className={`ribbon-action ${layer.visible ? 'tool-selected' : ''}`} title={layer.visible ? 'Hide layer' : 'Show layer'} onClick={() => onUpdate({ visible: !layer.visible })}><Eye size={17} /><span>Visible</span></button>
-        <OpacityControl layer={layer} onUpdate={onUpdate} />
-        <div className="group-caption">Appearance</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions ctx-group">
-        <button className={`ribbon-action ${labelsOn ? 'tool-selected' : ''}`} title={fields.length || hasLabelSource ? 'Label features on the map' : 'This layer has no attributes to label with'} disabled={!fields.length && !hasLabelSource} onClick={toggleLabels}><Tag size={17} /><span>Label</span></button>
-        <label className="ctx-field">
-          <span className="ctx-field-label">Label field</span>
-          <select
-            value={layer.labelField} disabled={!fields.length}
-            aria-label="Label field"
-            onChange={(event) => onUpdate({ labelField: event.target.value, labelStyle: { ...layer.labelStyle, enabled: Boolean(event.target.value) } })}
-          >
-            <option value="">None</option>
-            {fields.map((field) => <option key={field} value={field}>{layer.fieldAliases?.[field] || field}</option>)}
-          </select>
-        </label>
-        <div className="group-caption">Labeling</div>
-      </div>
-      <div className="ribbon-separator" />
-      <div className="phase-ribbon-actions ctx-group">
-        <button className="ribbon-action" title="Zoom to layer" onClick={onZoomToLayer}><LocateFixed size={17} /><span>Zoom to layer</span></button>
-        <button className={`ribbon-action ${tableOpen ? 'tool-selected' : ''}`} title="Open attribute table" onClick={onToggleTable}><Table2 size={17} /><span>Table</span></button>
-        <div className="group-caption">Navigate &amp; data</div>
-      </div>
-    </>
   )
 }
 

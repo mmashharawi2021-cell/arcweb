@@ -75,3 +75,22 @@ describe('project persistence of analysis, table and 3D state', () => {
     expect(restored.layout.elements[0]).toMatchObject({ type: 'titleblock', title: 'Map Title', fields: [{ label: 'A', value: '' }], frame: true })
   })
 })
+
+// Scale limits are project data, not interface preferences.
+describe('layer scale ranges', () => {
+  const load = (minScale?: number, maxScale?: number) => {
+    const layer = { ...sampleLayer(), minScale, maxScale }
+    return parseProject(JSON.stringify(buildProject({ name: 'Scales', basemap: 'osm', displayCrs: 'EPSG:4326', camera: null, bookmarks: [], layers: [layer], layout: { paper: 'A4', orientation: 'landscape', elements: [] }, workspaceLayout: defaultWorkspaceLayout() })), { paper: 'A4', orientation: 'landscape', elements: [] }).layers[0]
+  }
+  it('round-trips both denominators', () => {
+    expect(load(500000, 1000)).toMatchObject({ minScale: 500000, maxScale: 1000 })
+  })
+  it('drops contradictory and equal bounds', () => {
+    expect(load(1000, 500000)).not.toHaveProperty('minScale')
+    expect(load(1000, 1000)).not.toHaveProperty('maxScale')
+  })
+  it('clamps finite values and ignores invalid numbers', () => {
+    expect(load(1e12, -10)).toMatchObject({ minScale: 1e9, maxScale: 1 })
+    expect(load(NaN, Infinity)).not.toHaveProperty('minScale')
+  })
+})

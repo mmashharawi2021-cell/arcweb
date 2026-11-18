@@ -3,7 +3,7 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 import * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import maplibreWorkerUrl from './workers/maplibre.worker.ts?worker&url'
-import { coordinateReadout, requireCrs } from './crs'
+import { coordinateReadout, requireCrs, scaleDenominator } from './crs'
 import {
   Check, Compass, Focus, FolderOpen, Map as MapIcon, PanelRightClose, Settings2, Trash2, X, LayoutTemplate, Box,
 } from 'lucide-react'
@@ -43,7 +43,8 @@ import {
   buildLayerMenu, buildMapCanvasMenu, formatLngLat, runLayerMenuAction, runMapCanvasMenuAction, type MenuEntry,
 } from './contextMenu/menuModel'
 import { ViewRibbon } from './ribbon/ViewRibbon'
-import { FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/ContextualRibbons'
+import { FeatureLayerRibbon, RasterLayerRibbon } from './ribbon/LayerRibbons'
+import { buildUniqueRenderer, buildGraduatedRenderer, getFeatureFields, getNumericFields } from './symbology'
 import BookmarksPopover from './BookmarksPopover'
 import IdentifyPopup, { type IdentifyHit } from './IdentifyPopup'
 import { applyWorkspacePreset, normalizeWorkspaceLayout } from './workspaceLayout'
@@ -147,6 +148,8 @@ function App() {
   const selections = useArcWebStore((state) => state.selections)
   const bookmarks = useArcWebStore((state) => state.bookmarks)
   const projectName = useArcWebStore((state) => state.projectName)
+  const [calculatorRequest, setCalculatorRequest] = useState(0)
+  const [labelRequest, setLabelRequest] = useState(0)
   const tableOpen = useArcWebStore((state) => state.tableOpen)
   const workspaceLayout = useArcWebStore((state) => state.workspaceLayout)
   const basemap = useArcWebStore((state) => state.basemap)
@@ -372,11 +375,6 @@ function App() {
     if (!camera) return
     map.flyTo({ ...camera, pitch: map.getPitch(), bearing: map.getBearing(), duration: 2200, curve: 1.6, essential: true })
   }, [notify])
-
-  const openSymbologyPane = useCallback(() => {
-    const state = useArcWebStore.getState()
-    state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: !state.workspaceLayout.rightPaneOpen })
-  }, [])
 
   const zoomToAll = useCallback(() => {
     const bounds = getCollectionBounds(layers.filter((layer) => layer.visible).map((layer) => layer.data))
@@ -938,13 +936,27 @@ function App() {
       <section className={`ribbon-toolbar ${isContextualTab(activeTab) ? `contextual-toolbar contextual-${activeTab.startsWith('Layout') ? 'layout' : 'layer'}` : ''}`}>
         {addRibbonTooltips(<>{['FeatureAppearance', 'FeatureLabeling', 'FeatureData'].includes(activeTab) && selectedLayer ? (
           <FeatureLayerRibbon
+            tab={activeTab as 'FeatureAppearance' | 'FeatureLabeling' | 'FeatureData'}
             layer={selectedLayer}
-            symbologyOpen={workspaceLayout.rightPaneOpen}
-            tableOpen={tableOpen}
+            currentScale={() => { const map = mapRef.current; return map ? scaleDenominator(map.getCenter().lat, map.getZoom()) : undefined }}
             onUpdate={(updates) => useArcWebStore.getState().updateLayer(selectedLayer.id, updates)}
-            onOpenSymbology={openSymbologyPane}
-            onZoomToLayer={() => zoomToLayer(selectedLayer)}
-            onToggleTable={() => useArcWebStore.getState().setTableOpen(!tableOpen)}
+            onSymbology={(type, labels) => {
+              try {
+                if (type === 'single') useArcWebStore.getState().updateLayer(selectedLayer.id, { renderer: { type: 'single' } })
+                if (type === 'unique') useArcWebStore.getState().updateLayer(selectedLayer.id, { renderer: buildUniqueRenderer(selectedLayer, getFeatureFields(selectedLayer)[0], 'pastel', selectedLayer.renderer) })
+                if (type === 'graduated') useArcWebStore.getState().updateLayer(selectedLayer.id, { renderer: buildGraduatedRenderer(selectedLayer, getNumericFields(selectedLayer)[0], 'quantile', 5, 'viridis') })
+                const state = useArcWebStore.getState()
+                state.setWorkspaceLayout({ ...state.workspaceLayout, rightPaneOpen: true })
+                if (labels) setLabelRequest(value => value + 1)
+              } catch (error) { notify(error instanceof Error ? error.message : 'Could not apply symbology', 'error') }
+            }}
+            onTable={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }) }}
+            onCalculate={() => { const state = useArcWebStore.getState(); state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }); setCalculatorRequest(value => value + 1) }}
+            onSelect={() => setSelectionDialog('attributes')}
+            onZoomSelection={zoomToSelected}
+            onClear={clearSelection}
+            hasSelection={hasSelection}
+            onExport={format => exportSelectedLayer(selectedLayer, format)}
           />
         ) : ['RasterAppearance', 'RasterData'].includes(activeTab) && selectedLayer ? (
           <RasterLayerRibbon
@@ -1244,6 +1256,7 @@ function App() {
           onFrameChange={updateSymbologyFrame}
         >
         <SymbologyPanel
+          labelRequest={labelRequest}
           selectedLayer={selectedLayer}
           floating={workspaceLayout.panels.symbology.floating}
           onToggleFloat={() => togglePanelFloating('symbology')}
@@ -1264,6 +1277,7 @@ function App() {
           onFrameChange={updateAttributeTableFrame}
         >
         <AttributeTable
+          calculatorRequest={calculatorRequest}
           layer={selectedLayer}
           selectedFeatureId={selectedFeature?.layerId === selectedLayer.id ? selectedFeature.featureId : null}
           selectedIds={tableSelectedIds}

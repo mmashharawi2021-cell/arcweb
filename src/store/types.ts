@@ -97,6 +97,8 @@ export interface MapLayer {
   data: FeatureCollection
   geometry: GeometryKind
   visible: boolean
+  minScale?: number
+  maxScale?: number
   opacity: number
   fillColor: string
   strokeColor: string

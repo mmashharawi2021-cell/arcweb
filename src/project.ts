@@ -173,6 +173,7 @@ function parseLayer(value: unknown, index: number): MapLayer {
     data: { type: 'FeatureCollection', features } as FeatureCollection,
     geometry: geometryKinds.includes(value.geometry as GeometryKind) ? value.geometry as GeometryKind : 'Unknown',
     visible: value.visible !== false,
+    ...parseScaleRange(value),
     opacity: Math.max(0, Math.min(1, finite(value.opacity, 0.88))),
     fillColor,
     strokeColor,
@@ -322,4 +323,11 @@ export function parseProject(json: string, fallbackLayout: LayoutDocument): ArcW
     analysisHistory: parseAnalysisHistory(parsed.analysisHistory),
     tableViews: parseTableViews(parsed.tableViews, new Set(layers.map((layer) => layer.id))),
   }
+}
+
+function parseScaleRange(value: Record<string, unknown>): { minScale?: number; maxScale?: number } {
+  const scale = (v: unknown) => typeof v === 'number' && Number.isFinite(v) ? Math.max(1, Math.min(1e9, v)) : undefined
+  const minScale = scale(value.minScale), maxScale = scale(value.maxScale)
+  if (minScale !== undefined && maxScale !== undefined && minScale <= maxScale) return {}
+  return { ...(minScale !== undefined ? { minScale } : {}), ...(maxScale !== undefined ? { maxScale } : {}) }
 }

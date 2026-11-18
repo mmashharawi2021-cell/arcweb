@@ -7,10 +7,11 @@ import { getUniqueValueClasses } from '../symbology'
 import { testLayer } from '../toolboxes/testUtils'
 import { defaultWorkspaceLayout } from '../workspaceLayout'
 
-// This event-handler unit test needs no DOM. Only the two render-time hooks are
+// This event-handler unit test needs no DOM. Render-time hooks are
 // stubbed; the actual panel JSX, mode-change handler and project parser run.
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
+  useEffect: () => {},
   useMemo: (calculate: () => unknown) => calculate(),
   useState: () => [null, vi.fn()],
 }))

@@ -227,3 +227,8 @@ export function metersPerPixel(latitude: number, zoom: number): number {
 export function scaleDenominator(latitude: number, zoom: number): number {
   return metersPerPixel(latitude, zoom) * 96 / 0.0254
 }
+
+/** Inverse of scaleDenominator at the map centre latitude (96 dpi). */
+export function zoomForScale(latitude: number, scale: number): number {
+  return Math.log2(scaleDenominator(latitude, 0) / scale)
+}

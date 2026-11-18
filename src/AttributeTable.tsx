@@ -8,6 +8,7 @@ import { coerceCellInput, parseColumnFilter, queryTableRows } from './table/tabl
 const rowHeight = 34
 
 interface AttributeTableProps {
+  calculatorRequest?: number
   layer: MapLayer
   selectedFeatureId: string | number | null
   /** The layer's selection set (Select By Attributes / Location, Ctrl+click). */
@@ -53,7 +54,7 @@ function cellValue(value: unknown): string {
 }
 
 export default function AttributeTable({
-  layer, selectedFeatureId, selectedIds, height, floating, onToggleFloat, onResizePointerDown, onClose, onSelectFeature,
+  calculatorRequest = 0, layer, selectedFeatureId, selectedIds, height, floating, onToggleFloat, onResizePointerDown, onClose, onSelectFeature,
   onDeleteFeature, onAddField, onRemoveField, onCalculate, onToggleSelection, onSelectByAttributes,
   onZoomToSelected, onClearSelection, view, onViewChange, editable, onEditCell, canUndo, canRedo, onUndo, onRedo,
 }: AttributeTableProps) {
@@ -70,7 +71,9 @@ export default function AttributeTable({
   const [editing, setEditing] = useState<{ featureId: FeatureId; field: string; draft: string; error: string | null } | null>(null)
   const [fieldName, setFieldName] = useState('')
   const [showAddField, setShowAddField] = useState(false)
-  const [calculatorOpen, setCalculatorOpen] = useState(false)
+  const [calculatorState, setCalculatorState] = useState({ request: calculatorRequest, open: calculatorRequest > 0 })
+  const calculatorOpen = calculatorState.request !== calculatorRequest ? calculatorRequest > 0 : calculatorState.open
+  const setCalculatorOpen = (next: boolean | ((open: boolean) => boolean)) => setCalculatorState({ request: calculatorRequest, open: typeof next === 'function' ? next(calculatorOpen) : next })
   const [calculationName, setCalculationName] = useState('')
   const [expression, setExpression] = useState('')
   const deferredSearch = useDeferredValue(search)
@@ -161,14 +164,14 @@ export default function AttributeTable({
           <button className={`table-action ${filtersOpen ? 'active' : ''}`} title="Filter individual columns (text, =, !=, >, <, a..b, null)" onClick={() => setFiltersOpen((open) => !open)}><Filter size={14} />Columns{activeFilterCount > 0 && <span className="table-filter-count">{activeFilterCount}</span>}</button>
           <label className="table-search"><Search size={13} /><input dir="auto" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Filter records" aria-label="Filter records" /><kbd>⌕</kbd></label>
           <button className={`table-action ${calculatorOpen ? 'active' : ''}`} onClick={() => { setCalculatorOpen((open) => !open); setShowAddField(false) }}><Calculator size={14} />Field calculator</button>
-          <button className={`table-action ${showAddField ? 'active' : ''}`} onClick={() => { setShowAddField((show) => !show); setCalculatorOpen(false) }}><Plus size={14} />Add field</button>
+          <button className={`table-action ${showAddField && !calculatorOpen ? 'active' : ''}`} onClick={() => { setShowAddField((show) => !show); setCalculatorOpen(false) }}><Plus size={14} />Add field</button>
           <button className="table-action icon-only" title={floating ? 'Dock Attribute Table' : 'Float Attribute Table'} aria-label={floating ? 'Dock Attribute Table' : 'Float Attribute Table'} onClick={onToggleFloat}><Move size={14} /></button>
           <button className="table-close" title="Close attribute table" onClick={onClose}><X size={15} /></button>
         </div>
       </header>
       {(showAddField || calculatorOpen) && (
         <div className="table-form">
-          {showAddField ? (
+          {showAddField && !calculatorOpen ? (
             <>
               <span className="table-form-label">New field</span>
               <input value={fieldName} onChange={(event) => setFieldName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') submitField() }} placeholder="Field name" aria-label="New field name" />

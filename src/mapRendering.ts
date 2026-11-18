@@ -2,6 +2,7 @@ import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
 import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { FeatureId, FeatureSelection, MapLayer, RendererConfig } from './store'
+import { zoomForScale } from './crs'
 import { labelTextExpression } from './symbology'
 import { prepareMapSourceData, type MapSourceData } from './mapSourceData'
 
@@ -413,6 +414,7 @@ export function syncMapLayers(map: MapLibreMap, layers: MapLayer[], sceneView = 
       }
     }
     updateLayerStyle(map, layer, sceneView)
+    applyLayerScaleRange(map, layer)
   }
 
   for (const layer of [...layers].reverse()) {
@@ -545,3 +547,24 @@ export function geometryBounds(geometry: Geometry): [number, number, number, num
 
 /** The extrusion actually used for a layer in the 3D Scene (explicit setting or detected field). */
 export const resolveExtrusion = polygonHeightField
+
+const scaleRangeCache = new WeakMap<MapLibreMap, Map<string, string>>()
+function applyLayerScaleRange(map: MapLibreMap, layer: MapLayer) {
+  let cache = scaleRangeCache.get(map)
+  if (!cache) { cache = new Map(); scaleRangeCache.set(map, cache) }
+  const ranged = layer.minScale !== undefined || layer.maxScale !== undefined
+  if (!ranged && !Object.values(getLayerIds(layer.id)).some(id => cache!.has(id))) return
+  const latitude = Math.max(-85, Math.min(85, map.getCenter().lat))
+  const min = layer.minScale === undefined ? 0 : Math.max(0, Math.min(24, zoomForScale(latitude, layer.minScale)))
+  const max = layer.maxScale === undefined ? 24 : Math.max(0, Math.min(24, zoomForScale(latitude, layer.maxScale)))
+  for (const id of Object.values(getLayerIds(layer.id))) {
+    if (!map.getLayer(id)) continue
+    // Reapply after a style reload, even if the numeric limits have not changed.
+    map.setLayerZoomRange(id, min, max)
+    if (ranged) cache.set(id, min + ':' + max); else cache.delete(id)
+  }
+}
+/** Updates only style zoom limits; source data is never rewritten during navigation. */
+export function syncLayerScaleRanges(map: MapLibreMap, layers: MapLayer[]): void {
+  if (map.isStyleLoaded()) for (const layer of layers) applyLayerScaleRange(map, layer)
+}

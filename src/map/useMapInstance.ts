@@ -3,7 +3,7 @@ import type { RefObject } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { isRightClickGesture } from '../contextMenu/menuModel'
-import { ensureMapOverlays, getRenderedFeatureLayerIds, setSelectionOverlay, syncMapLayers } from '../mapRendering'
+import { syncLayerScaleRanges, ensureMapOverlays, getRenderedFeatureLayerIds, setSelectionOverlay, syncMapLayers } from '../mapRendering'
 import { useArcWebStore, type ViewMode } from '../store'
 
 /** A right-click on the map canvas (not a right-drag rotation). */
@@ -109,12 +109,20 @@ export function useMapInstance({ mapRef, mapHostRef, workspaceRef, sceneViewRef,
         eventsRef.current?.onFinishSketch()
       }
     }
+    let scaleLatitude = map.getCenter().lat
+    const onScaleMove = () => {
+      if (Math.abs(map.getCenter().lat - scaleLatitude) <= 5) return
+      scaleLatitude = map.getCenter().lat
+      syncLayerScaleRanges(map, useArcWebStore.getState().layers)
+    }
+    map.on('moveend', onScaleMove)
     map.once('load', onReady)
     map.on('click', onClick)
     map.on('dblclick', onDoubleClick)
     map.on('mousedown', onMouseDown)
     map.on('contextmenu', onContextMenu)
     return () => {
+      map.off('moveend', onScaleMove)
       map.off('load', onReady)
       map.off('mousedown', onMouseDown)
       map.off('contextmenu', onContextMenu)

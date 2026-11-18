@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, Circle, FolderOpen, Layers3, Move, MoveRight, PanelRightClose, Table2, Triangle } from 'lucide-react'
 import { getCrs } from './crs'
 import type { CategoricalRampId, ClassificationMethod, ContinuousRampId, MapLayer, PointShape, RendererConfig, StrokeDash } from './store'
@@ -17,6 +17,7 @@ import {
 } from './symbology'
 
 interface SymbologyPanelProps {
+  labelRequest?: number
   selectedLayer: MapLayer | null
   floating: boolean
   onToggleFloat: () => void
@@ -45,7 +46,14 @@ function GeometryIcon({ geometry }: { geometry: MapLayer['geometry'] }) {
   return <Layers3 size={15} />
 }
 
-export function SymbologyPanel({ selectedLayer, floating, onToggleFloat, onUpdate, onAddData }: SymbologyPanelProps) {
+export function SymbologyPanel({ labelRequest = 0, selectedLayer, floating, onToggleFloat, onUpdate, onAddData }: SymbologyPanelProps) {
+  useEffect(() => {
+    if (labelRequest > 0) {
+      const input = document.getElementById('label-expression')
+      input?.scrollIntoView({ block: 'center' })
+      input?.focus({ preventScroll: true })
+    }
+  }, [labelRequest])
   const [classificationErrorState, setClassificationErrorState] = useState<{ layerId: string; message: string } | null>(null)
   const classificationError = classificationErrorState && classificationErrorState.layerId === selectedLayer?.id
     ? classificationErrorState.message
