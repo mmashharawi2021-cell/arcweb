@@ -85,6 +85,15 @@ export default function Backstage({
         <div role="tablist" aria-orientation="vertical" aria-label="Project sections">
           {SECTIONS.map((item) => (
             <button key={item.id} type="button" role="tab" id={`backstage-tab-${item.id}`} aria-selected={item.id === section}
+              tabIndex={item.id === section ? 0 : -1}
+              onKeyDown={(event) => {
+                if (busy || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
+                event.preventDefault()
+                const index = SECTIONS.findIndex((entry) => entry.id === item.id)
+                const next = SECTIONS[event.key === 'Home' ? 0 : event.key === 'End' ? SECTIONS.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + SECTIONS.length) % SECTIONS.length]
+                onSection(next.id)
+                document.getElementById('backstage-tab-' + next.id)?.focus()
+              }}
               aria-controls="backstage-panel" className="backstage-tab" disabled={busy} onClick={() => onSection(item.id)}>{item.label}</button>
           ))}
         </div>
@@ -115,7 +124,7 @@ export default function Backstage({
               <Download size={32} aria-hidden="true" /><strong>Download project file</strong><span>Save the whole workspace as an .arcweb.json file.</span>
             </button>
             <button type="button" className="backstage-card" onClick={onSaveCopy}>
-              <Copy size={32} aria-hidden="true" /><strong>Save a copy in Projects</strong><span>Keep a separate copy in this browser's project library.</span>
+              <Copy size={32} aria-hidden="true" /><strong>Save a copy in Projects</strong><span>Create a separate copy in this browser and switch to editing it.</span>
             </button>
           </div>
         )}

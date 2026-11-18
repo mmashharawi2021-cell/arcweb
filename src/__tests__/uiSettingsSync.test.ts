@@ -38,7 +38,11 @@ describe('UI settings in the store', () => {
 
     useArcWebStore.getState().setMeasureUnits('nautical')
     useArcWebStore.getState().setCoordinateFormat('dms')
-    expect(JSON.parse(storage.getItem(KEY)!)).toEqual({ theme: 'dark', measureUnits: 'nautical', coordinateFormat: 'dms' })
+    expect(JSON.parse(storage.getItem(KEY)!)).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'nautical', coordinateFormat: 'dms' })
+
+    useArcWebStore.getState().setSnapping({ enabled: false, tolerancePx: 15 })
+    const { loadUiSettings } = await import('../ui/uiSettings')
+    expect(loadUiSettings().snapping).toEqual({ enabled: false, tolerancePx: 15 })
 
     setItem.mockClear()
     useArcWebStore.getState().setProjectName('Unrelated')

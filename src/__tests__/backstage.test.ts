@@ -57,6 +57,21 @@ describe('Project backstage', () => {
     expect(button('Download project file')).toBeDefined()
   })
 
+  it('navigates sections with arrows, Home and End', () => {
+    const onSection = vi.fn()
+    renderComponent(createElement(Backstage, props({ onSection })))
+    const first = document.getElementById('backstage-tab-new')!
+    press(first, 'ArrowUp')
+    expect(onSection).toHaveBeenLastCalledWith('about')
+    expect(document.activeElement?.id).toBe('backstage-tab-about')
+    press(document.activeElement!, 'Home')
+    expect(onSection).toHaveBeenLastCalledWith('new')
+    press(first, 'ArrowDown')
+    expect(onSection).toHaveBeenLastCalledWith('open')
+    press(first, 'End')
+    expect(onSection).toHaveBeenLastCalledWith('about')
+  })
+
   it('switches section through onSection', () => {
     const onSection = vi.fn()
     renderComponent(createElement(Backstage, props({ onSection })))

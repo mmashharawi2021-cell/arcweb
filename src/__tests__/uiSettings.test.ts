@@ -22,22 +22,22 @@ describe('UI settings', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('returns defaults (dark, metric, dd) when storage is empty', () => {
-    expect(loadUiSettings()).toEqual({ theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' })
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' })
   })
 
   it('returns defaults when the stored value is corrupt', () => {
     window.localStorage.setItem(KEY, '{not json')
-    expect(loadUiSettings()).toEqual({ theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' })
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' })
   })
 
   it('round-trips saved settings', () => {
     saveUiSettings({ theme: 'light', measureUnits: 'nautical', coordinateFormat: 'dms' })
-    expect(loadUiSettings()).toEqual({ theme: 'light', measureUnits: 'nautical', coordinateFormat: 'dms' })
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'light', measureUnits: 'nautical', coordinateFormat: 'dms' })
   })
 
   it('ignores unknown values field by field', () => {
     window.localStorage.setItem(KEY, JSON.stringify({ theme: 'neon', measureUnits: 'imperial', coordinateFormat: 42 }))
-    expect(loadUiSettings()).toEqual({ theme: 'dark', measureUnits: 'imperial', coordinateFormat: 'dd' })
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'imperial', coordinateFormat: 'dd' })
   })
 
   it('keeps working when storage throws', () => {

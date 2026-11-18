@@ -7,7 +7,7 @@ import { saveUiSettings } from './uiSettings'
  */
 export function startUiSettingsSync(): () => void {
   return useArcWebStore.subscribe((next, prior) => {
-    if (next.theme === prior.theme && next.measureUnits === prior.measureUnits && next.coordinateFormat === prior.coordinateFormat) return
-    saveUiSettings({ theme: next.theme, measureUnits: next.measureUnits, coordinateFormat: next.coordinateFormat })
+    if (next.theme === prior.theme && next.measureUnits === prior.measureUnits && next.coordinateFormat === prior.coordinateFormat && next.snapping === prior.snapping) return
+    saveUiSettings({ snapping: next.snapping, theme: next.theme, measureUnits: next.measureUnits, coordinateFormat: next.coordinateFormat })
   })
 }

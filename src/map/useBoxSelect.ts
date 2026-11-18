@@ -32,6 +32,7 @@ export function useBoxSelect(map: MapLibreMap | null, active: boolean, onBox: (b
     const onMouseDown = (event: MapMouseEvent) => {
       if (event.originalEvent.button !== 0) return
       const original = event.originalEvent
+      clear()
       start = { x: event.point.x, y: event.point.y, method: original.shiftKey ? 'add' : original.ctrlKey || original.metaKey ? 'remove' : 'new' }
       rectangle = document.createElement('div')
       rectangle.className = 'box-select-rectangle'
@@ -61,10 +62,21 @@ export function useBoxSelect(map: MapLibreMap | null, active: boolean, onBox: (b
       ], method)
     }
 
+    // MapLibre only emits mouseup over the map. Cancel a drag released elsewhere.
+    const onWindowMouseUp = () => clear()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') clear()
+    }
+    window.addEventListener('mouseup', onWindowMouseUp)
+    window.addEventListener('blur', clear)
+    window.addEventListener('keydown', onKeyDown)
     map.on('mousedown', onMouseDown)
     map.on('mousemove', onMouseMove)
     map.on('mouseup', onMouseUp)
     return () => {
+      window.removeEventListener('mouseup', onWindowMouseUp)
+      window.removeEventListener('blur', clear)
+      window.removeEventListener('keydown', onKeyDown)
       map.off('mousedown', onMouseDown)
       map.off('mousemove', onMouseMove)
       map.off('mouseup', onMouseUp)

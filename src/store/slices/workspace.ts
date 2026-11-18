@@ -55,7 +55,7 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
     theme: settings.theme,
     measureUnits: settings.measureUnits,
     coordinateFormat: settings.coordinateFormat,
-    snapping: { enabled: true, tolerancePx: 10 },
+    snapping: settings.snapping ?? { enabled: true, tolerancePx: 10 },
     activeTab: 'Map',
     ribbonReturnTab: 'Map',
     tool: 'pan',

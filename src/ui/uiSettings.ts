@@ -5,6 +5,7 @@ export type CoordinateFormat = 'dd' | 'dms' | 'ddm' | 'utm'
 
 /** Per-browser interface preferences (Backstage › Options). Not part of a project. */
 export interface UiSettings {
+  snapping?: { enabled: boolean; tolerancePx: number }
   theme: 'dark' | 'light'
   measureUnits: LengthUnit
   coordinateFormat: CoordinateFormat
@@ -31,7 +32,12 @@ export function loadUiSettings(): UiSettings {
   } catch {
     // Private mode, blocked storage or corrupt JSON: use defaults.
   }
+  const snapping = saved.snapping as Record<string, unknown> | undefined
   return {
+    snapping: {
+      enabled: typeof snapping?.enabled === 'boolean' ? snapping.enabled : true,
+      tolerancePx: typeof snapping?.tolerancePx === 'number' && Number.isFinite(snapping.tolerancePx) && snapping.tolerancePx > 0 && snapping.tolerancePx <= 100 ? snapping.tolerancePx : 10,
+    },
     theme: pick(saved.theme, THEMES, DEFAULT_UI_SETTINGS.theme),
     measureUnits: pick(saved.measureUnits, UNITS, DEFAULT_UI_SETTINGS.measureUnits),
     coordinateFormat: pick(saved.coordinateFormat, FORMATS, DEFAULT_UI_SETTINGS.coordinateFormat),

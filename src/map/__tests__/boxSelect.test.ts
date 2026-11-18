@@ -103,6 +103,22 @@ function fakeMap() {
 describe('useBoxSelect', () => {
   afterEach(() => { document.body.innerHTML = '' })
 
+  it.each(['mouseup', 'blur', 'Escape'])('cancels a drag on %s without selecting on the next release', (action) => {
+    const map = fakeMap()
+    const onBox = vi.fn()
+    const { unmount } = renderHook(() => useBoxSelect(map as unknown as MapLibreMap, true, onBox), undefined)
+    act(() => {
+      map.emit('mousedown', 10, 10)
+      window.dispatchEvent(action === 'Escape' ? new KeyboardEvent('keydown', { key: 'Escape' }) : new Event(action))
+      map.emit('mouseup', 80, 80)
+    })
+    expect(onBox).not.toHaveBeenCalled()
+    expect(map.container.querySelector('.box-select-rectangle')).toBeNull()
+    act(() => { map.emit('mousedown', 10, 10); map.emit('mouseup', 50, 50) })
+    expect(onBox).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
   it('turns a drag into a geographic box and a selection method', () => {
     const map = fakeMap()
     const onBox = vi.fn()

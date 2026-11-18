@@ -81,7 +81,7 @@ export default function ProjectLibraryContent({
           await onCreate({ project: { ...current.project, name: 'Untitled map', layers: [], map: { ...current.project.map, bookmarks: [] }, analysisHistory: [], tableViews: {}, layout: { ...current.project.layout, elements: [] } }, editSnapshots: {} })
           done()
         })}>New project</button>
-        <button className="phase-secondary-button" disabled={busy} onClick={() => void run(async () => { const current = capture(); await onCreate({ ...current, project: { ...current.project, name: `${current.project.name} — copy` } }, false); setMessage('Saved as a separate project.') })}>Save as new copy</button>
+        <button className="phase-secondary-button" disabled={busy} onClick={() => void run(async () => { const current = capture(); await onCreate({ ...current, project: { ...current.project, name: `${current.project.name} — copy` } }, false); setMessage('Saved as a separate project.') })} title="Save a copy while continuing to edit the current project">Save copy without switching</button>
         <button className="phase-secondary-button" disabled={busy} onClick={() => void run(async () => { await onFlush(); setMessage('Project saved.'); })}>Save now</button>
       </div>
       <div className="library-projects">

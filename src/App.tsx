@@ -545,7 +545,7 @@ function App() {
   // Ctrl+O must not switch the Project page away from a running storage operation.
   const backstageBusyRef = useRef(false)
   const setBackstageBusy = useCallback((busy: boolean) => { backstageBusyRef.current = busy }, [])
-  const openProjectPage = useCallback(() => { if (!backstageBusyRef.current) setBackstage('open') }, [])
+  const openProjectPage = useCallback(() => { if (!backstageBusyRef.current && !document.querySelector('[aria-modal="true"]:not(.backstage)')) setBackstage('open') }, [])
   const renameProject = useCallback((name: string) => useArcWebStore.getState().setProjectName(name), [])
   /** Quick Access Save / Ctrl+S: projects save automatically; this commits pending changes now. */
   const { state: libraryState, error: libraryError, flush: flushLibrary } = library
@@ -1377,7 +1377,7 @@ function App() {
           onConfirm={() => applyProject(pendingProject)}
         >
           <p>Opening this project replaces the current workspace: {layers.length} layer{layers.length === 1 ? '' : 's'}, the layout, panel positions and bookmarks will be discarded.</p>
-          <p className="modal-note">Use Save Project first if you want to keep the current work. The project contains {pendingProject.layers.length} layer{pendingProject.layers.length === 1 ? '' : 's'}{pendingProject.savedAt ? ` and was saved on ${new Date(pendingProject.savedAt).toLocaleString()}` : ''}.</p>
+          <p className="modal-note">Cancel and save your current work from the Project page if you want to keep it. The project contains {pendingProject.layers.length} layer{pendingProject.layers.length === 1 ? '' : 's'}{pendingProject.savedAt ? ` and was saved on ${new Date(pendingProject.savedAt).toLocaleString()}` : ''}.</p>
         </ConfirmDialog>
       )}
 
