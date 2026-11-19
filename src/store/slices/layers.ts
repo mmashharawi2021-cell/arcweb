@@ -16,7 +16,7 @@ export interface LayersSlice {
 }
 
 function normalizeLabelStyle(style: LabelStyle | undefined, layer: MapLayer): LabelStyle {
-  const source = style ?? {
+  const source: Partial<LabelStyle> = style ?? {
     enabled: Boolean(layer.labelField),
     expression: '',
     fontSize: 11,
@@ -26,15 +26,21 @@ function normalizeLabelStyle(style: LabelStyle | undefined, layer: MapLayer): La
     placement: 'point' as const,
     offset: 1.15,
   }
+  const validAnchors = ['center','top','bottom','left','right','top-left','top-right','bottom-left','bottom-right'] as const
   return {
     enabled: typeof source.enabled === 'boolean' ? source.enabled : Boolean(layer.labelField),
     expression: typeof source.expression === 'string' ? source.expression : '',
-    fontSize: Number.isFinite(source.fontSize) ? Math.max(6, Math.min(48, source.fontSize)) : 11,
+    fontSize: Number.isFinite(source.fontSize) ? Math.max(6, Math.min(48, source.fontSize!)) : 11,
     color: typeof source.color === 'string' ? source.color : layer.strokeColor,
     haloColor: typeof source.haloColor === 'string' ? source.haloColor : 'rgba(18, 22, 30, 0.88)',
-    haloWidth: Number.isFinite(source.haloWidth) ? Math.max(0, Math.min(8, source.haloWidth)) : 1.4,
+    haloWidth: Number.isFinite(source.haloWidth) ? Math.max(0, Math.min(8, source.haloWidth!)) : 1.4,
     placement: source.placement === 'line' ? 'line' : 'point',
-    offset: Number.isFinite(source.offset) ? Math.max(-5, Math.min(5, source.offset)) : 1.15,
+    offset: Number.isFinite(source.offset) ? Math.max(-5, Math.min(5, source.offset!)) : 1.15,
+    anchor: validAnchors.includes(source.anchor as never) ? source.anchor as LabelStyle['anchor'] : 'top',
+    offsetX: Number.isFinite(source.offsetX) ? source.offsetX! : 0,
+    offsetY: Number.isFinite(source.offsetY) ? source.offsetY! : 0,
+    neverRemove: source.neverRemove === true,
+    priority: Number.isFinite(source.priority) ? Math.max(1, Math.min(5, source.priority!)) : 3,
   }
 }
 

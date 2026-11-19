@@ -53,6 +53,8 @@ interface MapRibbonProps {
   onGoToXY?: () => void
   /** Identify (Inquiry group): click a feature to view its attributes. */
   onIdentify?: () => void
+  /** Locate (Inquiry group): search for a place and zoom to it. */
+  onLocate?: () => void
   /** Rectangle selection tool (Task 8); disabled until provided. */
   onSelectTool?: (mode: 'select-box') => void
   onOpenMapProperties: () => void
@@ -121,6 +123,7 @@ export function MapRibbon(props: MapRibbonProps) {
         <div className="ribbon-stack">
           <RibbonButton id="identify" label="Identify" icon={Info} size="small" disabled={!props.onIdentify} onClick={props.onIdentify} />
           <RibbonButton id="go-to-xy" label="Go To XY" icon={Crosshair} size="small" disabled={!props.onGoToXY} onClick={props.onGoToXY} />
+          <RibbonButton id="locate" label="Locate" icon={Navigation} size="small" disabled={!props.onLocate} onClick={props.onLocate} />
         </div>
       </RibbonGroup>
       <RibbonGroup label="View" icon={Globe2}>

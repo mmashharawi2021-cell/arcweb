@@ -4,7 +4,7 @@ import { featureCollection } from '@turf/helpers'
 import type { Feature, Geometry } from 'geojson'
 import { getLayer, getOptionalText, outputLayer } from '../shared'
 import {
-  assertHasFeatures, collectFields, featureContains, fillSchema, makeSpatialIndex, pairBudget, renameCollidingFields, renameProperties,
+  assertHasFeatures, collectFields, featureContains, fillSchema, makeSpatialIndex, pairBudget, renameCollidingFields,
   usableFeatures,
 } from '../spatial'
 import type { ToolboxTool } from '../types'
@@ -58,6 +58,7 @@ export const spatialJoinTool: ToolboxTool = {
       ],
     },
     { id: 'outputName', label: 'Output layer name', kind: 'text', placeholder: 'Spatial join output' },
+    { id: 'joinFields', label: 'Join fields to keep (Field Map)', kind: 'text', placeholder: 'Leave blank to keep all fields', required: false },
   ],
   execute: (context, parameters) => {
     const targetLayer = getLayer(context, parameters, 'target')
@@ -65,6 +66,10 @@ export const spatialJoinTool: ToolboxTool = {
     const option = (getOptionalText(parameters, 'match') || 'intersects') as MatchOption
     const oneToMany = getOptionalText(parameters, 'operation') === 'one-to-many'
     const keepAll = getOptionalText(parameters, 'keepAll') !== 'no'
+    const joinFieldsRaw = getOptionalText(parameters, 'joinFields') ?? ''
+    const selectedJoinFields = joinFieldsRaw.trim()
+      ? joinFieldsRaw.split(',').map((f) => f.trim()).filter(Boolean)
+      : null
 
     const targets = usableFeatures(targetLayer)
     const joins = usableFeatures(joinLayer)
@@ -73,7 +78,11 @@ export const spatialJoinTool: ToolboxTool = {
 
     const targetFields = collectFields(targets)
     const bookkeeping = oneToMany ? [JOIN_COUNT, TARGET_FID, JOIN_FID] : [JOIN_COUNT, TARGET_FID]
-    const joinMapping = renameCollidingFields([...bookkeeping, ...targetFields], collectFields(joins))
+    const allJoinFields = collectFields(joins)
+    const filteredJoinFields = selectedJoinFields
+      ? allJoinFields.filter((f) => selectedJoinFields.includes(f))
+      : allJoinFields
+    const joinMapping = renameCollidingFields([...bookkeeping, ...targetFields], filteredJoinFields)
     const joinNumbers = new Map(joins.map((feature, index) => [feature, index + 1]))
     const index = makeSpatialIndex(joins)
     const spend = pairBudget('Spatial Join')
@@ -96,7 +105,7 @@ export const spatialJoinTool: ToolboxTool = {
             ...base,
             ...(oneToMany ? { [JOIN_FID]: join ? joinNumbers.get(join) ?? -1 : -1 } : {}),
             ...(target.properties ?? {}),
-            ...(join ? renameProperties(join.properties, joinMapping) : {}),
+            ...(join ? Object.fromEntries([...joinMapping.entries()].map(([orig, renamed]) => [renamed, join.properties?.[orig] ?? null])) : {}),
           },
         })
       }

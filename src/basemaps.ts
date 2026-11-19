@@ -4,13 +4,18 @@ import type { BasemapId } from './store'
 export const basemaps: { id: BasemapId; name: string; note: string; preview: string }[] = [
   { id: 'osm', name: 'OpenStreetMap', note: 'Streets', preview: 'map-preview-osm' },
   { id: 'satellite', name: 'World Imagery', note: 'Satellite', preview: 'map-preview-satellite' },
+  { id: 'topo', name: 'World Topographic', note: 'Esri', preview: 'map-preview-topo' },
   { id: 'dark', name: 'Dark Matter', note: 'Carto', preview: 'map-preview-dark' },
   { id: 'light', name: 'Positron Light', note: 'Carto', preview: 'map-preview-light' },
+  { id: 'smooth', name: 'Alidade Smooth', note: 'Stadia', preview: 'map-preview-smooth' },
+  { id: 'terrain', name: 'Stamen Terrain', note: 'Stadia', preview: 'map-preview-terrain' },
 ]
 
 export function baseStyle(id: BasemapId): StyleSpecification | string {
   if (id === 'dark') return 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
   if (id === 'light') return 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+  if (id === 'smooth') return 'https://tiles.stadiamaps.com/styles/alidade_smooth.json'
+  if (id === 'terrain') return 'https://tiles.stadiamaps.com/styles/stamen_terrain.json'
   const configs = {
     osm: {
       url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -20,8 +25,12 @@ export function baseStyle(id: BasemapId): StyleSpecification | string {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       attribution: 'Tiles &copy; Esri',
     },
-  } satisfies Record<'osm' | 'satellite', { url: string; attribution: string }>
-  const selected = configs[id]
+    topo: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri',
+    },
+  } satisfies Record<'osm' | 'satellite' | 'topo', { url: string; attribution: string }>
+  const selected = configs[id as 'osm' | 'satellite' | 'topo']
   return {
     version: 8,
     sources: {

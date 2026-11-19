@@ -19,10 +19,12 @@ interface Props {
   onClear: () => void
   hasSelection: boolean
   onExport: (format: 'geojson' | 'csv') => void
+  /** Opens the Label Class pane in the right dock. */
+  onLabelClass?: () => void
 }
 const SCALES = [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 5000000, 10000000, 50000000]
 
-export function FeatureLayerRibbon({ tab, layer, currentScale, onUpdate, onSymbology, onTable, onCalculate, onSelect, onZoomSelection, onClear, hasSelection, onExport }: Props) {
+export function FeatureLayerRibbon({ tab, layer, currentScale, onUpdate, onSymbology, onTable, onCalculate, onSelect, onZoomSelection, onClear, hasSelection, onExport, onLabelClass }: Props) {
   const fields = getFeatureFields(layer)
   const numeric = getNumericFields(layer)
   const style = layer.labelStyle
@@ -74,6 +76,9 @@ export function FeatureLayerRibbon({ tab, layer, currentScale, onUpdate, onSymbo
     <RibbonGroup label="Placement" icon={Layers}>
       <label className="ctx-field"><span>Placement</span><select aria-label="Label placement" value={style.placement} onChange={e => label({ placement: e.target.value as 'point' | 'line' })}><option value="point">Point / area</option><option value="line">Along line</option></select></label>
       <label className="ctx-field ctx-field-narrow"><span>Offset</span><input aria-label="Label offset" type="number" min="-10" max="10" step="0.1" value={style.offset} onChange={e => { if (e.target.value) label({ offset: Math.max(-10, Math.min(10, Number(e.target.value))) }) }} /></label>
+    </RibbonGroup>
+    <RibbonGroup label="Label Class" icon={Paintbrush}>
+      <RibbonButton id="label-class-pane" label="Label Class Pane" icon={Paintbrush} size="large" onClick={onLabelClass} />
     </RibbonGroup>
   </RibbonGroupBar>
   return <RibbonGroupBar>

@@ -284,6 +284,7 @@ function addLabelLayer(map: MapLibreMap, layer: MapLayer) {
   const ids = getLayerIds(layer.id)
   if (map.getLayer(ids.label) || (!layer.labelField && !layer.labelStyle?.expression.trim())) return
   const placement = layer.labelStyle?.placement ?? 'point'
+  const neverRemove = layer.labelStyle?.neverRemove ?? false
   map.addLayer({
     id: ids.label,
     type: 'symbol',
@@ -292,11 +293,13 @@ function addLabelLayer(map: MapLibreMap, layer: MapLayer) {
     layout: {
       'text-field': labelExpression(layer),
       'text-size': layer.labelStyle?.fontSize ?? 11,
-      'text-offset': [0, layer.labelStyle?.offset ?? 1.15],
-      'text-anchor': 'top',
+      'text-offset': [layer.labelStyle?.offsetX ?? 0, layer.labelStyle?.offsetY ?? (layer.labelStyle?.offset ?? 1.15)],
+      'text-anchor': layer.labelStyle?.anchor ?? 'top',
       'symbol-placement': placement === 'line' ? 'line' : 'point',
       'text-writing-mode': ['horizontal'],
-      'text-allow-overlap': false,
+      'text-allow-overlap': neverRemove,
+      'text-ignore-placement': neverRemove,
+      'text-optional': !neverRemove,
     },
     paint: {
       'text-color': layer.labelStyle?.color ?? layer.strokeColor,
@@ -350,8 +353,12 @@ function updateLayerStyle(map: MapLibreMap, layer: MapLayer, sceneView: boolean)
     map.setFilter(ids.label, ['!=', ['to-string', labelExpression(layer)], ''])
     map.setLayoutProperty(ids.label, 'text-field', labelExpression(layer))
     map.setLayoutProperty(ids.label, 'text-size', layer.labelStyle.fontSize)
-    map.setLayoutProperty(ids.label, 'text-offset', [0, layer.labelStyle.offset])
+    map.setLayoutProperty(ids.label, 'text-offset', [layer.labelStyle.offsetX ?? 0, layer.labelStyle.offsetY ?? layer.labelStyle.offset])
+    map.setLayoutProperty(ids.label, 'text-anchor', layer.labelStyle.anchor ?? 'top')
     map.setLayoutProperty(ids.label, 'symbol-placement', layer.labelStyle.placement === 'line' ? 'line' : 'point')
+    map.setLayoutProperty(ids.label, 'text-allow-overlap', layer.labelStyle.neverRemove ?? false)
+    map.setLayoutProperty(ids.label, 'text-ignore-placement', layer.labelStyle.neverRemove ?? false)
+    map.setLayoutProperty(ids.label, 'text-optional', !(layer.labelStyle.neverRemove ?? false))
     map.setPaintProperty(ids.label, 'text-color', layer.labelStyle.color)
     map.setPaintProperty(ids.label, 'text-halo-color', layer.labelStyle.haloColor)
     map.setPaintProperty(ids.label, 'text-halo-width', layer.labelStyle.haloWidth)

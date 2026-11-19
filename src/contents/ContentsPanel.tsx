@@ -1,10 +1,10 @@
 import { contentsSections, type ContentsMode } from './contentsModes'
 import { SymbolPatch } from './SymbolPatch'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import {
   ChevronDown, Database, Eye, EyeOff, Globe2, Layers3, Magnet, Move, MousePointer2, Pencil, Plus, Search,
-  Settings2,
+  Settings2, Table2,
 } from 'lucide-react'
 import { useArcWebStore, type MapLayer } from '../store'
 import { ContentsRendererLegend } from './ContentsLegend'
@@ -34,9 +34,26 @@ export default function ContentsPanel({
   const [mode,setMode]=useState<ContentsMode>('drawing')
   const selections=useArcWebStore(state=>state.selections),snapshots=useArcWebStore(state=>state.editSnapshots)
   const [layerSearch, setLayerSearch] = useState('')
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const renameInputRef = useRef<HTMLInputElement>(null)
   const filteredLayers = useMemo(() => layers.filter((layer) => layer.name.toLowerCase().includes(layerSearch.toLowerCase())), [layers, layerSearch])
-  const sections=contentsSections(mode,filteredLayers,selections,snapshots)
+  const spatialLayers = useMemo(() => filteredLayers.filter((l) => l.geometry !== 'Unknown'), [filteredLayers])
+  const standaloneTables = useMemo(() => filteredLayers.filter((l) => l.geometry === 'Unknown'), [filteredLayers])
+  const sections=contentsSections(mode,spatialLayers,selections,snapshots)
   const listedLayers=sections.flatMap(section=>section.layers)
+
+  const startRename = (layer: MapLayer) => {
+    setRenamingId(layer.id)
+    setRenameValue(layer.name)
+    setTimeout(() => renameInputRef.current?.select(), 0)
+  }
+  const commitRename = () => {
+    if (renamingId && renameValue.trim()) {
+      useArcWebStore.getState().updateLayer(renamingId, { name: renameValue.trim() })
+    }
+    setRenamingId(null)
+  }
   return (
     <aside className={`dock contents-dock ${minimized ? 'contents-minimized' : ''}`}>
       <div className="dock-heading">
@@ -84,10 +101,24 @@ export default function ContentsPanel({
                   useArcWebStore.getState().updateLayer(layer.id, { visible: !layer.visible })
                 }}>{layer.visible ? <Eye size={14} /> : <EyeOff size={14} />}</button>
                 <span className={`geometry-icon geometry-${layer.geometry.toLowerCase()}`} title={layer.geometry === 'Unknown' ? 'Standalone table' : `${layer.geometry} geometry`}><SymbolPatch layer={layer} /></span>
-                <button className="layer-name-button" dir="auto" title={layer.name} onClick={(event) => {
-                  event.stopPropagation()
-                  useArcWebStore.getState().setSelectedLayer(layer.id)
-                }}><bdi>{layer.name}</bdi></button>
+                {renamingId === layer.id ? (
+                  <input
+                    ref={renameInputRef}
+                    className="layer-name-input"
+                    value={renameValue}
+                    dir="auto"
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={commitRename}
+                    onKeyDown={(e) => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null) }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <button className="layer-name-button" dir="auto" title={`${layer.name} (double-click to rename)`}
+                    onClick={(event) => { event.stopPropagation(); useArcWebStore.getState().setSelectedLayer(layer.id) }}
+                    onDoubleClick={(event) => { event.stopPropagation(); startRename(layer) }}>
+                    <bdi>{layer.name}</bdi>
+                  </button>
+                )}
               </div>
               {selected && (
                 <div className="layer-opacity" onClick={(event) => event.stopPropagation()}>
@@ -98,6 +129,34 @@ export default function ContentsPanel({
             </div>
           )
         })}
+        {standaloneTables.length > 0 && (
+          <div className="standalone-tables-section">
+            <div className="standalone-tables-heading"><Table2 size={13} /><span>Standalone Tables</span></div>
+            {standaloneTables.map((layer) => {
+              const selected = selectedLayerId === layer.id
+              return (
+                <div key={layer.id} className={`layer-row standalone-table-row ${selected ? 'selected' : ''} ${menuLayerId === layer.id ? 'menu-open' : ''}`}
+                  tabIndex={0} onClick={() => useArcWebStore.getState().setSelectedLayer(layer.id)} onContextMenu={(event) => onLayerMenu(event, layer.id)}>
+                  <div className="layer-main">
+                    <Table2 size={14} className="standalone-table-icon" />
+                    {renamingId === layer.id ? (
+                      <input ref={renameInputRef} className="layer-name-input" value={renameValue} dir="auto"
+                        onChange={(e) => setRenameValue(e.target.value)} onBlur={commitRename}
+                        onKeyDown={(e) => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null) }}
+                        onClick={(e) => e.stopPropagation()} />
+                    ) : (
+                      <button className="layer-name-button" dir="auto" title={`${layer.name} (double-click to rename)`}
+                        onClick={(e) => { e.stopPropagation(); useArcWebStore.getState().setSelectedLayer(layer.id) }}
+                        onDoubleClick={(e) => { e.stopPropagation(); startRename(layer) }}>
+                        <bdi>{layer.name}</bdi>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
         {layers.length === 0 && (
           <button className="empty-layers" onClick={onAddData}>
             <div className="empty-glyph"><Database size={20} /></div>

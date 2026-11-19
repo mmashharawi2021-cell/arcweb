@@ -1,11 +1,11 @@
 import type { PanelFrame, WorkspaceLayoutConfig, WorkspacePreset } from '../workspaceLayout'
-export const PANE_IDS = ['contents', 'catalog', 'geoprocessing', 'symbology', 'createFeatures', 'modifyFeatures', 'attributes'] as const
+export const PANE_IDS = ['contents', 'catalog', 'geoprocessing', 'symbology', 'createFeatures', 'modifyFeatures', 'attributes', 'labelClass'] as const
 export type PaneId = typeof PANE_IDS[number]
 export type DockSide = 'left' | 'right' | 'float'
 export interface PaneState { open: boolean; side: DockSide; autoHide: boolean; frame: PanelFrame; order: number }
 export interface PaneLayout { panes: Record<PaneId, PaneState>; active: { left: PaneId | null; right: PaneId | null }; dockWidth: { left: number; right: number } }
 export function defaultPaneLayout(): PaneLayout {
-  return { panes: Object.fromEntries(PANE_IDS.map((id, order) => [id, { open: ['contents', 'catalog', 'geoprocessing', 'symbology'].includes(id), side: id === 'contents' ? 'left' : 'right', autoHide: false, order, frame: { left: 500, top: 150, width: 350, height: 550 } }])) as PaneLayout['panes'], active: { left: 'contents', right: 'catalog' }, dockWidth: { left: 255, right: 320 } }
+  return { panes: Object.fromEntries(PANE_IDS.map((id, order) => [id, { open: ['contents', 'catalog', 'geoprocessing', 'symbology'].includes(id), side: id === 'contents' ? 'left' : 'right', autoHide: false, order, frame: { left: 500, top: 150, width: 350, height: 580 } }])) as PaneLayout['panes'], active: { left: 'contents', right: 'catalog' }, dockWidth: { left: 255, right: 320 } }
 }
 function reconcile(layout: PaneLayout): PaneLayout {
   const active = { ...layout.active }

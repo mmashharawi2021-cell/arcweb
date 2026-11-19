@@ -21,8 +21,11 @@ interface LayoutViewProps {
 const basemapCredits: Record<BasemapId, string> = {
   osm: '© OpenStreetMap contributors',
   satellite: 'Imagery © Esri, Maxar, Earthstar Geographics',
+  topo: 'Tiles © Esri',
   dark: '© CARTO · © OpenStreetMap contributors',
   light: '© CARTO · © OpenStreetMap contributors',
+  smooth: '© Stadia Maps · © OpenStreetMap contributors',
+  terrain: '© Stadia Maps · © Stamen Design · © OpenStreetMap contributors',
 }
 
 const MIN_SIZE_MM = 6

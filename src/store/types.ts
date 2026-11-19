@@ -6,7 +6,7 @@ import type { WorkspaceSlice } from './slices/workspace'
 import type { ProjectDataSlice } from './slices/projectData'
 
 export type GeometryKind = 'Point' | 'Line' | 'Polygon' | 'Mixed' | 'Unknown'
-export type BasemapId = 'osm' | 'satellite' | 'dark' | 'light'
+export type BasemapId = 'osm' | 'satellite' | 'dark' | 'light' | 'topo' | 'smooth' | 'terrain'
 export type CoreTab = 'Map' | 'Insert' | 'Analysis' | 'Edit' | 'View' | 'Share' | 'Help'
 /** Ribbon tabs that only appear while their context (layer type or edit session) is active. */
 export type ContextualTab = 'FeatureAppearance' | 'FeatureLabeling' | 'FeatureData' | 'RasterAppearance' | 'RasterData' | 'LayoutInsert' | 'LayoutExport'
@@ -31,6 +31,16 @@ export interface LabelStyle {
   haloWidth: number
   placement: 'point' | 'line'
   offset: number
+  /** Text anchor position relative to the feature. */
+  anchor?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  /** Horizontal offset in ems. */
+  offsetX?: number
+  /** Vertical offset in ems. */
+  offsetY?: number
+  /** When true, labels are never removed by the collision detector. */
+  neverRemove?: boolean
+  /** Label priority (1 = highest, 5 = lowest). */
+  priority?: number
 }
 /** A saved camera position. */
 export interface Bookmark {

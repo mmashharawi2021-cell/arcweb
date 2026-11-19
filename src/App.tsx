@@ -89,6 +89,8 @@ import { useMapInstance, type MapEvents } from './map/useMapInstance'
 import { useMapSync } from './map/useMapSync'
 import { useExtentHistory } from './map/useExtentHistory'
 import GoToXY, { type GoToAction } from './map/GoToXY'
+import LocatePanel from './map/LocatePanel'
+import { LabelClassPane } from './panes/LabelClassPane'
 import { flashLocation } from './map/flashLocation'
 import { useBoxSelect } from './map/useBoxSelect'
 import { applyBoxSelection, featuresInBox } from './map/boxSelect'
@@ -140,6 +142,7 @@ function App() {
   const [bookmarkAnchor, setBookmarkAnchor] = useState<{ left: number; top: number } | null>(null)
   const [backstage, setBackstage] = useState<BackstageSection | null>(null)
   const [goToXYOpen, setGoToXYOpen] = useState(false)
+  const [locateOpen, setLocateOpen] = useState(false)
   // Ribbon requests to the Geoprocessing pane; a new nonce remounts it on the requested tool/view.
   const [toolboxRequest, setToolboxRequest] = useState<{ nonce: number; toolId?: string; view?: 'tools' | 'history' }>({ nonce: 0 })
   const toastTimerRef = useRef<number | null>(null)
@@ -1042,6 +1045,13 @@ function App() {
             onInsert={insertLayoutElement}
             onExport={(format, dpi) => void exportLayout(format, dpi)}
           /></aside>
+        ) : pane === 'labelClass' ? (
+          <aside className="dock symbology-dock">
+            <LabelClassPane
+              layer={selectedLayer}
+              onUpdate={(updates) => { if (selectedLayer) useArcWebStore.getState().updateLayer(selectedLayer.id, updates) }}
+            />
+          </aside>
         ) : (
         <DockablePanel
           floating={false}
@@ -1127,6 +1137,7 @@ function App() {
             onClear={clearSelection}
             hasSelection={hasSelection}
             onExport={format => exportSelectedLayer(selectedLayer, format)}
+            onLabelClass={() => showPane('labelClass')}
           />
         ) : ['RasterAppearance', 'RasterData'].includes(activeTab) && selectedLayer ? (
           <RasterLayerRibbon
@@ -1168,6 +1179,7 @@ function App() {
             onOpenMapProperties={openMapProperties}
             onMeasureFeature={()=>{setMeasuredFeature(null);useArcWebStore.getState().setTool('measure-feature')}}
             onGoToXY={() => setGoToXYOpen(true)}
+            onLocate={() => setLocateOpen(true)}
             onIdentify={() => useArcWebStore.getState().setTool('pan')}
             onSelectTool={() => setEditingTool(tool === 'select-box' ? 'pan' : 'select-box')}
           />
@@ -1267,6 +1279,7 @@ function App() {
           <ViewTabs views={openViews} active={activeView} onActivate={kind=>showView(kind==='scene'?'3d':kind==='layout'?'layout':'2d')} onClose={kind=>{useArcWebStore.getState().closeView(kind);const next=useArcWebStore.getState().activeView;showView(next==='scene'?'3d':next==='layout'?'layout':'2d')}} />
           <div className="map-host" ref={mapHostRef} />
           {goToXYOpen && <GoToXY onGo={goToXY} onClose={closeGoToXY} />}
+          {locateOpen && <LocatePanel onGo={(center) => { const map = mapRef.current; if (map) map.flyTo({ center, zoom: Math.max(map.getZoom(), 12), duration: 800 }) }} onClose={() => setLocateOpen(false)} />}
           {workspaceLayout.fullCanvas && <button className="full-canvas-exit" onClick={toggleFullCanvas}><X size={14} />Restore workspace</button>}
           {importingFile && <ImportProgress file={importingFile} onCancel={cancelImport} />}
           {toolExecutionProgress && <ToolProgress progress={toolExecutionProgress} />}
