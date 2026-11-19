@@ -163,7 +163,7 @@ describe('Project backstage', () => {
 
   it('About shows the application version', () => {
     renderComponent(createElement(Backstage, props({ section: 'about' })))
-    expect(document.querySelector('[role="dialog"]')?.textContent).toMatch(/Version \d+\.\d+\.\d+/)
+    expect(document.querySelector('[role="dialog"]')?.textContent).toMatch(/v\d+\.\d+\.\d+/)
   })
 
   it('Browse closes Backstage before opening the file picker', () => {

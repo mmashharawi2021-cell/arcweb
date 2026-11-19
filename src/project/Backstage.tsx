@@ -158,11 +158,32 @@ export default function Backstage({
         )}
         {section === 'about' && (
           <div className="backstage-about">
-            <p><strong>ArcWeb</strong> — client-side Web GIS for students. Everything runs in your browser; no data leaves this device.</p>
-            <p>Version {__APP_VERSION__}</p>
+            <div className="about-hero">
+              <strong>ArcWeb</strong>
+              <span className="about-version">v{__APP_VERSION__}</span>
+            </div>
+            <p>Client-side Web GIS desktop application for students and researchers. All geoprocessing, editing, storage and cartography run entirely in your browser — no data ever leaves this device.</p>
+            <div className="about-features">
+              <div><strong>Map Engine</strong> MapLibre GL JS</div>
+              <div><strong>Geoprocessing</strong> Turf.js</div>
+              <div><strong>Storage</strong> IndexedDB (offline-first)</div>
+              <div><strong>Formats</strong> GeoJSON · Shapefile · KML · CSV</div>
+              <div><strong>Coordinate Systems</strong> proj4js — WGS 84 &amp; local CRS</div>
+            </div>
+            <h2>What's new in v{__APP_VERSION__}</h2>
+            <ul className="about-changelog">
+              <li>ArcGIS Pro–style ribbon UI with contextual Feature Layer / Raster Layer / Layout tabs</li>
+              <li>Independent panes: Contents, Catalog, Geoprocessing, Symbology, Create &amp; Modify Features, Attributes</li>
+              <li>Multiple attribute tables with per-layer sort, filter and inline editing</li>
+              <li>Geodesic measurement, rectangle/circle construction tools and snapping</li>
+              <li>Spatial bookmarks, Go To XY, extent history and rectangle selection</li>
+              <li>Print layout with PNG/PDF export at 150/200/300 DPI</li>
+              <li>Local project library with offline save, backup and recovery</li>
+              <li>Dark and light themes; editable scale, live coordinate display</li>
+            </ul>
             <h2>Open-source libraries</h2>
             <ul>{LIBRARIES.map((name) => <li key={name}>{name}</li>)}</ul>
-            <p className="modal-note"><FileInput size={12} aria-hidden="true" /> ArcWeb is an independent project and is not affiliated with Esri.</p>
+            <p className="modal-note"><FileInput size={12} aria-hidden="true" /> ArcWeb is an independent project and is not affiliated with Esri, Inc.</p>
           </div>
         )}
       </section>
