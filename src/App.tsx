@@ -994,7 +994,7 @@ function App() {
           onRemoveLayer={setPendingRemoval}
         />
         </DockablePanel>) : pane === 'catalog' ? (
-    <CatalogPane offlineBasemapName={offlineBasemap?.name} assetIds={captureWorkspace().assetIds ?? []} onView={showView} onTool={toolId=>openGeoprocessing({toolId})} onAdd={files=>void addFiles(files)} onOffline={()=>setBackstage('library')} />
+    <CatalogPane offlineBasemapName={offlineBasemap?.name} assetIds={captureWorkspace().assetIds ?? []} onView={showView} onTool={toolId=>openGeoprocessing({toolId})} onAdd={files=>void addFiles(files)} onOffline={()=>setBackstage('library')} onNewLayer={openNewLayerForm} />
   ) : pane === 'modifyFeatures' ? (<ModifyFeaturesPane onTool={setEditingTool} onDelete={deleteSelectedFeatures} onAttributes={()=>showPane('attributes')} />) : pane === 'attributes' ? (<AttributesPane layers={layers} onEdit={(layer,id,field,value)=>editCell(layer.id,id,field,value)} />) : pane === 'geoprocessing' ? (
           <DockablePanel
             floating={false}
