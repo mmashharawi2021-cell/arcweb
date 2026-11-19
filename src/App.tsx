@@ -950,7 +950,8 @@ function App() {
   const selectedCount = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
   const hasSelection = selectedCount > 0 || selectedFeature !== null
   const tableLayerId=tableLayer?.id
-  const tableSelectedIds=new Set<FeatureId>(tableLayerId?selections[tableLayerId]??[]:[])
+  const tableLayerSelections=tableLayerId?selections[tableLayerId]:undefined
+  const tableSelectedIds=useMemo(()=>new Set<FeatureId>(tableLayerSelections??[]),[tableLayerSelections])
   // Resolve identified features against the live layers so edits and deletions are reflected.
   const identifyHits: IdentifyHit[] = identify ? identify.hits.flatMap((hit) => {
     const layer = layers.find((item) => item.id === hit.layerId)
@@ -1205,9 +1206,7 @@ function App() {
             onTogglePane={(pane) => {
               if (pane !== 'table') { showPane(pane === 'side' ? 'symbology' : pane); return }
               const state = useArcWebStore.getState()
-              if (pane === 'table') { state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }) }
-              else if (pane === 'side') state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: !state.workspaceLayout.rightPaneOpen })
-              else state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
+              state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false })
             }}
             onPreset={selectWorkspacePreset}
             onMode={showView}

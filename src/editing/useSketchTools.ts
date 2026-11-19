@@ -122,12 +122,12 @@ export function useSketchTools({ mapRef, mapLoaded, notify, appendFeature }: Ske
   }, [appendFeature, notify, mapRef, setSketch])
 
   const setEditingTool = useCallback((nextTool: ToolMode) => {
-    setSketch([])
-    setMeasure([])
-    movingVertexRef.current = null
     const state = useArcWebStore.getState()
     const target=state.layers.find(layer=>layer.id===state.selectedLayerId)
     if(isEditingTool(nextTool)&&target?.editable===false){notify(`${target.name} is not editable.`, 'warning');return}
+    setSketch([])
+    setMeasure([])
+    movingVertexRef.current = null
     // Picking an editing tool opens (or joins) the edit session for the target layer.
     if (isEditingTool(nextTool) && state.selectedLayerId) state.beginEdit(state.selectedLayerId)
     state.setTool(nextTool)

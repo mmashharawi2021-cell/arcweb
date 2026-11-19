@@ -60,7 +60,7 @@ export const createLayersSlice: StateCreator<ArcWebState, [], [], LayersSlice> =
       : state.sceneSettings
     return {
       openTables: state.openTables.filter(value=>value!==id),
-      activeTable: state.activeTable===id ? state.openTables.find(value=>value!==id)??null : state.activeTable,
+      activeTable: state.activeTable===id ? state.openTables.filter(value=>value!==id).at(-1)??null : state.activeTable,
       sceneSettings,
       tableViews,
       undoStack: state.undoStack.filter((step) => step.layerId !== id),

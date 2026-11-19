@@ -69,7 +69,7 @@ export const createWorkspaceSlice: StateCreator<ArcWebState, [], [], WorkspaceSl
     openView: kind => set(state=>({openViews:openView(state.openViews,kind),activeView:kind,viewMode:kind==='layout'?'layout':'map'})),
     closeView: kind => set(state=>{if(kind==='map')return {};const next=closeView(state.openViews,kind);return {openViews:next.views,...(state.activeView===kind?{activeView:next.next,viewMode:next.next==='layout'?'layout' as const:'map' as const}:{})}}),
     openTables: [], activeTable: null,
-    openTable: id => set(state=>({openTables:state.openTables.includes(id)?state.openTables:[...state.openTables,id],activeTable:id,tableOpen:true,selectedLayerId:id})),
+    openTable: id => set(state=>({openTables:state.openTables.includes(id)?state.openTables:[...state.openTables,id],activeTable:id,tableOpen:true})),
     closeTable: id => set(state=>{const openTables=state.openTables.filter(value=>value!==id);return {openTables,activeTable:state.activeTable===id?openTables.at(-1)??null:state.activeTable,tableOpen:openTables.length>0}}),
     bookmarks: [],
     projectName: 'Untitled map',
