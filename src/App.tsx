@@ -1205,7 +1205,7 @@ function App() {
             onTogglePane={(pane) => {
               if (pane !== 'table') { showPane(pane === 'side' ? 'symbology' : pane); return }
               const state = useArcWebStore.getState()
-              if (pane === 'table') state.setTableOpen(!tableOpen)
+              if (pane === 'table') { state.setTableOpen(true); state.setWorkspaceLayout({ ...state.workspaceLayout, tableMinimized: false }) }
               else if (pane === 'side') state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, rightPaneOpen: !state.workspaceLayout.rightPaneOpen })
               else state.setWorkspaceLayout({ ...useArcWebStore.getState().workspaceLayout, contentsMinimized: !state.workspaceLayout.contentsMinimized })
             }}
