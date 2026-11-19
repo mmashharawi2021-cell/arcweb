@@ -16,7 +16,7 @@ const THEMES: readonly UiSettings['theme'][] = ['dark', 'light']
 const UNITS: readonly LengthUnit[] = ['metric', 'imperial', 'nautical']
 const FORMATS: readonly CoordinateFormat[] = ['dd', 'dms', 'ddm', 'utm']
 
-export const DEFAULT_UI_SETTINGS: UiSettings = { theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' }
+export const DEFAULT_UI_SETTINGS: UiSettings = { theme: 'light', measureUnits: 'metric', coordinateFormat: 'dd' }
 
 function pick<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
   return allowed.includes(value as T) ? value as T : fallback

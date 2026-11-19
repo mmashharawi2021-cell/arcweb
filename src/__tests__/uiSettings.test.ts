@@ -21,13 +21,13 @@ describe('UI settings', () => {
   beforeEach(() => vi.stubGlobal('localStorage', memoryStorage()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('returns defaults (dark, metric, dd) when storage is empty', () => {
-    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' })
+  it('returns defaults (light, metric, dd) when storage is empty', () => {
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'light', measureUnits: 'metric', coordinateFormat: 'dd' })
   })
 
   it('returns defaults when the stored value is corrupt', () => {
     window.localStorage.setItem(KEY, '{not json')
-    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'metric', coordinateFormat: 'dd' })
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'light', measureUnits: 'metric', coordinateFormat: 'dd' })
   })
 
   it('round-trips saved settings', () => {
@@ -37,13 +37,13 @@ describe('UI settings', () => {
 
   it('ignores unknown values field by field', () => {
     window.localStorage.setItem(KEY, JSON.stringify({ theme: 'neon', measureUnits: 'imperial', coordinateFormat: 42 }))
-    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'dark', measureUnits: 'imperial', coordinateFormat: 'dd' })
+    expect(loadUiSettings()).toEqual({ snapping: { enabled: true, tolerancePx: 10 }, theme: 'light', measureUnits: 'imperial', coordinateFormat: 'dd' })
   })
 
   it('keeps working when storage throws', () => {
     vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => { throw new Error('blocked') })
     vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => { throw new Error('quota') })
-    expect(loadUiSettings().theme).toBe('dark')
+    expect(loadUiSettings().theme).toBe('light')
     expect(() => saveUiSettings({ theme: 'light', measureUnits: 'metric', coordinateFormat: 'dd' })).not.toThrow()
   })
 })
