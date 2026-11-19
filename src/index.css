@@ -116,9 +116,9 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f0f0f0;
+  --bg: #eceef2;
   --panel: #ffffff;
-  --panel-raised: #f8f8f8;
+  --panel-raised: #f5f6f8;
   --panel-hover: #e8f1f8;
   --line: #d4d4d4;
   --line-soft: #e4e4e4;
