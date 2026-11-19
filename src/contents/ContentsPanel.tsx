@@ -3,7 +3,7 @@ import { SymbolPatch } from './SymbolPatch'
 import { useMemo, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import {
-  ChevronDown, Database, Eye, EyeOff, Globe2, Layers3, Move, Plus, Search,
+  ChevronDown, Database, Eye, EyeOff, Globe2, Layers3, Magnet, Move, MousePointer2, Pencil, Plus, Search,
   Settings2,
 } from 'lucide-react'
 import { useArcWebStore, type MapLayer } from '../store'
@@ -50,7 +50,18 @@ export default function ContentsPanel({
           <button className="subtle-icon" title="Add data" aria-label="Add data" onClick={onAddData}><Plus size={16} /></button>
         </div>
       </div>
-      <div className="contents-modes" role="toolbar" aria-label="List By">{(['drawing','source','visibility','selection','editing','snapping'] as const).map(value=><button key={value} aria-pressed={mode===value} title={'List By '+value} onClick={()=>setMode(value)}>{value.slice(0,3)}</button>)}</div>
+      <div className="contents-modes" role="toolbar" aria-label="List By">
+        {([
+          ['drawing','List By Drawing Order',Layers3],
+          ['source','List By Data Source',Database],
+          ['visibility','List By Visibility',Eye],
+          ['selection','List By Selection',MousePointer2],
+          ['editing','List By Editing',Pencil],
+          ['snapping','List By Snapping',Magnet],
+        ] as const).map(([value,title,Icon])=>
+          <button key={value} aria-pressed={mode===value} title={title} onClick={()=>setMode(value)}><Icon size={14}/></button>
+        )}
+      </div>
       <div className="pane-subtitle">Drawing order <span>Top layers draw first</span></div>
       {layers.length > 0 && <label className="layer-search"><Search size={14} /><input placeholder="Find a layer" value={layerSearch} onChange={(event) => setLayerSearch(event.target.value)} /><span>⌘F</span></label>}
       <div className="layer-list">

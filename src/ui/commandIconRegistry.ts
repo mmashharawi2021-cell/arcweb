@@ -20,6 +20,7 @@ export const commandIcons: Record<string,{role:IconRole}> = {
   'geoprocessing-history': { role: 'neutral' },
   'geoprocessing-tools': { role: 'neutral' },
   'go-to-xy': { role: 'map' },
+  'identify': { role: 'neutral' },
   'help-about': { role: 'neutral' },
   'help-shortcuts': { role: 'neutral' },
   'label-expression': { role: 'neutral' },

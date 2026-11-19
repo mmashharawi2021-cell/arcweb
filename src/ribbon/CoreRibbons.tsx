@@ -1,6 +1,6 @@
 import {
   CircleDot, Magnet, Move, Pentagon, PenTool, Redo2, RotateCcw, Save, Spline, Trash2, Undo2,
-  Archive, CircleDashed, Download, FileOutput, Hammer, History as HistoryIcon, ImageDown, Layers, Link, Merge, Scissors, SquaresIntersect, SquaresUnite, ChevronLeft, ChevronRight, Crosshair, FolderOpen, Layers3, Navigation, AreaChart, Bookmark as BookmarkIcon, Eraser, FileImage, FilePlus2, FileText, Focus, Globe2, LayoutTemplate, ListFilter, Map as MapIcon, Minus, MousePointer2, Plus, Ruler, ScanSearch, Sparkles, SquareDashedMousePointer, Table2,
+  Archive, CircleDashed, Download, FileOutput, Hammer, History as HistoryIcon, ImageDown, Info, Layers, Link, Merge, Scissors, SquaresIntersect, SquaresUnite, ChevronLeft, ChevronRight, Crosshair, FolderOpen, Layers3, Navigation, AreaChart, Bookmark as BookmarkIcon, Eraser, FileImage, FilePlus2, FileText, Focus, Globe2, LayoutTemplate, ListFilter, Map as MapIcon, Minus, MousePointer2, Plus, Ruler, ScanSearch, Sparkles, SquareDashedMousePointer, Table2,
 } from 'lucide-react'
 import { basemaps } from '../basemaps'
 import type { LayoutExportFormat } from '../layout/exportLayout'
@@ -51,6 +51,8 @@ interface MapRibbonProps {
   onMeasureFeature?: () => void
   /** Go To XY (Task 7); disabled until provided. */
   onGoToXY?: () => void
+  /** Identify (Inquiry group): click a feature to view its attributes. */
+  onIdentify?: () => void
   /** Rectangle selection tool (Task 8); disabled until provided. */
   onSelectTool?: (mode: 'select-box') => void
   onOpenMapProperties: () => void
@@ -117,6 +119,7 @@ export function MapRibbon(props: MapRibbonProps) {
             { id: 'measure-feature', label: 'Feature', icon: MousePointer2, disabled: !props.onMeasureFeature, onSelect: () => props.onMeasureFeature?.() },
           ]} />
         <div className="ribbon-stack">
+          <RibbonButton id="identify" label="Identify" icon={Info} size="small" disabled={!props.onIdentify} onClick={props.onIdentify} />
           <RibbonButton id="go-to-xy" label="Go To XY" icon={Crosshair} size="small" disabled={!props.onGoToXY} onClick={props.onGoToXY} />
         </div>
       </RibbonGroup>

@@ -678,7 +678,7 @@ button:not(:disabled):not([aria-disabled="true"]):active { opacity: .72; }
 /* ---------- Phase 3: coordinate systems, map properties, print layout ---------- */
 button.coordinate-reference { border: 1px solid transparent; border-radius: var(--radius); padding: 6px 8px; background: transparent; cursor: pointer; }
 button.coordinate-reference:hover { border-color: var(--line); background: var(--panel-hover); color: var(--text); }
-.status-crs { padding: 1px 5px; border: 1px solid var(--map-overlay-border); border-radius: 3px; color: var(--map-overlay-muted); background: transparent; font: inherit; cursor: pointer; }
+.status-crs { padding: 1px 5px; border: 1px solid var(--map-overlay-border); border-radius: 3px; color: var(--map-overlay-muted); background: transparent; font: inherit; cursor: pointer; flex-shrink: 0; white-space: nowrap; }
 .status-crs:hover { color: var(--accent-text); border-color: rgba(var(--accent-rgb),.5); }
 .out-of-area { color: var(--warning); }
 

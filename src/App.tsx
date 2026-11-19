@@ -1168,6 +1168,7 @@ function App() {
             onOpenMapProperties={openMapProperties}
             onMeasureFeature={()=>{setMeasuredFeature(null);useArcWebStore.getState().setTool('measure-feature')}}
             onGoToXY={() => setGoToXYOpen(true)}
+            onIdentify={() => useArcWebStore.getState().setTool('pan')}
             onSelectTool={() => setEditingTool(tool === 'select-box' ? 'pan' : 'select-box')}
           />
         ) : activeTab === 'Insert' ? (
