@@ -1,6 +1,6 @@
 ﻿# Claude Code handoff — ArcWeb
 
-**Updated:** 2026-11-19 (Asia/Hebron). هذا ملف تسليم لكلود كود لمتابعة المشروع دون إعادة تنفيذ العمل المنجز.
+**Updated:** 2026-11-19 — post code-review fixes (Asia/Hebron). هذا ملف تسليم لكلود كود لمتابعة المشروع دون إعادة تنفيذ العمل المنجز.
 
 ## Start here
 
@@ -44,6 +44,7 @@ The original plan's test-first workflow checkboxes were deliberately not retroac
 | `9870f51` | Remaining plan Tasks 14–30: independent panes, Catalog/edit panes, views/tables, Contents, measurement/construction, icons and shell extras |
 | `8f525b0` | Recorded completed fast-forward merge/push to main |
 | `5c7134f` | Acceptance fix: View > Attribute Table opens the selected layer's table instead of hiding the table dock; added reproducible browser acceptance script |
+| `d7d648f` | Code-review fixes: memoize tableSelectedIds, remove selectedLayerId side-effect from openTable, move editable guard before resets, remove dead onTogglePane branches, fix measurePoints double-call, align activeTable fallback strategy |
 
 Delivery stayed on the existing `ui/c-ribbon` branch during implementation instead of creating a branch per phase. It was then fast-forward merged into main and pushed. Existing feature branches were not deleted. No deployment or release tag was created.
 
@@ -201,6 +202,7 @@ Prefer the extension's available MCP tools. If unavailable in the agent session,
 - One live map and one layout sheet remain architectural constraints. Applying a template replaces the sheet; only the existing one-step template undo is retained.
 - Both-theme viewport checks do not prove every combination of floating panes, long RTL names and large datasets. Treat future reports as potentially valid even though the suite passes.
 - Do not advertise a release version: package.json still says `0.0.0`; no release tag, release notes package or deployment was published.
-- **Suggested next step:** inspect/render the downloaded PDF, do a focused code review of the large E–J shell change and additional real-data/RTL workflows, then prepare a numbered release when requested. Do not add unrelated new features before resolving any findings.
+- **Completed:** PDF inspected visually (matches PNG export — Map Title, basemap, three layers, Legend, Scale 1:4820, WGS 84 coordinate label, north arrow). Code review of E–J shell ran at high level; 2 important and 6 nit findings; all 8 addressed in `d7d648f`.
+- **Suggested next step:** additional real-data/RTL workflow testing, then prepare a numbered release when requested. Remaining open item: `captureWorkspace()` called inline in render (CatalogPane `assetIds`); address by adding an `assetIds` state slice to `useProjectIO` if CatalogPane re-render overhead becomes a problem.
 
 User data and previous projects were not cleared. All acceptance fixture edits were confined to isolated QA profiles, except the earlier integrated-browser temporary layer, which was explicitly removed after the check.
