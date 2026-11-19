@@ -41,11 +41,12 @@
 }
 .ribbon-tab {
   position: relative; display: flex; align-items: center; gap: 5px; padding: 0 13px;
-  background: transparent; border: 0; color: var(--text-secondary); font-size: 11px; cursor: pointer;
+  background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-secondary); font-size: 11px; cursor: pointer;
+  margin: 4px 0;
 }
-.ribbon-tab:hover { color: var(--text); background: var(--panel-hover); }
-.ribbon-tab.active { color: var(--accent-text); font-weight: 620; }
-.ribbon-tab.active::after { content: ""; height: 2px; position: absolute; bottom: -1px; left: 10px; right: 10px; background: var(--accent); }
+.ribbon-tab:hover { color: var(--text); background: var(--panel-hover); border-color: var(--line); }
+.ribbon-tab.active { color: var(--accent-text); font-weight: 620; background: rgba(var(--accent-rgb), .08); border-color: rgba(var(--accent-rgb), .3); }
+.ribbon-tab.active::after { content: ""; height: 2px; position: absolute; bottom: -5px; left: 10px; right: 10px; background: var(--accent); border-radius: 2px; }
 .ribbon-tab.disabled { opacity: .43; cursor: not-allowed; }
 .ribbon-tab.disabled span { font-size: 7px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 3px; }
 /* Contextual tabs (Feature Layer / Raster Layer / Editing) */
@@ -1407,20 +1408,21 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
 .pro-pane-body { flex:1;min-height:0;overflow:auto; }
 .pro-pane-body > *, .pro-pane-body .dock { width:100%;max-width:none;height:100%;min-width:0; }
 .pro-pane-body .dock-heading { display:none; }
-.pro-pane-tabs { display:flex;overflow:auto;min-height:28px; }
-.pro-pane-tabs button { font-size:10px;white-space:nowrap; }
-.pro-pane-tabs [aria-selected=true] { border-bottom:2px solid var(--accent); }
+.pro-pane-tabs { display:flex;overflow:auto;min-height:28px;gap:2px;padding:2px 4px 0; }
+.pro-pane-tabs button { font-size:10px;white-space:nowrap;border-radius:5px 5px 0 0; }
+.pro-pane-tabs [aria-selected=true] { background:rgba(var(--accent-rgb),.1);color:var(--accent-text);border-bottom:2px solid var(--accent); }
 .pro-edge-tabs { display:flex;flex-direction:column; }
 .pro-edge-tabs button { writing-mode:vertical-rl;padding:8px 4px; }
 .pro-pane-content { padding:10px;display:flex;flex-direction:column;gap:8px;overflow:auto; }
 .pro-pane-content label { display:flex;flex-direction:column;gap:4px; }
 .full-canvas .pro-dock { display:none; }
-.document-tabs { display:flex;gap:2px;min-height:29px;background:var(--panel);border-bottom:1px solid var(--line);z-index:6;position:relative;flex-shrink:0;overflow:auto; }
+.document-tabs { display:flex;gap:4px;padding:4px 8px 0;min-height:33px;background:var(--panel);border-bottom:1px solid var(--line);z-index:6;position:relative;flex-shrink:0;overflow:auto; }
 .document-tabs > div { display:flex; }
-.document-tabs button { color:var(--text);background:var(--panel-raised);padding:5px 12px;border:0;white-space:nowrap; }
-.document-tabs [aria-selected=true] { border-bottom:2px solid var(--accent); }
+.document-tabs button { color:var(--text-secondary);background:transparent;padding:4px 14px;border:1px solid transparent;border-radius:7px 7px 0 0;white-space:nowrap;font-size:11px;cursor:pointer; }
+.document-tabs button:hover { color:var(--text);background:var(--panel-hover);border-color:var(--line); }
+.document-tabs [aria-selected=true] { color:var(--accent-text);background:var(--panel-raised);border-color:var(--line);border-bottom-color:var(--panel-raised);font-weight:600; }
 .map-workspace > .document-tabs { position:absolute;left:0;right:0;top:0; }
-.map-workspace > .map-host { top:29px; }
+.map-workspace > .map-host { top:33px; }
 .command-search {padding:12px;max-height:75vh;display:flex;flex-direction:column;gap:8px;}
 .command-search [role=listbox] {display:flex;flex-direction:column;overflow:auto;}
 .command-search [role=option] {padding:8px;text-align:left;color:var(--text);background:var(--panel);border:0;}
@@ -1438,4 +1440,4 @@ button.coordinate-reference:hover { border-color: var(--line); background: var(-
 .scale-box input {width:95px;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:3px;}
 .bottom-status select {background:var(--panel);color:var(--text);max-width:60px;}
 .ribbon-window-grid {display:grid;grid-template-rows:repeat(3,22px);grid-auto-flow:column;grid-auto-columns:max-content;gap:0 5px;}
-.pro-pane-tabs button {padding:5px 7px;background:var(--panel);color:var(--text);border:0;}
+.pro-pane-tabs button {padding:4px 10px;background:transparent;color:var(--text-secondary);border:1px solid transparent;cursor:pointer;}
